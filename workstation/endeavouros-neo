@@ -99,6 +99,11 @@ install package aur/sddm-archlinux-theme-git
 install package extra/kwalletmanager extra/ksshaskpass
 install package aur/python311
 
+# additional code tools
+install package extra/wl-clipboard extra/code
+install package aur/code-marketplace
+install package aur/unityhub
+
 # interactive fiction tools
 install package aur/inform7-ide-git
 install package aur/lectrote-bin
