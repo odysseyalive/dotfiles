@@ -100,8 +100,8 @@ install package extra/kwalletmanager extra/ksshaskpass
 install package aur/python311
 
 # additional code tools
-install package extra/wl-clipboard extra/code
-install package aur/code-marketplace
+install package extra/wl-clipboard
+install package aur/visual-studio-code-bin
 install package aur/unityhub
 
 # interactive fiction tools
