@@ -101,8 +101,9 @@ install package aur/python311
 
 # additional code tools
 install package extra/wl-clipboard
-install package aur/visual-studio-code-bin
-install package aur/unityhub
+install package aur/windsurf-bin
+install package aur/windsurf-features
+install package aur/windsurf-marketplace
 
 # interactive fiction tools
 install package aur/inform7-ide-git
