@@ -7,10 +7,20 @@ return {
     },
     build = "make tiktoken", -- Only on MacOS or Linux
     opts = {
-      -- See Commands section for default commands if you want to lazy load on them
+      context = {
+        "files", -- Include all project files
+        "buffers:listed", -- Also include listed buffers
+      },
+      -- You can also add other configuration options here
+      show_help = true,
+      window = {
+        layout = "vertical",
+        width = 0.5,
+        height = 0.5,
+      },
     },
-    config = function()
-      require("CopilotChat").setup()
+    config = function(_, opts)
+      require("CopilotChat").setup(opts)
     end,
   },
 }
