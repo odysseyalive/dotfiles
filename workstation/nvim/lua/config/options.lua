@@ -4,3 +4,12 @@
 vim.g.mapleader = ","
 vim.g.maplocalleader = ","
 vim.g.lazyvim_php_lsp = "intelephense"
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "php",
+  callback = function()
+    vim.bo.shiftwidth = 4
+    vim.bo.tabstop = 4
+    vim.bo.softtabstop = 4
+    vim.bo.expandtab = true -- Use spaces instead of tabs
+  end,
+})
