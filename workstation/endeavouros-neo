@@ -89,6 +89,7 @@ install package extra/texlive-bin
 install package extra/w3m extra/ktorrent
 install package extra/zip
 install pacakge extra/fish
+install package extra/wl-clipboard
 install package multilib/wine multilib/winetricks multilib/steam
 install package multilib/lib32-libpulse multilib/lib32-wavpack
 install package extra/xpra
@@ -98,12 +99,6 @@ install package extra/chromium
 install package aur/sddm-archlinux-theme-git
 install package extra/kwalletmanager extra/ksshaskpass
 install package aur/python311
-
-# additional code tools
-install package extra/wl-clipboard
-install package aur/windsurf-bin
-install package aur/windsurf-features
-install package aur/windsurf-marketplace
 
 # interactive fiction tools
 install package aur/inform7-ide-git
