@@ -104,6 +104,10 @@ install package aur/python311
 install package aur/inform7-ide-git
 install package aur/lectrote-bin
 
+# stuff
+install package extra/flashgbx
+install package aur/flashgbx-desktop
+
 # codecs
 install package extra/libavcodec extra/ffmpeg extra/libaacs
 install package extra/cdrtools extra/cdrdao extra/dvd+rw-tools
