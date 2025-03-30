@@ -61,7 +61,7 @@ log "installing commandline tools"
 yay --noconfirm
 install package extra/git-lfs extra/subversion
 install package core/base-devel endeavouros/nvidia-inst
-install package extra/ack extra/ctags extra/neovim
+install package extra/ack extra/ctags extra/neovim extra/lynx
 install package extra/ripgrep
 install package extra/python-pynvim extra/lazygit extra/xclip
 install package core/python extra/python-pip extra/ruby
@@ -120,6 +120,9 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 sleep 5
 source ~/.bashrc
 nvm install v18.20.4
+nvm install v20.19.0
+nvm alias default 20.19.0
+nvm use 20.19.0
 sleep 5
 npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 

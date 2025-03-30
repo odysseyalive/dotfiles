@@ -1,6 +1,6 @@
 return {
   {
-    "zbirenbaum/copilot.lua",
+    "github/copilot.lua",
     cmd = "Copilot",
     event = "InsertEnter",
     config = function()
