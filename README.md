@@ -32,7 +32,7 @@ index: [Emacs](#emacs), [Tmux](#tmux), [Vim](#vim), and [Kitty](#kitty)
 Requirements: [git](https://git-scm.com/downloads)
 
 ```bash
-bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseaylive/dotfiles/master/setup`"
+bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
 ```
 
 #### Update
@@ -50,7 +50,7 @@ bash ~/.yadrlite/setup remove
 #### To install this Emacs configuration without the rest of YADRLite
 
 ```bash
-curl https://raw.githubusercontent.com/odysseaylive/dotfiles/master/emacs.d/emacs.init > ~/.emacs
+curl https://raw.githubusercontent.com/odysseyalive/dotfiles/master/emacs.d/emacs.init > ~/.emacs
 ```
 
 # My Workstation
@@ -58,7 +58,7 @@ curl https://raw.githubusercontent.com/odysseaylive/dotfiles/master/emacs.d/emac
 ### Arch workstation
 
 ```bash
-curl https://raw.githubusercontent.com/odysseaylive/dotfiles/master/workstation/endeavouros-neo > ~/install
+curl https://raw.githubusercontent.com/odysseyalive/dotfiles/master/workstation/endeavouros-neo > ~/install
 ```
 
 Run as user...
@@ -81,10 +81,10 @@ settings directory for reference. This package is ready for deployment on most
 Linux distros and MacOS.
 
 **Vim / Tmux**\
-![screenshot](https://github.com/odysseaylive/dotfiles/raw/master/assets/vim-tmux.jpeg?raw=true)
+![screenshot](https://github.com/odysseyalive/dotfiles/raw/master/assets/vim-tmux.jpeg?raw=true)
 
 **Emacs**\
-![screenshot](https://github.com/odysseaylive/dotfiles/raw/master/assets/emacs.jpeg?raw=true)
+![screenshot](https://github.com/odysseyalive/dotfiles/raw/master/assets/emacs.jpeg?raw=true)
 
 # Emacs
 
@@ -450,7 +450,7 @@ Plugin Requirements: [Composer](https://getcomposer.org/),
 #### Xdebug
 
 See more about setting up the
-[.vimrc.local](https://gitlab.com/odysseaylive/lampreadys#vim-vdebug-settings) file.
+[.vimrc.local](https://gitlab.com/odysseyalive/lampreadys#vim-vdebug-settings) file.
 
 - `<F5>`: start/run (to next breakpoint/end of script)
 - `<F2>`: step over
