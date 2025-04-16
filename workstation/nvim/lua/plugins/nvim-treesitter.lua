@@ -14,6 +14,7 @@ return {
   opts = {
     ensure_installed = {},
     auto_install = true,
+    ignore_install = { "coffee" },
     highlight = { enable = true },
     indent = { enable = true },
   },
