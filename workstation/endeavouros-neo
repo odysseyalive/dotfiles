@@ -179,9 +179,10 @@ SSH_ASKPASS_REQUIRE=prefer\n\
 # sudo grub-mkconfig -o /boot/grub/grub.cfg
 
 # enable ollama server
-curl -fsSL https://ollama.com/install.sh | sh
-sudo mkdir -p /usr/share/ollama/.ollama
-sudo chown -R ollama:ollama /usr/share/ollama
+install package extra/ollama-cuda
+sudo sed -i 's/User=.*/User=root/' /etc/systemd/system/ollama.service
+sudo sed -i 's/Group=.*/Group=root/' /etc/systemd/system/ollama.service
+sudo systemctl daemon-reload
 sudo systemctl enable ollama
 
 # Install bun
