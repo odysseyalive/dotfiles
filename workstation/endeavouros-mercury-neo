@@ -95,10 +95,10 @@ install package multilib/lib32-libpulse multilib/lib32-wavpack
 install package extra/xpra
 install package extra/dosbox extra/virtualbox
 install package aur/dmg2img
-install package extra/chromium
 install package aur/sddm-archlinux-theme-git
 install package extra/kwalletmanager extra/ksshaskpass
 install package aur/python311
+install package aur/google-chrome
 
 # interactive fiction tools
 install package aur/inform7-ide-git
@@ -119,7 +119,7 @@ install package extra/gulp extra/grunt-cli
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 sleep 5
 source ~/.bashrc
-nvm install v18.20.4
+# nvm install v18.20.4
 nvm install v20.19.0
 nvm alias default 20.19.0
 nvm use 20.19.0

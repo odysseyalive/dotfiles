@@ -58,7 +58,7 @@ curl https://raw.githubusercontent.com/odysseyalive/dotfiles/master/emacs.d/emac
 ### Arch workstation
 
 ```bash
-curl https://raw.githubusercontent.com/odysseyalive/dotfiles/master/workstation/endeavouros-neo > ~/install
+curl https://raw.githubusercontent.com/odysseyalive/dotfiles/master/workstation/endeavouros-mercury-neo > ~/install
 ```
 
 Run as user...
