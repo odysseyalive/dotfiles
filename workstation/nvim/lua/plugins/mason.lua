@@ -1,4 +1,8 @@
 return {
+  -- mason work-around
+  { "mason-org/mason.nvim", version = "1.11.0" },
+  { "mason-org/mason-lspconfig.nvim", version = "1.32.0" },
+  --
   "WhoIsSethDaniel/mason-tool-installer.nvim",
   config = function()
     require("mason-tool-installer").setup({

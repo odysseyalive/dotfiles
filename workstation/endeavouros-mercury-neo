@@ -78,7 +78,6 @@ install package extra/krita extra/krita-plugin-gmic
 install package extra/gimp extra/gimp-plugin-gmic
 install package extra/libreoffice-fresh
 install package extra/webkit2gtk
-install package extra/sdl2
 install package extra/sdl12-compat
 install package extra/sdl2_mixer extra/sdl2_ttf extra/sdl2_image extra/sdl2_net extra/sdl_sound
 install package extra/sdl_mixer extra/sdl_ttf extra/sdl_image extra/sdl_net
@@ -87,7 +86,6 @@ install package extra/catatonit
 install package extra/pdfarranger extra/simple-scan
 install package extra/texlive-bin
 install package extra/w3m extra/ktorrent
-install package extra/zip
 install pacakge extra/fish
 install package extra/wl-clipboard
 install package multilib/wine multilib/winetricks multilib/steam
@@ -101,15 +99,15 @@ install package aur/python311
 install package aur/google-chrome
 
 # interactive fiction tools
-install package aur/inform7-ide-git
-install package aur/lectrote-bin
+# install package aur/inform7-ide-git
+# install package aur/lectrote-bin
 
 # stuff
 install package extra/flashgbx
 install package aur/flashgbx-desktop
 
 # codecs
-install package extra/libavcodec extra/ffmpeg extra/libaacs
+install package extra/ffmpeg extra/libaacs
 install package extra/cdrtools extra/cdrdao extra/dvd+rw-tools
 install package extra/k3b
 
