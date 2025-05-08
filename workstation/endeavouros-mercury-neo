@@ -97,6 +97,7 @@ install package aur/sddm-archlinux-theme-git
 install package extra/kwalletmanager extra/ksshaskpass
 install package aur/python311
 install package aur/google-chrome
+install package aur/dropbox
 
 # interactive fiction tools
 # install package aur/inform7-ide-git
