@@ -100,6 +100,7 @@ install package aur/google-chrome
 install package aur/dropbox
 install package aur/zoom
 install package extra/obs-studio extra/audacity
+install package extra/geoclue
 
 # interactive fiction tools
 # install package aur/inform7-ide-git
