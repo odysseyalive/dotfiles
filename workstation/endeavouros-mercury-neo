@@ -83,7 +83,7 @@ install package extra/sdl2_mixer extra/sdl2_ttf extra/sdl2_image extra/sdl2_net 
 install package extra/sdl_mixer extra/sdl_ttf extra/sdl_image extra/sdl_net
 install package extra/podman extra/buildah
 install package extra/catatonit
-install package extra/pdfarranger extra/simple-scan
+install package extra/pdfarranger extra/simple-scan extra/img2pdf
 install package extra/texlive-bin
 install package extra/w3m extra/ktorrent
 install pacakge extra/fish
