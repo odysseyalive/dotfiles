@@ -103,6 +103,9 @@ install package extra/obs-studio extra/audacity
 install package extra/geoclue
 install package aur/retroarch-git
 
+# Jarvis JR
+install package extra/telegram-desktop
+
 # interactive fiction tools
 # install package aur/inform7-ide-git
 # install package aur/lectrote-bin
