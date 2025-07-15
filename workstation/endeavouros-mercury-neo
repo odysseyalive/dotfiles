@@ -215,7 +215,6 @@ only basic indexing=true \n\
 # sudo firewall-cmd --reload
 
 # nvidia support
-#
 # yay -S --noconfirm extra/cuda
 # nvidia-inst -p --32
 # prime-run <application>
@@ -248,6 +247,11 @@ sudo sed -i 's/Current=.*/Current=archlinux/' /etc/sddm.conf.d/kde_settings.conf
 
 # clean everything
 yay -Scc --noconfirm
+
+# Q&A
+# What if my sound quits unexpectedly? Do I need to reboot?
+# No, you can restart pipewire with the following command:
+# systemctl --user restart pipewire wireplumber
 
 log "Installation complete.  Please reboot your system."
 printf "\r# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\r"
