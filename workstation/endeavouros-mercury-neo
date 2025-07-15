@@ -221,8 +221,15 @@ only basic indexing=true \n\
 # prime-run <application>
 
 # to install hp setup
+install package aur/hplip-plugin
+install package extra/python-notify2
 # tap the wifi icon on the printer and obtain the printer's ip address
 # use the ip address in the following command
+# update firewall settings (if needed)
+# sudo firewall-cmd --permanent --add-service=mdns
+# sudo firewall-cmd --permanent --add-port=5353/udp
+# sudo firewall-cmd --reload
+# install printer manually
 # sudo hp-setup -a <ip_address>
 
 # setting up git
