@@ -88,7 +88,7 @@ install package extra/texlive-bin
 install package extra/w3m extra/ktorrent
 install pacakge extra/fish
 install package extra/wl-clipboard
-install package multilib/wine multilib/winetricks multilib/steam
+install package aur/wine-tkg-staging-bin multilib/winetricks multilib/steam aur/protontricks
 install package multilib/lib32-libpulse multilib/lib32-wavpack
 install package extra/xpra
 install package extra/dosbox extra/virtualbox
@@ -102,6 +102,9 @@ install package aur/zoom
 install package extra/obs-studio extra/audacity
 install package extra/geoclue
 install package aur/retroarch-git
+
+# Xtra
+install package aur/openxcom-extended
 
 # Jarvis JR
 install package extra/telegram-desktop
