@@ -88,7 +88,7 @@ install package extra/texlive-bin
 install package extra/w3m extra/ktorrent
 install pacakge extra/fish
 install package extra/wl-clipboard
-install package aur/wine-tkg-staging-bin multilib/winetricks multilib/steam aur/protontricks
+install package extra/wine-staging multilib/winetricks multilib/steam
 install package multilib/lib32-libpulse multilib/lib32-wavpack
 install package extra/xpra
 install package extra/dosbox extra/virtualbox
@@ -97,7 +97,7 @@ install package aur/sddm-archlinux-theme-git
 install package extra/kwalletmanager extra/ksshaskpass
 install package aur/python311
 install package aur/google-chrome
-install package aur/dropbox
+install package aur/insync
 install package aur/zoom
 install package extra/obs-studio extra/audacity
 install package extra/geoclue
