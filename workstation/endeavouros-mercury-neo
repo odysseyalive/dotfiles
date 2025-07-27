@@ -189,10 +189,12 @@ SSH_ASKPASS_REQUIRE=prefer\n\
 
 # enable ollama server
 install package extra/ollama-cuda
-sudo sed -i 's/User=.*/User=root/' /etc/systemd/system/ollama.service
-sudo sed -i 's/Group=.*/Group=root/' /etc/systemd/system/ollama.service
-sudo systemctl daemon-reload
 sudo systemctl enable ollama
+sudo sed -i 's/User=.*/User=root/' /usr/lib/systemd/system/ollama.service
+sudo sed -i 's/Group=.*/Group=root/' /usr/lib/systemd/system/ollama.service
+sudo sed -i '/^Environment="OLLAMA_MODELS=/a\Environment="OLLAMA_KV_CACHE_TYPE=f16"' /usr/lib/systemd/system/ollama.service
+sudo sed -i '/^Environment="OLLAMA_MODELS=/a\Environment="OLLAMA_FLASH_ATTENTION=true"' /usr/lib/systemd/system/ollama.service
+sudo systemctl daemon-reload
 
 # Install bun
 curl -fsSL https://bun.sh/install | bash
@@ -218,7 +220,7 @@ only basic indexing=true \n\
 # sudo firewall-cmd --reload
 
 # nvidia support
-# yay -S --noconfirm extra/cuda
+# yay -S --noconfirm extra/cuda nvidia-container-toolkit
 # nvidia-inst -p --32
 # prime-run <application>
 
