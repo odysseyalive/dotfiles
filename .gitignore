@@ -3,6 +3,7 @@ backup/
 bash/plugin
 bash_profile
 bashrc
+CLAUDE.md
 Session.vim
 emacs
 emacs.d/*

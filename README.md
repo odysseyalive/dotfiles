@@ -285,31 +285,64 @@ Requirements: [Tmux](https://github.com/tmux/tmux/wiki/Installing)
 ## Tmux Shortcuts
 
 The leader key Ctrl-a can be followed by the next key concurrently without
-holding them all down at once. Use `tmux ls`to list the current open sessions
+holding them all down at once. Use `tmux ls` to list the current open sessions
 and `tmux a -t <session_no>` to join them. Use
-`tmux kill-session -t <session_no>`: to remove one.
+`tmux kill-session -t <session_no>` to remove one.
 
-#### General Shortcuts
+#### Session Management
 
-- `Ctrl-a d`: Detach from current session and close Tmux. Run `tmux attach`:
+- `Ctrl-a d`: Detach from current session and close Tmux. Run `tmux attach`
   to resume later.
-- `Ctrl-a h`: Focus on window left of the current one
-- `Ctrl-a j`: Focus on window above the current one
-- `Ctrl-a k`: Focus on window below the current one
-- `Ctrl-a l`: Focus on window right of the current one
-- `Ctrl-a x`: Kill current window pane
-- `Ctrl-a H`: Shift current window pane left
-- `Ctrl-a J`: Shift current window pane down
-- `Ctrl-a K`: Shift current window pane up
-- `Ctrl-a L`: Shift current window pane right
-- `Ctrl-a Space`: Toggle all windows horizontally/vertically equally
-- `Ctrl-a s`: Create new window horizontally below current one
-- `Ctrl-a v`: Create new window vertically to right of current one
-- `Ctrl-a [`: Enter Vim-like normal mode
-- `Ctrl-a Ctrl-s`, `Ctrl-r`: Saves and Restores Tmux Session
+- `Ctrl-a ^D`: Alternative detach command (keep finger on Ctrl)
+- `Ctrl-a Ctrl-s`: Save current session with tmux-resurrect
+- `Ctrl-a Ctrl-r`: Restore saved session with tmux-resurrect
 
-In visual mode use `h,j,k,l` to move, `v` to change to visual mode and `y` to
-yank selection. Press `Enter` to exit mode.
+#### Window Management
+
+- `Ctrl-a c`: Create new window in current directory
+- `Ctrl-a Ctrl-a`: Switch to last window
+- `Ctrl-a a`: Send prefix to nested tmux session
+
+#### Pane Navigation
+
+- `Ctrl-h`: Focus on pane left of the current one (vim-tmux-navigator)
+- `Ctrl-j`: Focus on pane below the current one (vim-tmux-navigator)
+- `Ctrl-k`: Focus on pane above the current one (vim-tmux-navigator)
+- `Ctrl-l`: Focus on pane right of the current one (vim-tmux-navigator)
+
+#### Pane Creation
+
+- `Ctrl-a v`: Create vertical split (50% width) in current directory
+- `Ctrl-a ^V`: Alternative vertical split command
+- `Ctrl-a s`: Create horizontal split (50% height) in current directory
+- `Ctrl-a ^S`: Alternative horizontal split command
+
+#### Pane Resizing
+
+- `Ctrl-a H`: Resize pane left by 5 columns (repeatable)
+- `Ctrl-a J`: Resize pane down by 5 rows (repeatable)
+- `Ctrl-a K`: Resize pane up by 5 rows (repeatable)
+- `Ctrl-a L`: Resize pane right by 5 columns (repeatable)
+
+#### Pane Synchronization
+
+- `Ctrl-a e`: Enable synchronize-panes (send input to all panes)
+- `Ctrl-a E`: Disable synchronize-panes
+
+#### Copy Mode
+
+- `Ctrl-a [`: Enter copy mode (Vim-like navigation)
+- In copy mode:
+  - `h,j,k,l`: Move cursor
+  - `v`: Begin selection
+  - `Ctrl-v`: Begin rectangular selection
+  - `y`: Copy selection and exit copy mode
+  - `Enter`: Exit copy mode
+
+#### Configuration
+
+- `Ctrl-a r`: Reload tmux configuration file
+- `Ctrl-a Ctrl-l`: Clear screen (alternative to clear command)
 
 # Vim
 
