@@ -102,6 +102,8 @@ install package aur/zoom
 install package extra/obs-studio extra/audacity
 install package extra/geoclue
 install package aur/retroarch-git
+install pacakge extra/python-hugginface-hub
+install package extra/glow
 
 # Xtra
 install package aur/openxcom-extended
@@ -189,7 +191,6 @@ SSH_ASKPASS_REQUIRE=prefer\n\
 
 # enable ollama server
 install package extra/ollama-cuda
-sudo systemctl enable ollama
 sudo sed -i 's/User=.*/User=root/' /usr/lib/systemd/system/ollama.service
 sudo sed -i 's/Group=.*/Group=root/' /usr/lib/systemd/system/ollama.service
 sudo sed -i '/^Environment="OLLAMA_MODELS=/a\Environment="OLLAMA_KV_CACHE_TYPE=f16"' /usr/lib/systemd/system/ollama.service
