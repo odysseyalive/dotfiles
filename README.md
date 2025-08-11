@@ -25,7 +25,7 @@ Under the workstation directory, you'll find an example of my setup using great 
 Grammarly and VSCode-php-debug. IMHO, the neovim dap interface is much, much nicer than VSCode's
 implementation. For one thing, you can actually read the variable scope.
 
-index: [Emacs](#emacs), [Tmux](#tmux), [Vim](#vim), and [Kitty](#kitty)
+index: [Emacs](#emacs), [Tmux](#tmux), [Vim](#vim), [LazyVim](#lazyvim), [Kitty](#kitty), and [Ranger](#ranger)
 
 # Dotfiles Installation
 
@@ -539,6 +539,159 @@ See more about setting up the
   vim. Great for testing single line changes to vimrc.
 - `,vr`: (Vim Reload) source current file as a vim file
 
+# LazyVim
+
+LazyVim is a modern Neovim distribution that provides a blazing fast IDE experience with sensible defaults. This configuration builds on LazyVim's foundation with PHP development optimizations and carefully selected plugins for web development workflows.
+
+```bash
+mkdir -p ~/.config/nvim && rsync -azhLP ~/.yadrlite/workstation/lazyvim/ ~/.config/nvim
+```
+
+Requirements: [Neovim 0.9+](https://neovim.io/), [Git](https://git-scm.com/), [Node.js](https://nodejs.org/)
+
+Plugin Requirements: [Ripgrep](https://github.com/BurntSushi/ripgrep), [fd](https://github.com/sharkdp/fd), [PHP CS Fixer](https://cs.symfony.com/), [Intelephense](https://intelephense.com/)
+
+[Return to top](#yadrlite)
+
+## LazyVim Shortcuts
+
+LazyVim uses the comma (`,`) as the leader key, consistent with the YADR package. Most shortcuts are discoverable through the which-key popup that appears after pressing the leader key.
+
+#### Core Navigation
+
+- `,`: Opens which-key menu (shows all available shortcuts)
+- `,,`: Command palette (equivalent to `:` in vim)
+- `,r`: Resume last fuzzy finder search
+- `Ctrl-h,j,k,l`: Navigate between splits and tmux panes
+- `Ctrl-/`: Toggle terminal
+- `<S-h>`,`<S-l>`: Switch between buffers
+
+#### File Management
+
+- `,ff`: Find files in project
+- `,fr`: Recent files
+- `,fb`: Browse file system
+- `,fg`: Live grep in project
+- `,fw`: Find word under cursor
+- `,fc`: Find command
+- `,fh`: Help tags
+- `,fm`: File manager (neo-tree)
+
+#### Buffer Operations
+
+- `,bd`: Delete buffer
+- `,bD`: Delete buffer and window
+- `,bl`: Delete buffers to the left
+- `,br`: Delete buffers to the right
+- `,bo`: Delete other buffers
+- `,bp`: Toggle pin buffer
+
+#### LSP and Code Actions
+
+- `gd`: Go to definition
+- `gr`: Go to references
+- `gi`: Go to implementation
+- `K`: Show hover documentation
+- `,ca`: Code actions
+- `,cr`: Rename symbol
+- `,cf`: Format document
+- `,cd`: Line diagnostics
+- `]d`,`[d`: Next/previous diagnostic
+
+#### Git Integration
+
+- `,gg`: LazyGit
+- `,gb`: Git blame line
+- `,gf`: LazyGit current file history
+- `,gl`: Git log
+- `,gL`: Git log (current file)
+- `]h`,`[h`: Next/previous hunk
+- `,ghs`: Stage hunk
+- `,ghr`: Reset hunk
+- `,ghp`: Preview hunk
+
+#### Debug (DAP)
+
+- `,db`: Toggle breakpoint
+- `,dB`: Breakpoint condition
+- `,dc`: Continue
+- `,dC`: Run to cursor
+- `,dg`: Go to line (no execute)
+- `,di`: Step into
+- `,dj`: Down in stacktrace
+- `,dk`: Up in stacktrace
+- `,dl`: Run last
+- `,do`: Step out
+- `,dO`: Step over
+- `,dp`: Pause
+- `,dr`: Toggle REPL
+- `,ds`: Session
+- `,dt`: Terminate
+- `,dw`: Widgets
+
+#### Window Management
+
+- `,ww`: Other window
+- `,wd`: Delete window
+- `,w-`: Split window below
+- `,w|`: Split window right
+- `,wm`: Maximize toggle
+
+#### Search and Replace
+
+- `,sr`: Replace in files
+- `,sR`: Replace in files (with confirmation)
+- `,sw`: Search word under cursor
+- `,sW`: Search word under cursor (exact match)
+
+#### Project and Session
+
+- `,fp`: Find files in config
+- `,ft`: Terminal (root dir)
+- `,fT`: Terminal (cwd)
+- `,qq`: Quit all
+- `,qs`: Session save
+- `,qr`: Session restore
+
+#### Plugin Management
+
+- `,l`: Open Lazy plugin manager
+- `,cm`: Mason (manage LSP servers, formatters, etc.)
+- `,ci`: Lazy install
+- `,cs`: Lazy sync
+- `,cu`: Lazy update
+- `,cx`: Lazy extras
+
+#### AI and Copilot
+
+- `,aa`: CopilotChat
+- `,ae`: CopilotChat explain
+- `,af`: CopilotChat fix
+- `,ao`: CopilotChat optimize
+- `,ad`: CopilotChat docs
+- `,at`: CopilotChat tests
+- `Tab`: Accept Copilot suggestion
+- `Ctrl-]`: Dismiss Copilot suggestion
+
+#### Table Mode (for Markdown/Org)
+
+- `,tm`: Toggle table mode
+- `,tt`: Tableize (convert CSV to table)
+- `,tr`: Realign table
+- `,tdd`: Delete table row
+- `,tdc`: Delete table column
+
+#### Org Mode
+
+- `,oa`: Org agenda
+- `,oc`: Org capture
+- `,oe`: Org export
+- `,oi`: Org clock in
+- `,oo`: Org clock out
+- `,ot`: Org todo
+
+[Return to top](#yadrlite)
+
 # Kitty
 
 Kitty is a full featured GPU-accelerated terminal. It's faster.
@@ -580,5 +733,91 @@ Requirements: [Kitty](https://sw.kovidgoyal.net/kitty/)
 - `Ctrl+Shift+Equal`: Inscrease Font Size
 - `Ctrl+Shift+minus`: Decrease Font Size
 - `Ctrl+Shift+backspace`: Restore Font Size
+
+# Ranger
+
+Ranger is a console file manager with VI key bindings that provides a minimalistic interface with Miller columns layout. It's perfect for quick file navigation and preview without leaving the terminal.
+
+```bash
+mkdir -p ~/.config/ranger && rsync -azhLP ~/.yadrlite/workstation/ranger/ ~/.config/ranger
+```
+
+Requirements: [Ranger](https://ranger.github.io/)
+
+Plugin Requirements: [w3m](http://w3m.sourceforge.net/) for image previews, [atool](https://www.nongnu.org/atool/) for archive handling
+
+[Return to top](#yadrlite)
+
+## Ranger Shortcuts
+
+The ranger interface uses three columns: parent directory (left), current directory (center), and file preview (right). Navigation follows vim conventions with hjkl keys.
+
+#### Basic Navigation
+
+- `h,j,k,l`: Move left, down, up, right (or use arrow keys)
+- `gg`: Go to top of file list
+- `G`: Go to bottom of file list
+- `Enter`: Open file or enter directory
+- `q`: Quit ranger
+- `S`: Open shell in current directory
+- `Ctrl-h`: Toggle hidden files
+- `zh`: Toggle hidden files (alternative)
+
+#### File Operations
+
+- `yy`: Copy (yank) file
+- `dd`: Cut file
+- `pp`: Paste file
+- `Space`: Select/mark file
+- `v`: Select all files
+- `uv`: Unselect all files
+- `cw`: Rename current file
+- `A`: Rename file (cursor at end)
+- `I`: Rename file (cursor at beginning)
+- `:delete`: Delete selected files
+- `:mkdir <name>`: Create new directory
+
+#### Navigation Shortcuts
+
+- `gh`: Go to home directory
+- `gr`: Go to root directory
+- `ge`: Go to /etc
+- `gd`: Go to /dev
+- `gv`: Go to /var
+- `gm`: Go to /media
+- `H`: Go back in history
+- `L`: Go forward in history
+
+#### File Preview and Applications
+
+- `i`: Preview file in larger window
+- `r`: Open file with application (shows menu)
+- `E`: Edit file with default editor
+- `:open_with <app>`: Open with specific application
+
+#### Search and Filters
+
+- `/`: Search for files
+- `n`: Next search result
+- `N`: Previous search result
+- `f`: Find file (type to filter)
+- `zf`: Toggle file filtering
+
+#### Bookmarks and Tabs
+
+- `m<letter>`: Create bookmark at current location
+- `'<letter>`: Go to bookmark
+- `Ctrl-n`: Create new tab
+- `Ctrl-w`: Close current tab
+- `Tab`: Switch to next tab
+- `Shift-Tab`: Switch to previous tab
+
+#### View Options
+
+- `zh`: Show/hide hidden files
+- `zp`: Toggle file previews
+- `zi`: Toggle image previews
+- `zv`: Toggle use of preview script
+- `F`: Toggle freeze files (improve performance)
 
 [Return to top](#yadrlite)
