@@ -190,12 +190,12 @@ SSH_ASKPASS_REQUIRE=prefer\n\
 # sudo grub-mkconfig -o /boot/grub/grub.cfg
 
 # enable ollama server
-install package extra/ollama-cuda
-sudo sed -i 's/User=.*/User=root/' /usr/lib/systemd/system/ollama.service
-sudo sed -i 's/Group=.*/Group=root/' /usr/lib/systemd/system/ollama.service
-sudo sed -i '/^Environment="OLLAMA_MODELS=/a\Environment="OLLAMA_KV_CACHE_TYPE=f16"' /usr/lib/systemd/system/ollama.service
-sudo sed -i '/^Environment="OLLAMA_MODELS=/a\Environment="OLLAMA_FLASH_ATTENTION=true"' /usr/lib/systemd/system/ollama.service
-sudo systemctl daemon-reload
+# install package extra/ollama-cuda
+# sudo sed -i 's/User=.*/User=root/' /usr/lib/systemd/system/ollama.service
+# sudo sed -i 's/Group=.*/Group=root/' /usr/lib/systemd/system/ollama.service
+# sudo sed -i '/^Environment="OLLAMA_MODELS=/a\Environment="OLLAMA_KV_CACHE_TYPE=f16"' /usr/lib/systemd/system/ollama.service
+# sudo sed -i '/^Environment="OLLAMA_MODELS=/a\Environment="OLLAMA_FLASH_ATTENTION=true"' /usr/lib/systemd/system/ollama.service
+# sudo systemctl daemon-reload
 
 # Install bun
 curl -fsSL https://bun.sh/install | bash
