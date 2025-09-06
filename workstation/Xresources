@@ -1,16 +1,16 @@
 ! -----------------------------------------------------------------------------
-! File: gruvbox-dark.xresources
+! File: gruvbox-light.xresources
 ! Description: Retro groove colorscheme generalized
 ! Author: morhetz <morhetz@gmail.com>
 ! Source: https://github.com/morhetz/gruvbox-generalized
 ! -----------------------------------------------------------------------------
 !!XTERM SETTINGS
-! hard contrast: *background: #1d2021
-*background: #1d2021
-! soft contrast: *background: #32302f
-*foreground: #fbf1c7
+! hard contrast: *background: #f2e5bc
+*background: #f2e5bc
+! soft contrast: *background: #f2e5bc
+*foreground: #3c3836
 ! Black + DarkGrey
-*color0:  #282828
+*color0:  #f2e5bc
 *color8:  #928374
 ! DarkRed + Red
 *color1:  #cc241d
@@ -31,8 +31,8 @@
 *color6:  #689d6a
 *color14: #8ec07c
 ! LightGrey + White
-*color7:  #a89984 
-*color15: #ebdbb2
+*color7:  #665c54 
+*color15: #3c3836
 ! VHERID DEFAULT
 ! hard contrast: *background: #1d2021
 VheridDefault*background: #000000
@@ -531,10 +531,10 @@ VheridSoyuz*color15: #fff0ad
 *VT100*faceName: DejaVu Sans Mono for Powerline Book
 *VT100*faceSize: 12
 !! *VT100*renderFont: true
-*VT100*background: #282828
-*VT100*foreground: #ebdbb2
+*VT100*background: #f2e5bc
+*VT100*foreground: #3c3836
 ! Black + DarkGrey
-*VT100*color0:  #1d2021
+*VT100*color0:  #f2e5bc
 *VT100*color8:  #928374
 ! DarkRed + Red
 *VT100*color1:  #cc241d
@@ -555,8 +555,8 @@ VheridSoyuz*color15: #fff0ad
 *VT100*color6:  #689d6a
 *VT100*color14: #8ec07c
 ! LightGrey + White
-*VT100*color7:  #a89984
-*VT100*color15: #fbf1c7
+*VT100*color7:  #665c54
+*VT100*color15: #3c3836
 ! URXVT SETTINGS
 URxvt*color24:  #076678
 URxvt*color66:  #427b58
@@ -574,8 +574,8 @@ URxvt*color208: #fe8019
 URxvt*color214: #fabd2f
 URxvt*color223: #ebdbb2
 URxvt*color228: #f2e5bc
-URxvt*color229: #fbf1c7
-URxvt*color230: #f9f5d7
+URxvt*color229: #f2e5bc
+URxvt*color230: #f2e5bc
 URxvt*color234: #1d2021
 URxvt*color235: #282828
 URxvt*color236: #32302f
@@ -592,7 +592,7 @@ URxvt*faceName: FiraCode Nerd Font
 URxvt*faceSize: 11.5
 URxvt*letterSpace: -2
 URxvt*depth: 32
-URxvt*background: [95]#282828
+URxvt*background: [95]#f2e5bc
 URxvt*scrollBar: false
 ! REMAP CLIPBOARD CONTROLS
 URxvt*iso14755: false
@@ -609,6 +609,6 @@ Xft*hintstyle: hintslight
 Xft*rgba: rgb
 ! XTerm
 xterm*faceName: FiraCode Nerd Font 
-xterm*faceSize: 11.5
+xterm*faceSize: 14
 XTerm*VT100.translations: #override \n\
     Ctrl Shift <KeyPress> V: insert-selection(PRIMARY,CUT_BUFFER0) \n

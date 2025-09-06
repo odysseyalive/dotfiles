@@ -26,10 +26,10 @@ else
 endif
 
 " Light/Dark Theme Switch
-let g:gruvboxtheme="dark"
+let g:gruvboxtheme="light"
 let g:gruvbox_termcolors=256
 let g:gruvbox_contrast_dark="soft"
-let g:gruvbox_contrast_light="medium"
+let g:gruvbox_contrast_light="soft"
 let g:gruvbox_invert_selection=0
 function! ToggleGruvbox()
     if g:gruvboxtheme == "light" 
@@ -59,7 +59,7 @@ set t_Co=256
 if HasColorscheme('gruvbox')
     colorscheme gruvbox
 endif
-set background=dark
+set background=light
 
 
 " uncomment for transparent background

@@ -9,7 +9,7 @@ dark4="#7C6F64"
 gray_245="#928374"
 gray_244="#928374"
 
-light0_hard="#FB4934"
+light0_hard="#f9f5d7"
 light0="#FBF1C7"
 light0_soft="#F2E5BC"
 light1="#EBDBB2"
