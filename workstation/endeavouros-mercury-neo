@@ -174,8 +174,8 @@ stream.properties = {\n\
 " >>~/.config/pipewire/pipewire.conf.d/10-rates.conf
 
 # disables audio suspend for pipewire bug
-sudo mkdir -p ~/.config/wireplumber/main.lua.d/
-sudo cat >~/.config/wireplumber/main.lua.d/50-alsa-config.lua <<'EOF'
+mkdir -p ~/.config/wireplumber/main.lua.d/
+cat >~/.config/wireplumber/main.lua.d/50-alsa-config.lua <<'EOF'
 -- Disable suspend-on-idle for all audio devices
 alsa_monitor.rules = {
   {
