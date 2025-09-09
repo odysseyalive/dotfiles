@@ -173,6 +173,28 @@ stream.properties = {\n\
 }\n\
 " >>~/.config/pipewire/pipewire.conf.d/10-rates.conf
 
+# disables audio suspend for pipewire bug
+sudo mkdir -p ~/.config/wireplumber/main.lua.d/
+sudo cat >~/.config/wireplumber/main.lua.d/50-alsa-config.lua <<'EOF'
+-- Disable suspend-on-idle for all audio devices
+alsa_monitor.rules = {
+  {
+    matches = {
+      {
+        { "node.name", "matches", "alsa_output.*" },
+      },
+      {
+        { "node.name", "matches", "alsa_input.*" },
+      },
+    },
+    apply_properties = {
+      ["session.suspend-timeout-seconds"] = 0,
+    },
+  },
+}
+EOF
+sudo systemctl --user restart wireplumber
+
 # setup kwallet
 mkdir -p ~/.config/environment.d
 printf "SSH_ASKPASS=/usr/bin/ksshaskpass\n\
