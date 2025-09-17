@@ -105,6 +105,7 @@ install package aur/retroarch-git
 install pacakge extra/python-hugginface-hub
 install package extra/glow
 install package extra/shellcheck
+install package extra/python-lsp-server
 
 # Xtra
 install package aur/openxcom-extended
