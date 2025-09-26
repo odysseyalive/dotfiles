@@ -245,10 +245,6 @@ alternative to the Emacs Pinky.
 - `,sw`: Remove breakpoint from a variable
 - `,sx`: Remove breakpoint from a function
 
-#### Emacs Toggle Options
-
-- `,tt`: Toggle Dark/Light Theme
-
 #### Window Shortcuts
 
 - `,wd`: Delete current window
@@ -302,6 +298,7 @@ and `tmux a -t <session_no>` to join them. Use
 - `Ctrl-a c`: Create new window in current directory
 - `Ctrl-a Ctrl-a`: Switch to last window
 - `Ctrl-a a`: Send prefix to nested tmux session
+- `Ctrl-a &`: Force close window
 
 #### Pane Navigation
 
@@ -733,6 +730,9 @@ Requirements: [Kitty](https://sw.kovidgoyal.net/kitty/)
 - `Ctrl+Shift+Equal`: Inscrease Font Size
 - `Ctrl+Shift+minus`: Decrease Font Size
 - `Ctrl+Shift+backspace`: Restore Font Size
+- `Ctrl+Shift+O`: select light and dark themes
+- `Ctrl+Shift+L`: Select light theme
+- `Ctrl+Shift+D`: Select dark theme
 
 # Ranger
 

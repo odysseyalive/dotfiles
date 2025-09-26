@@ -597,65 +597,6 @@
   (global-git-gutter-mode +1))
 (if window-system (use-package git-gutter-fringe :ensure t))
 
-
-;; Gruvbox Theme
-;; # # # # # # # # # # #
-(use-package gruvbox-theme :ensure t
-  :config
-  (setq active-theme 'gruvbox-dark-medium)
-  (load-theme active-theme t))
-(defun toggle-light-dark-theme ()
-  "Toggle Light and Dark themes"
-  (interactive)
-  (if (eq active-theme 'gruvbox-light-medium)
-      (setq active-theme 'gruvbox-dark-medium)
-    (setq active-theme 'gruvbox-light-medium))
-  (load-theme active-theme t)
-  (gruvbox-modeline-reset)
-  (powerline-reset))
-(defun gruvbox-modeline-reset ()
-  "Dark Mode Line"
-  (if (eq active-theme 'gruvbox-light-medium)
-      (progn
-        (set-face-attribute 'mode-line nil
-                            :foreground "#282828"
-                            :background "#bdae93")
-        (set-face-attribute 'mode-line-inactive nil
-                            :foreground "#928374"
-                            :background "#fbf1c7")
-        (set-face-attribute 'powerline-active1 nil
-                            :foreground "#ebdbb2"
-                            :background "#928374")
-        (set-face-attribute 'powerline-active2 nil
-                            :foreground "#3c3836"
-                            :background "#d5c4a1")
-        (set-face-attribute 'powerline-inactive1 nil
-                            :foreground "#928374"
-                            :background "#ebdbb2")
-        (set-face-attribute 'powerline-inactive2 nil
-                            :foreground "#928374"
-                            :background "#fbf1c7:"))
-    (progn
-      (set-face-attribute 'mode-line nil
-                          :foreground "#ebdbb2"
-                          :background "#504945")
-      (set-face-attribute 'mode-line-inactive nil
-                          :foreground "#bdae93"
-                          :background "#282828")
-      (set-face-attribute 'powerline-active1 nil
-                          :foreground "#ebdbb2"
-                          :background "#928374")
-      (set-face-attribute 'powerline-active2 nil
-                          :foreground "#bdae93"
-                          :background "#3c3836")
-      (set-face-attribute 'powerline-inactive1 nil
-                          :foreground "#bdae93"
-                          :background "#282828")
-      (set-face-attribute 'powerline-inactive2 nil
-                          :foreground "#bdae93"
-                          :background "#1d2021"))))
-
-
 ;; Misc Helm Packages and Dependencies
 ;; # # # # # # # # # # #
 (use-package helm-swoop :ensure t)
@@ -744,7 +685,6 @@
   (set-face-attribute 'spaceline-evil-normal nil :background "#bdae93")
   (set-face-attribute 'spaceline-evil-replace nil :background "#cc241d")
   (set-face-attribute 'spaceline-evil-visual nil :background "#fabd2f")
-  (gruvbox-modeline-reset)
   (powerline-reset))
 
 

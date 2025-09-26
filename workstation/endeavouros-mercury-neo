@@ -132,12 +132,6 @@ install package extra/gulp extra/grunt-cli
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 sleep 5
 source ~/.bashrc
-# nvm install v18.20.4
-nvm install v20.19.0
-nvm alias default 20.19.0
-nvm use 20.19.0
-sleep 5
-npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 
 # install fonts
 install package extra/ttf-noto-nerd extra/ttf-firacode-nerd
@@ -155,13 +149,8 @@ curl -s https://erb.pw/get-syncterm.sh | bash
 log "installing custom configuration"
 wget https://raw.githubusercontent.com/bridgesense/dotfiles/master/setup
 bash setup
+bash setup nvm
 cp -f ~/.yadrlite/workstation/Xresources ~/.Xresources
-cp -r ~/.yadrlite/workstation/nvim ~/.config
-cp -r ~/.yadrlite/workstation/kitty ~/.config
-cp -r ~/.yadrlite/workstation/ranger ~/.config
-find ~/.config -type d -exec chmod 0755 {} \;
-find ~/.config -type f -exec chmod 0644 {} \;
-find ~/.config -name "*.sh" -execdir chmod u+x {} +
 
 # improve sound
 mkdir -p ~/.config/pipewire/pipewire.conf.d

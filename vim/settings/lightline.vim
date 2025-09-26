@@ -4,7 +4,6 @@ set laststatus=2
 if g:patched_fonts
     " lightline for patched fonts
     let g:lightline = {
-        \ 'colorscheme': 'gruvbox',
         \ 'active': {
         \   'left': [ [ 'mode', 'paste' ], [ 'fugitive', 'filename' ] ]
         \ },
@@ -39,7 +38,6 @@ if g:patched_fonts
 else
     " lightline for non-patched fonts
     let g:lightline = {
-            \ 'colorscheme': 'gruvbox',
             \ 'active': {
             \   'left': [ [ 'mode', 'paste' ], [ 'fugitive', 'filename' ] ]
             \ },

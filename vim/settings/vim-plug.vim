@@ -25,7 +25,6 @@ Plug 'jiangmiao/auto-pairs'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'kchmck/vim-coffee-script'
-Plug 'morhetz/gruvbox'
 Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-surround'
 Plug 'tomtom/tcomment_vim'

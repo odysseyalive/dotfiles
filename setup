@@ -11,7 +11,8 @@ dir=~/.yadrlite
 dotfiles_old=backup
 action="${1:-install}"
 declare -a files=('vim vimrc tmux.conf profile bash_profile bashrc vimrc.after emacs emacs.d')
-declare -a tmuxplugins=('https://github.com/tmux-plugins/tmux-resurrect.git' 'https://github.com/tmux-plugins/tpm.git' 'https://github.com/tmux-plugins/tmux-sensible' 'https://github.com/egel/tmux-gruvbox.git')
+declare -a config=('kitty nvim ranger')
+declare -a tmuxplugins=('https://github.com/tmux-plugins/tmux-resurrect.git' 'https://github.com/tmux-plugins/tmux-sensible')
 
 # # Routines
 # # # # # # # # # # # # # # #
@@ -45,6 +46,10 @@ if [ "$action" == "remove" ]; then
     rm -rf ~/.$cfile 2>/dev/null
     mv $dir/$dotfiles_old/.$cfile ~/ 2>/dev/null
   done
+  for cfile in ${config[@]}; do
+    rm -rf ~/.config/$cfile 2>/dev/null
+    mv $dir/$dotfiles_old/config/$cfile ~/.config/$cfile 2>/dev/null
+  done
   rm -rf $dir 2>/dev/null
 
   echo ""
@@ -66,6 +71,16 @@ if [ "$action" == "update" ]; then
     update $dir/tmux/plugin
     echo "The update is finished."
   fi
+fi
+
+# nvm install v18.20.4
+# # # # # # # # # # # # # # #
+if [ "$action" == "nvm" ]; then
+  nvm install v20.19.0
+  nvm alias default 20.19.0
+  nvm use 20.19.0
+  sleep 5
+  npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 fi
 
 # # Install
@@ -103,6 +118,10 @@ if [ "$action" == "install" ]; then
   for cfile in ${files[@]}; do
     mv ~/.$cfile $dir/$dotfiles_old/ 2>/dev/null
   done
+  mkdir -p $dotfiles_old/config 2>/dev/null
+  for cfile in ${config[@]}; do
+    mv ~/.config/$cfile $dir/$dotfiles_old/config/$cfile 2>/dev/null
+  done
 
   echo "# # Vim, Emacs and Tmux Configurations"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
@@ -134,10 +153,6 @@ if [ "$action" == "install" ]; then
     git clone $tplug
   done
 
-  # Create TPM symlinks for standard plugin discovery
-  ln -sf $dir/tmux/plugin/tpm ~/.tmux/plugins/tpm 2>/dev/null
-  ln -sf $dir/tmux/plugin/tmux-gruvbox ~/.tmux/plugins/tmux-gruvbox 2>/dev/null
-
   # covers injection into most existing configurations
   if ! grep -q "~/.bashrc" $dir/bash_profile && ! grep -q "~/.bash_profile" $dir/bashrc; then
     cat $dir/bash/bashrc >>$dir/bashrc 2>/dev/null
@@ -159,6 +174,13 @@ if [ "$action" == "install" ]; then
   for cfile in ${files[@]}; do
     ln -s $dir/$cfile ~/.$cfile
   done
+  mkdir -p ~/.config
+  for cfile in ${config[@]}; do
+    cp -r $dir/workstation/$cfile ~/.config/$cfile
+  done
+  find ~/.config -type d -exec chmod 0755 {} \;
+  find ~/.config -type f -exec chmod 0644 {} \;
+  find ~/.config -name "*.sh" -execdir chmod u+x {} +
 
   echo ""
   echo "This script does not install ack, emacs, silversearcher, tmux or"

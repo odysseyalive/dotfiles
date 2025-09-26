@@ -1,6 +1,4 @@
 " Modifications to this file will not be overwritten when YADRLite is updated.
-" If you are using a terminal and have installed the Gruvbox theme, try commenting out the line below.
-let g:yadr_using_gruvbox_terminal=1
 
 " This fixes the ALT mappings in URXVT.
 let g:urxvt_fix=1

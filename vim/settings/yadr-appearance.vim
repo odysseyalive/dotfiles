@@ -25,40 +25,18 @@ else
   let g:CSApprox_loaded = 1
 endif
 
-" Light/Dark Theme Switch
-let g:gruvboxtheme="light"
-let g:gruvbox_termcolors=256
-let g:gruvbox_contrast_dark="soft"
-let g:gruvbox_contrast_light="soft"
-let g:gruvbox_invert_selection=0
-function! ToggleGruvbox()
-    if g:gruvboxtheme == "light" 
-        let g:gruvboxtheme="dark"
-        set background=dark
-    else
-        let g:gruvboxtheme="light"
-        set background=light
-    endif
-endfunction
-
-nnoremap <silent> ,Ot :call ToggleGruvbox()<CR>
-
 function! HasColorscheme(name) abort
     let pat = 'colors/'.a:name.'.vim'
     return !empty(globpath(&rtp, pat))
 endfunction
 
 " fix SpellBad
-let g:gruvbox_guisp_fallback='bg'
 au colorscheme * hi SpellBad ctermbg=NONE ctermfg=NONE cterm=underline gui=undercurl 
 au colorscheme * hi SpellCap ctermbg=NONE ctermfg=NONE cterm=underline gui=undercurl 
 au colorscheme * hi SpellLocal ctermbg=NONE ctermfg=NONE cterm=underline gui=undercurl 
 au colorscheme * hi SpellRare ctermbg=NONE ctermfg=NONE cterm=underline gui=undercurl 
 
 set t_Co=256
-if HasColorscheme('gruvbox')
-    colorscheme gruvbox
-endif
 set background=light
 
 
