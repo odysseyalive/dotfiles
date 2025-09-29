@@ -129,9 +129,6 @@ install package extra/k3b
 # setting up nodejs
 install package extra/nodejs extra/yarn
 install package extra/gulp extra/grunt-cli
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-sleep 5
-source ~/.bashrc
 
 # install fonts
 install package extra/ttf-noto-nerd extra/ttf-firacode-nerd
