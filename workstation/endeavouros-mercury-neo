@@ -63,7 +63,7 @@ install package extra/git-lfs extra/subversion
 install package core/base-devel endeavouros/nvidia-inst
 install package extra/ack extra/ctags extra/neovim extra/lynx
 install package extra/ripgrep
-install package extra/python-pynvim extra/lazygit extra/xclip
+install package extra/python-pynvim extra/xclip
 install package core/python extra/python-pip extra/ruby
 install package extra/php core/perl extra/maven extra/composer
 install package core/net-tools

@@ -35,6 +35,12 @@ Requirements: [git](https://git-scm.com/downloads)
 bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
 ```
 
+#### Install commonly used tools
+
+```bash
+bash ~/.yadrlite/setup tools
+```
+
 #### Update
 
 ```bash
