@@ -79,14 +79,14 @@ if [ "$action" == "tools" ]; then
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
   sleep 5
   source ~/.bashrc
+  nvm install v22.20.0
   sleep 5
-  nvm install v20.19.0
-  nvm alias default 20.19.0
-  nvm use 20.19.0
-  sleep 5
+  nvm alias default 22.20.0
+  nvm use 22.20.0
   npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
   # go lang
   curl -sSL https://git.io/g-install | sh -s
+  sleep 5
   source ~/.bashrc
   g install latest
   go install github.com/junegunn/fzf@latest
