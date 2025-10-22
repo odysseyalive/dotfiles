@@ -78,7 +78,8 @@ fi
 if [ "$action" == "tools" ]; then
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
   sleep 5
-  source ~/.bashrc
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
   nvm install v22.20.0
   sleep 5
   nvm alias default 22.20.0
@@ -87,7 +88,10 @@ if [ "$action" == "tools" ]; then
   # go lang
   curl -sSL https://git.io/g-install | sh -s
   sleep 5
-  source ~/.bashrc
+  export GOROOT="$HOME/.go"
+  export PATH="$GOROOT/bin:$PATH"
+  export GOPATH="$HOME/go"
+  export PATH="$GOPATH/bin:$PATH"
   g install latest
   go install github.com/junegunn/fzf@latest
   go install github.com/jesseduffield/lazygit@latest
