@@ -11,7 +11,7 @@ dir=~/.yadrlite
 dotfiles_old=backup
 action="${1:-install}"
 declare -a files=('vim vimrc tmux.conf profile bash_profile bashrc vimrc.after emacs emacs.d')
-declare -a config=('kitty nvim ranger')
+declare -a config=('nvim ranger')
 declare -a tmuxplugins=('https://github.com/tmux-plugins/tmux-resurrect.git' 'https://github.com/tmux-plugins/tmux-sensible')
 
 # # Routines
@@ -99,6 +99,25 @@ if [ "$action" == "tools" ]; then
   go install github.com/charmbracelet/glow@latest
 fi
 
+# nvm install v18.20.4
+# # # # # # # # # # # # # # #
+if [ "$action" == "omarchy" ]; then
+  npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
+ 
+ # go lang
+  curl -sSL https://git.io/g-install | bash
+  sleep 5
+  export GOROOT="$HOME/.go"
+  export PATH="$GOROOT/bin:$PATH"
+  export GOPATH="$HOME/go"
+  export PATH="$GOPATH/bin:$PATH"
+  g install latest
+  go install github.com/junegunn/fzf@latest
+  go install github.com/jesseduffield/lazygit@latest
+  go install github.com/gitleaks/gitleaks/v8@latest
+  go install github.com/charmbracelet/glow@latest
+fi
+
 # # Install
 # # # # # # # # # # # # # # #
 if [ "$action" == "install" ]; then
@@ -116,10 +135,10 @@ if [ "$action" == "install" ]; then
     exit
   fi
   if [ "$USEREPO" == "yes" ]; then
-    git clone https://github.com/bridgesense/dotfiles.git $dir
+    git clone https://github.com/odysseyalive/dotfiles.git $dir
   else
     if [ ! -f setup ]; then
-      git clone https://github.com/bridgesense/dotfiles.git $dir
+      git clone https://github.com/odysseyalive/dotfiles.git $dir
     else
       cp -R . $dir
     fi

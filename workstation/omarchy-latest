@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+# This script is just a personal snapshot of my arch workstation.
+# curl https://raw.githubusercontent.com/bridgesense/dotfiles/master/workstation/endeavouros-gemini > ~/install
+# NOTE: There are additional settings under the troublehsooting section.
+# bash install
+# # # # # # # # # # # # # # #
+
+# Options
+# # # # # # # # # # # # # # #
+# USER="${1:francis}"
+LOGFILE='workstation-installation.log'
+
+# Functions
+# # # # # # # # # # # # # # #
+function log {
+  if [ -f "$LOGFILE" ]; then
+    echo $1 >>$LOGFILE
+  else
+    echo $1 >$LOGFILE
+  fi
+}
+
+function install {
+  arr=("$@")
+  _type=
+  if [[ "$(declare -p arr)" =~ "declare -a" ]]; then
+    for package in "${arr[@]}"; do
+      if [[ $package == "package" ]]; then
+        _type=$package
+        continue
+      fi
+      if [[ $package == "flatpak" ]]; then
+        _type=$package
+        continue
+      fi
+      cnt=3
+      pacname=$(echo $package | sed 's/^[^/]*\///')
+      while [ $cnt -gt 0 ]; do
+        if pacman -Qqe | grep $pacname; then
+          break
+        else
+          if [[ $_type == "flatpak" ]]; then
+            flatpak install flathub --noninteractive -y $package
+            break
+          else
+            yay -S --noconfirm $package
+          fi
+        fi
+        let "cnt-=1"
+      done
+      if ! pacman -Qqe | grep $pacname && [[ $_type != "flatpak" ]]; then
+        log "There was a problem installing ${package}.  Please make sure this package exists."
+      fi
+    done
+  else
+    log "Warning! Passed variable is not an array".
+  fi
+}
+
+log "installing commandline tools"
+yay --noconfirm
+install package extra/ranger
+install package extra/kitty
+install package aur/insync
+install package extra/tmux
+install package extra/virtualbox
+install pacakge extra/audacity
+install package omarchy/lmstudio
+
+# Jarvis JR
+install package extra/telegram-desktop
+
+# interactive fiction tools
+# install package aur/inform7-ide-git
+# install package aur/lectrote-bin
+
+# codecs
+install package extra/libaacs
+install package extra/cdrtools extra/cdrdao extra/dvd+rw-tools
+
+# setting up nodejs
+install package extra/nodejs extra/yarn
+install package extra/gulp extra/grunt-cli
+
+# syncterm
+# NOTE: Had some issues with aur version
+# thanks to MeaTLoTioN for this alternative script
+# https://www.erb.pw/how-to-install-syncterm-for-linux-from-source/
+mkdir -p ~/lab
+cd ~/lab
+curl -s https://erb.pw/get-syncterm.sh | bash
+
+# Installing configuration
+# # # # # # # # # # # # # # #
+log "installing custom configuration"
+bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
+
+# improve sound
+mkdir -p ~/.config/pipewire/pipewire.conf.d
+printf "context.properties = {\n\
+  default.clock.rate = 192000\n\
+  default.clock.allowed-rates = [ 44100 48000 88200 96000 192000 352800 384000]\n\
+}\n\
+stream.properties = {\n\
+  resample.quality = 10\n\
+}\n\
+" >>~/.config/pipewire/pipewire.conf.d/10-rates.conf
+
+# disables audio suspend for pipewire bug
+mkdir -p ~/.config/wireplumber/main.lua.d/
+cat >~/.config/wireplumber/main.lua.d/50-alsa-config.lua <<'EOF'
+-- Disable suspend-on-idle for all audio devices
+alsa_monitor.rules = {
+  {
+    matches = {
+      {
+        { "node.name", "matches", "alsa_output.*" },
+      },
+      {
+        { "node.name", "matches", "alsa_input.*" },
+      },
+    },
+    apply_properties = {
+      ["session.suspend-timeout-seconds"] = 0,
+    },
+  },
+}
+EOF
+sudo systemctl --user restart wireplumber
+
+# clean everything
+yay -Scc --noconfirm
+
+log "Installation complete.  Please reboot your system."
+printf "\r# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\r"
+printf "ALL DONE\r"
+printf "Review the workstation-installation.login and address any uninstalled packages noted.\r"
+printf "PLEASE REBOOT YOUR SYSTEM."
