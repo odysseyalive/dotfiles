@@ -66,8 +66,7 @@ install package extra/tmux
 install package extra/virtualbox
 install pacakge extra/audacity
 install package omarchy/lmstudio
-
-# Jarvis JR
+install pacakge extra/virtualbox-host-modules-arch
 install package extra/telegram-desktop
 
 # interactive fiction tools
@@ -77,10 +76,6 @@ install package extra/telegram-desktop
 # codecs
 install package extra/libaacs
 install package extra/cdrtools extra/cdrdao extra/dvd+rw-tools
-
-# setting up nodejs
-install package extra/nodejs extra/yarn
-install package extra/gulp extra/grunt-cli
 
 # syncterm
 # NOTE: Had some issues with aur version

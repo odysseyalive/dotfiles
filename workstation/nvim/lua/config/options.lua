@@ -5,6 +5,7 @@ vim.g.copilot_no_tab_map = true
 vim.g.mapleader = ","
 vim.g.maplocalleader = ","
 vim.g.lazyvim_php_lsp = "intelephense"
+vim.g.intelephense_license_key = "YOUR_LICENSE_KEY_HERE"
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "php",
   callback = function()
