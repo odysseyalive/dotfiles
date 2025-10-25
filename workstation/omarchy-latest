@@ -90,6 +90,7 @@ curl -s https://erb.pw/get-syncterm.sh | bash
 # # # # # # # # # # # # # # #
 log "installing custom configuration"
 bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
+bash ~/.yadrlite/setup omarchy
 
 # Configure Hyprland keyboard options
 log "configuring hyprland keyboard settings"
