@@ -96,13 +96,13 @@ return {
         },
       },
 
-      -- Git integration - ENABLED
+      -- Git integration - ENABLED with directory status
       git = {
         enable = true,
-        show_on_dirs = true,
-        show_on_open_dirs = true,
+        show_on_dirs = true, -- Show git status on directories (slower but more informative)
+        show_on_open_dirs = true, -- Show on opened directories
         disable_for_dirs = {},
-        timeout = 400, -- Timeout for git queries (ms)
+        timeout = 2000, -- Timeout for git queries (ms)
       },
 
       -- Modified files
