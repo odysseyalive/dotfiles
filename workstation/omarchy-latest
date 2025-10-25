@@ -90,6 +90,17 @@ curl -s https://erb.pw/get-syncterm.sh | bash
 log "installing custom configuration"
 bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
 
+# Configure Hyprland keyboard options
+log "configuring hyprland keyboard settings"
+if [ -f ~/.config/hypr/input.conf ]; then
+  sed -i 's/^[[:space:]]*kb_options[[:space:]]*=.*/  kb_options = caps:swapescape/' ~/.config/hypr/input.conf
+  # Reload Hyprland configuration if running
+  if pgrep -x "Hyprland" > /dev/null; then
+    hyprctl reload
+    log "hyprland configuration reloaded"
+  fi
+fi
+
 # improve sound
 mkdir -p ~/.config/pipewire/pipewire.conf.d
 printf "context.properties = {\n\
