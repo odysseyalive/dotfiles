@@ -8,3 +8,17 @@ vim.keymap.set("n", "<leader>o", "<Nop>", { desc = "OrgMode" })
 
 -- tables mode
 vim.keymap.set("n", "<leader>t", "<Nop>", { desc = "TableMode" })
+
+-- Performance profiling
+vim.keymap.set("n", "<leader>tp", function()
+  vim.cmd("profile start /tmp/nvim-profile.log")
+  vim.cmd("profile func *")
+  vim.cmd("profile file *")
+  vim.notify("Profiling started. Use <leader>tP to stop.", vim.log.levels.INFO)
+end, { desc = "Start profiling" })
+
+vim.keymap.set("n", "<leader>tP", function()
+  vim.cmd("profile stop")
+  vim.cmd("e /tmp/nvim-profile.log")
+  vim.notify("Profiling stopped. Check buffer for results.", vim.log.levels.INFO)
+end, { desc = "Stop profiling" })

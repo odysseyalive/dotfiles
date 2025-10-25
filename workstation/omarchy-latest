@@ -70,6 +70,7 @@ install pacakge extra/virtualbox-host-modules-arch
 install package extra/telegram-desktop
 install package extra/podman extra/buildah
 install package extra/krita-plugin-gmic
+install package extra/rsync
 
 # interactive fiction tools
 # install package aur/inform7-ide-git

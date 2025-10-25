@@ -5,7 +5,7 @@ vim.g.copilot_no_tab_map = true
 vim.g.mapleader = ","
 vim.g.maplocalleader = ","
 vim.g.lazyvim_php_lsp = "intelephense"
-vim.g.intelephense_license_key = "YOUR_LICENSE_KEY_HERE"
+vim.g.intelephense_license_key = "00QR13RBZBFCOU2"
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "php",
   callback = function()
@@ -14,4 +14,30 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.bo.softtabstop = 4
     vim.bo.expandtab = true -- Use spaces instead of tabs
   end,
+})
+
+-- Performance optimizations for large projects
+vim.opt.updatetime = 300 -- Faster completion (default 4000ms)
+vim.opt.timeoutlen = 400 -- Faster key sequence completion
+
+-- Limit syntax highlighting for large files
+vim.opt.synmaxcol = 500 -- Only highlight first 500 columns
+
+-- Improve matchparen performance
+vim.g.matchparen_timeout = 20
+vim.g.matchparen_insert_timeout = 20
+
+-- Better wildignore (respects .gitignore but adds common patterns)
+vim.opt.wildignore:append({
+  "*/node_modules/*",
+  "*/.git/*",
+  "*/vendor/*",
+  "*/sessions/*",
+  "*/tmp/*",
+  "*/cache/*",
+  "*.so",
+  "*.swp",
+  "*.zip",
+  "*/dist/*",
+  "*/build/*",
 })
