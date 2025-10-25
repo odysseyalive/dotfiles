@@ -63,13 +63,7 @@ curl https://raw.githubusercontent.com/odysseyalive/dotfiles/master/emacs.d/emac
 
 ### Arch workstation
 
-Endeavorous
-
-```bash
-curl https://raw.githubusercontent.com/odysseyalive/dotfiles/master/workstation/endeavouros-mercury-neo > ~/install
-```
-
-Omarchy
+[Omarchy](https://omarchy.org)
 
 ```bash
 curl https://raw.githubusercontent.com/odysseyalive/dotfiles/master/workstation/omarchy-latest > ~/install
