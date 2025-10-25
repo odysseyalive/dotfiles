@@ -103,7 +103,7 @@ fi
 # # # # # # # # # # # # # # #
 if [ "$action" == "omarchy" ]; then
   npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
- 
+
  # go lang
   curl -sSL https://git.io/g-install | bash
   sleep 5
@@ -116,6 +116,51 @@ if [ "$action" == "omarchy" ]; then
   go install github.com/jesseduffield/lazygit@latest
   go install github.com/gitleaks/gitleaks/v8@latest
   go install github.com/charmbracelet/glow@latest
+
+  # Configure Kitty to use Omarchy theme system
+  echo "# # Configuring Kitty for Omarchy theme switching"
+  mkdir -p ~/.config/kitty
+  cat > ~/.config/kitty/kitty.conf << 'EOF'
+# Omarchy theme integration - automatically updates when you switch themes
+include ~/.config/omarchy/current/theme/kitty.conf
+
+# Add your personal Kitty settings below this line
+# (fonts, keybindings, window settings, etc.)
+EOF
+
+  # Configure Neovim to use Omarchy theme system
+  echo "# # Configuring Neovim for Omarchy theme switching"
+  mkdir -p ~/.config/nvim/lua/plugins
+  cat > ~/.config/nvim/lua/plugins/kitty-themes.lua << 'EOF'
+-- Dynamically load theme from Omarchy's current theme
+local theme_file = vim.fn.expand("~/.config/omarchy/current/theme/neovim.lua")
+
+-- Check if the theme file exists before loading
+if vim.fn.filereadable(theme_file) == 1 then
+  return dofile(theme_file)
+else
+  -- Fallback to SeaShells if theme file doesn't exist
+  return {
+    {
+      "odysseyalive/kitty-themes.nvim",
+      config = function()
+        require("kitty-themes").setup({
+          transparent = false,
+          term_colors = true,
+        })
+      end,
+    },
+    {
+      "LazyVim/LazyVim",
+      opts = {
+        colorscheme = "SeaShells",
+      },
+    },
+  }
+end
+EOF
+
+  echo "Kitty and Neovim configured for Omarchy theme switching"
 fi
 
 # # Install
