@@ -68,6 +68,7 @@ install pacakge extra/audacity
 install package omarchy/lmstudio
 install pacakge extra/virtualbox-host-modules-arch
 install package extra/telegram-desktop
+install package extra/podman extra/buildah
 
 # interactive fiction tools
 # install package aur/inform7-ide-git
