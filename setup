@@ -160,6 +160,15 @@ else
 end
 EOF
 
+  # Configure uwsm to use Kitty as default terminal
+  echo "# # Configuring uwsm to use Kitty as default terminal"
+  if [ -f ~/.config/uwsm/default ]; then
+    sed -i 's/^export TERMINAL=.*/export TERMINAL=kitty/' ~/.config/uwsm/default
+    echo "Updated TERMINAL export in ~/.config/uwsm/default"
+  else
+    echo "Warning: ~/.config/uwsm/default not found, skipping terminal configuration"
+  fi
+
   echo "Kitty and Neovim configured for Omarchy theme switching"
 fi
 
