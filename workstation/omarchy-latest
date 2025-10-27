@@ -113,6 +113,7 @@ printf "context.properties = {\n\
 }\n\
 stream.properties = {\n\
   resample.quality = 10\n\
+  channelmix.max-volume = 2.0\n\
 }\n\
 " >>~/.config/pipewire/pipewire.conf.d/10-rates.conf
 
@@ -137,6 +138,15 @@ alsa_monitor.rules = {
 }
 EOF
 sudo systemctl --user restart wireplumber
+
+# configure swayosd max volume
+mkdir -p ~/.config/swayosd
+cat >~/.config/swayosd/config.toml <<'EOF'
+[server]
+show_percentage = true
+max_volume = 200
+style = "./style.css"
+EOF
 
 # clean everything
 yay -Scc --noconfirm
