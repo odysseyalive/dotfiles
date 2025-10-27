@@ -71,6 +71,10 @@ install package extra/telegram-desktop
 install package extra/podman extra/buildah
 install package extra/krita-plugin-gmic
 install package extra/rsync
+install package extra/lsof extra/strace
+install package extra/gdb extra/ltrace
+install package extra/htop extra/tree
+install package extra/bind extra/openbsd-netcat extra/traceroute
 
 # interactive fiction tools
 # install package aur/inform7-ide-git

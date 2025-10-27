@@ -102,6 +102,8 @@ fi
 # nvm install v18.20.4
 # # # # # # # # # # # # # # #
 if [ "$action" == "omarchy" ]; then
+  mise install node@22.20.0
+  mise use -g node@22.20.0
   npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 
  # go lang
