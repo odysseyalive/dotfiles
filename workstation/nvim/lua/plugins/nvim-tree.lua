@@ -23,9 +23,14 @@ return {
         update_root = false,
       },
 
-      -- Performance: disable file watchers for large projects
+      -- Enable file watchers to auto-update tree on file changes
       filesystem_watchers = {
-        enable = false, -- Manual refresh with R key
+        enable = true,
+        debounce_delay = 50, -- ms delay to batch rapid changes
+        ignore_dirs = {
+          "node_modules",
+          ".git",
+        },
       },
 
       -- View settings
