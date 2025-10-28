@@ -86,12 +86,14 @@ if [ "$action" == "tools" ]; then
   nvm use 22.20.0
   npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
   # go lang
-  curl -sSL https://git.io/g-install | bash
+  curl -sSL https://git.io/g-install | bash -s -- -y
   sleep 5
   export GOROOT="$HOME/.go"
   export PATH="$GOROOT/bin:$PATH"
   export GOPATH="$HOME/go"
   export PATH="$GOPATH/bin:$PATH"
+  # Source the bashrc to ensure g is available
+  [ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc"
   g install latest
   go install github.com/junegunn/fzf@latest
   go install github.com/jesseduffield/lazygit@latest
@@ -122,12 +124,14 @@ if [ "$action" == "omarchy" ]; then
   npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 
   # go lang
-  curl -sSL https://git.io/g-install | bash
+  curl -sSL https://git.io/g-install | bash -s -- -y
   sleep 5
   export GOROOT="$HOME/.go"
   export PATH="$GOROOT/bin:$PATH"
   export GOPATH="$HOME/go"
   export PATH="$GOPATH/bin:$PATH"
+  # Source the bashrc to ensure g is available
+  [ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc"
   g install latest
   go install github.com/junegunn/fzf@latest
   go install github.com/jesseduffield/lazygit@latest
