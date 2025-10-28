@@ -97,6 +97,21 @@ if [ "$action" == "tools" ]; then
   go install github.com/jesseduffield/lazygit@latest
   go install github.com/gitleaks/gitleaks/v8@latest
   go install github.com/charmbracelet/glow@latest
+
+  # Install config files (kitty, nvim, ranger)
+  echo "# # Installing config files (kitty, nvim, ranger)"
+  echo "# # # # # # # # # # # # # # # # # # # # # # # # #"
+  mkdir -p ~/.config
+  mkdir -p $dir/backup/config 2>/dev/null
+  for cfile in ${config[@]}; do
+    # Backup existing config
+    mv ~/.config/$cfile $dir/backup/config/$cfile 2>/dev/null
+    # Copy new config
+    cp -r $dir/workstation/$cfile ~/.config/$cfile
+  done
+  find ~/.config -type d -exec chmod 0755 {} \;
+  find ~/.config -type f -exec chmod 0644 {} \;
+  find ~/.config -name "*.sh" -execdir chmod u+x {} +
 fi
 
 # nvm install v18.20.4
@@ -106,7 +121,7 @@ if [ "$action" == "omarchy" ]; then
   mise use -g node@22.20.0
   npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 
- # go lang
+  # go lang
   curl -sSL https://git.io/g-install | bash
   sleep 5
   export GOROOT="$HOME/.go"
@@ -122,7 +137,7 @@ if [ "$action" == "omarchy" ]; then
   # Configure Kitty to use Omarchy theme system
   echo "# # Configuring Kitty for Omarchy theme switching"
   mkdir -p ~/.config/kitty
-  cat > ~/.config/kitty/kitty.conf << 'EOF'
+  cat >~/.config/kitty/kitty.conf <<'EOF'
 # Omarchy theme integration - automatically updates when you switch themes
 include ~/.config/omarchy/current/theme/kitty.conf
 
@@ -130,37 +145,20 @@ include ~/.config/omarchy/current/theme/kitty.conf
 # (fonts, keybindings, window settings, etc.)
 EOF
 
-  # Configure Neovim to use Omarchy theme system
-  echo "# # Configuring Neovim for Omarchy theme switching"
+  # Add custom plugins and settings to existing Omarchy Neovim setup
+  echo "# # Adding custom plugins to Neovim (PHP, Copilot, org-mode, etc.)"
   mkdir -p ~/.config/nvim/lua/plugins
-  cat > ~/.config/nvim/lua/plugins/kitty-themes.lua << 'EOF'
--- Dynamically load theme from Omarchy's current theme
-local theme_file = vim.fn.expand("~/.config/omarchy/current/theme/neovim.lua")
+  mkdir -p ~/.config/nvim/lua/config
 
--- Check if the theme file exists before loading
-if vim.fn.filereadable(theme_file) == 1 then
-  return dofile(theme_file)
-else
-  -- Fallback to SeaShells if theme file doesn't exist
-  return {
-    {
-      "odysseyalive/kitty-themes.nvim",
-      config = function()
-        require("kitty-themes").setup({
-          transparent = false,
-          term_colors = true,
-        })
-      end,
-    },
-    {
-      "LazyVim/LazyVim",
-      opts = {
-        colorscheme = "SeaShells",
-      },
-    },
-  }
-end
-EOF
+  # Copy specific custom plugin files (preserves stock omarchy plugins)
+  declare -a custom_plugins=('coffeescript.lua' 'conform.lua' 'copilot-chat.lua' 'git.lua' 'mason.lua' 'nvim-dap.lua' 'org-mode.lua' 'performance.lua' 'php.lua' 'telescope.lua' 'vim-table-mode.lua')
+  for plugin in "${custom_plugins[@]}"; do
+    cp $dir/workstation/nvim/lua/plugins/$plugin ~/.config/nvim/lua/plugins/
+  done
+
+  # Update config files with custom settings
+  cp $dir/workstation/nvim/lua/config/options.lua ~/.config/nvim/lua/config/options.lua
+  cp $dir/workstation/nvim/lua/config/lazy.lua ~/.config/nvim/lua/config/lazy.lua
 
   # Configure uwsm to use Kitty as default terminal
   echo "# # Configuring uwsm to use Kitty as default terminal"
@@ -208,10 +206,6 @@ if [ "$action" == "install" ]; then
   mkdir -p $dotfiles_old 2>/dev/null
   for cfile in ${files[@]}; do
     mv ~/.$cfile $dir/$dotfiles_old/ 2>/dev/null
-  done
-  mkdir -p $dotfiles_old/config 2>/dev/null
-  for cfile in ${config[@]}; do
-    mv ~/.config/$cfile $dir/$dotfiles_old/config/$cfile 2>/dev/null
   done
 
   echo "# # Vim, Emacs and Tmux Configurations"
@@ -265,13 +259,6 @@ if [ "$action" == "install" ]; then
   for cfile in ${files[@]}; do
     ln -s $dir/$cfile ~/.$cfile
   done
-  mkdir -p ~/.config
-  for cfile in ${config[@]}; do
-    cp -r $dir/workstation/$cfile ~/.config/$cfile
-  done
-  find ~/.config -type d -exec chmod 0755 {} \;
-  find ~/.config -type f -exec chmod 0644 {} \;
-  find ~/.config -name "*.sh" -execdir chmod u+x {} +
 
   echo ""
   echo "This script does not install ack, emacs, silversearcher, tmux or"
