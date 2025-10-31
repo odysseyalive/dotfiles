@@ -161,6 +161,24 @@ if [ -f ~/.config/hypr/input.conf ]; then
   fi
 fi
 
+# Configure Hyprland Nvidia environment variables
+log "configuring hyprland nvidia environment variables"
+if [ -f ~/.config/hypr/hyprland.conf ]; then
+  # Check if env variables are already set
+  if ! grep -q "LIBVA_DRIVER_NAME,nvidia" ~/.config/hypr/hyprland.conf; then
+    # Add Nvidia env variables at the beginning of the file
+    sed -i '1i\# Nvidia environment variables\nenv = LIBVA_DRIVER_NAME,nvidia\nenv = GBM_BACKEND,nvidia-drm\nenv = __GLX_VENDOR_LIBRARY_NAME,nvidia\nenv = NVD_BACKEND,direct\n' ~/.config/hypr/hyprland.conf
+    log "nvidia environment variables added to hyprland.conf"
+    # Reload Hyprland configuration if running
+    if pgrep -x "Hyprland" > /dev/null; then
+      hyprctl reload
+      log "hyprland configuration reloaded for nvidia settings"
+    fi
+  else
+    log "nvidia environment variables already present in hyprland.conf"
+  fi
+fi
+
 # improve sound
 mkdir -p ~/.config/pipewire/pipewire.conf.d
 printf "context.properties = {\n\
