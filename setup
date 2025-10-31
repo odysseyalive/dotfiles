@@ -176,6 +176,32 @@ EOF
   echo "Kitty and Neovim configured for Omarchy theme switching"
 fi
 
+# # Fix Omarchy Login Issues
+# # # # # # # # # # # # # # #
+if [ "$action" == "fix-omarchy-login" ]; then
+  echo "# # Fixing Omarchy Login Issues"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  echo "This will mask Plymouth services and rebuild initramfs"
+  echo ""
+
+  # Mask Plymouth services to prevent them from starting
+  echo "Masking Plymouth services..."
+  sudo systemctl mask plymouth-start.service
+  sudo systemctl mask plymouth-quit-wait.service
+
+  # Rebuild initramfs without Plymouth hooks
+  echo "Rebuilding initramfs without Plymouth hooks..."
+  sudo mkinitcpio -P
+
+  echo ""
+  echo "Plymouth services have been masked and initramfs rebuilt."
+  echo "System will reboot in 5 seconds..."
+  sleep 5
+
+  # Reboot the system
+  sudo reboot
+fi
+
 # # Install
 # # # # # # # # # # # # # # #
 if [ "$action" == "install" ]; then
