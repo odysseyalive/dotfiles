@@ -75,6 +75,9 @@ install package extra/lsof extra/strace
 install package extra/gdb extra/ltrace
 install package extra/htop extra/tree
 install package extra/bind extra/openbsd-netcat extra/traceroute
+install package aur/dosbox-staging
+install package multilib/lib32-mesa multilib/lib32-vulkan-intel multilib/lib32-vulkan-radeon multilib/lib32-nvidia-utils
+install package extra/wine-staging multilib/winetricks
 
 # interactive fiction tools
 # install package aur/inform7-ide-git
@@ -95,7 +98,7 @@ curl -s https://erb.pw/get-syncterm.sh | bash
 # Installing configuration
 # # # # # # # # # # # # # # #
 log "installing custom configuration"
-bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup)"
 bash ~/.yadrlite/setup omarchy
 
 # Configure Starship prompt
@@ -155,7 +158,7 @@ log "configuring hyprland keyboard settings"
 if [ -f ~/.config/hypr/input.conf ]; then
   sed -i 's/^[[:space:]]*kb_options[[:space:]]*=.*/  kb_options = caps:swapescape/' ~/.config/hypr/input.conf
   # Reload Hyprland configuration if running
-  if pgrep -x "Hyprland" > /dev/null; then
+  if pgrep -x "Hyprland" >/dev/null; then
     hyprctl reload
     log "hyprland configuration reloaded"
   fi
@@ -170,7 +173,7 @@ if [ -f ~/.config/hypr/hyprland.conf ]; then
     sed -i '1i\# Nvidia environment variables\nenv = LIBVA_DRIVER_NAME,nvidia\nenv = GBM_BACKEND,nvidia-drm\nenv = __GLX_VENDOR_LIBRARY_NAME,nvidia\nenv = NVD_BACKEND,direct\n' ~/.config/hypr/hyprland.conf
     log "nvidia environment variables added to hyprland.conf"
     # Reload Hyprland configuration if running
-    if pgrep -x "Hyprland" > /dev/null; then
+    if pgrep -x "Hyprland" >/dev/null; then
       hyprctl reload
       log "hyprland configuration reloaded for nvidia settings"
     fi
