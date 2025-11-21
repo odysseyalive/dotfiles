@@ -83,6 +83,9 @@ install package extra/gst-plugins-good extra/gst-plugins-bad extra/gst-plugins-u
 install package extra/wine-staging multilib/winetricks
 install package extra/git-lfs
 install package extra/fs-uae
+install package extra/tesseract extra/tesseract-data-eng
+install package aur/inform7-ide aur/lectorte-bin
+install package aur/hplip-plugin
 
 # interactive fiction tools
 # install package aur/inform7-ide-git
