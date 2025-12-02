@@ -233,6 +233,22 @@ max_volume = 200
 style = "./style.css"
 EOF
 
+# configure hyprland volume keys to allow 200% max volume
+if [ -f ~/.config/hypr/bindings.conf ]; then
+  if ! grep -q "max-volume 200" ~/.config/hypr/bindings.conf; then
+    cat >>~/.config/hypr/bindings.conf <<'EOF'
+
+# Volume keys with 200% max volume support
+$osdclient = swayosd-client --monitor "$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')"
+bindeld = ,XF86AudioRaiseVolume, Volume up, exec, $osdclient --output-volume raise --max-volume 200
+bindeld = ,XF86AudioLowerVolume, Volume down, exec, $osdclient --output-volume lower --max-volume 200
+bindeld = ALT, XF86AudioRaiseVolume, Volume up precise, exec, $osdclient --output-volume +1 --max-volume 200
+bindeld = ALT, XF86AudioLowerVolume, Volume down precise, exec, $osdclient --output-volume -1 --max-volume 200
+EOF
+    log "hyprland volume bindings configured for 200% max volume"
+  fi
+fi
+
 # clean everything
 yay -Scc --noconfirm
 
