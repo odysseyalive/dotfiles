@@ -86,6 +86,7 @@ install package extra/fs-uae
 install package extra/tesseract extra/tesseract-data-eng
 install package aur/inform7-ide aur/lectorte-bin
 install package aur/hplip-plugin
+install package aur/ghostty-git
 
 # interactive fiction tools
 # install package aur/inform7-ide-git

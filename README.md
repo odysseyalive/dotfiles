@@ -910,6 +910,38 @@ The following applications open as floating windows by default:
 - Calculator
 - Preview
 
+## Mixed Layouts (Accordion + Tiles)
+
+AeroSpace uses a tree structure where each container can have its own layout. This is useful for widescreen monitors where you want different layouts on each side of the screen.
+
+**Example: Accordion on the left, single window on the right**
+
+```
+┌─────────────────┬─────────────────┐
+│   [Accordion]   │                 │
+│   ┌─────────┐   │    Single       │
+│   │ Window1 │   │    Window       │
+│   │ Window2 │   │    (tiles)      │
+│   │ Window3 │   │                 │
+│   └─────────┘   │                 │
+└─────────────────┴─────────────────┘
+```
+
+**How to set it up:**
+
+1. Open two windows - they'll tile horizontally by default
+2. Focus the left window
+3. Press `Alt+,` to switch that side to accordion
+4. Open more windows while focused on the left - they stack in the accordion
+5. The right side remains unaffected (tiles layout)
+
+**Useful keybindings for mixed layouts:**
+
+- `Alt+,`: Toggle accordion layout (affects only the focused container)
+- `Alt+/`: Toggle between horizontal and vertical tiling
+
+Each container maintains its own layout independently, so changing one side doesn't affect the other.
+
 Configuration location: `~/.config/aerospace/aerospace.toml`
 
 [Return to top](#yadrlite)

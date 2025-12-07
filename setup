@@ -127,6 +127,12 @@ if [ "$action" == "omarchy" ]; then
   npm install -g pnpm
   pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 
+  # Install Fira Code Nerd Font
+  echo "# # Installing Fira Code Nerd Font"
+  mkdir -p ~/.local/share/fonts
+  cp $dir/workstation/fonts/*.ttf ~/.local/share/fonts/
+  fc-cache -fv
+
   # go lang
   curl -sSL https://git.io/g-install | bash -s -- -y
   sleep 5
