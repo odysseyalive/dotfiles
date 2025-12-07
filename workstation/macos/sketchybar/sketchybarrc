@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# Sketchybar Configuration for YADRLite
+# macOS menu bar replacement with AeroSpace integration
+# https://github.com/FelixKratz/SketchyBar
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+THEME_DIR="$HOME/.yadrlite/workstation/macos/themes"
+CURRENT_THEME_FILE="$HOME/.config/current-theme"
+
+# Load theme colors
+get_current_theme() {
+  if [ -f "$CURRENT_THEME_FILE" ]; then
+    cat "$CURRENT_THEME_FILE"
+  else
+    echo "seashells-dark"
+  fi
+}
+
+CURRENT_THEME=$(get_current_theme)
+THEME_CONF="$THEME_DIR/$CURRENT_THEME/sketchybar.conf"
+
+# Default SeaShells Dark colors (fallback)
+BAR_COLOR="0x80081319"
+ICON_COLOR="0xffdeb88d"
+LABEL_COLOR="0xffdeb88d"
+ACCENT_COLOR="0xff50a3b5"
+ACCENT_ALT="0xff2d6870"
+WARNING_COLOR="0xfffba02f"
+
+# Load theme if available
+if [ -f "$THEME_CONF" ]; then
+  source "$THEME_CONF"
+fi
+
+# Bar appearance
+sketchybar --bar height=32 \
+                 blur_radius=30 \
+                 position=top \
+                 sticky=off \
+                 padding_left=10 \
+                 padding_right=10 \
+                 color=$BAR_COLOR
+
+# Default item settings
+sketchybar --default icon.font="FiraCode Nerd Font:Bold:14.0" \
+                     icon.color=$ICON_COLOR \
+                     label.font="FiraCode Nerd Font:Regular:13.0" \
+                     label.color=$LABEL_COLOR \
+                     padding_left=5 \
+                     padding_right=5 \
+                     label.padding_left=4 \
+                     label.padding_right=4 \
+                     icon.padding_left=4 \
+                     icon.padding_right=4
+
+# Left side - Apple menu
+sketchybar --add item apple.logo left \
+           --set apple.logo icon= \
+                           icon.font="FiraCode Nerd Font:Bold:16.0" \
+                           icon.color=$ACCENT_COLOR \
+                           label.drawing=off \
+                           click_script="open -a 'System Preferences'"
+
+# Workspace indicator (integrates with AeroSpace)
+sketchybar --add item space_indicator left \
+           --set space_indicator script="$PLUGIN_DIR/space.sh" \
+                                 icon.color=$ACCENT_ALT \
+                                 update_freq=1
+
+# Center - Current application
+sketchybar --add item front_app center \
+           --set front_app script="$PLUGIN_DIR/front_app.sh" \
+                          icon.drawing=off \
+                          label.color=$LABEL_COLOR \
+           --subscribe front_app front_app_switched
+
+# Right side - Theme toggle
+sketchybar --add item theme_toggle right \
+           --set theme_toggle script="$PLUGIN_DIR/theme_toggle.sh" \
+                             icon.font="FiraCode Nerd Font:Bold:16.0" \
+                             icon.color=$WARNING_COLOR \
+                             label.drawing=off \
+                             click_script="$PLUGIN_DIR/theme_toggle.sh" \
+           --subscribe theme_toggle mouse.clicked
+
+# Right side - System info
+sketchybar --add item clock right \
+           --set clock update_freq=10 \
+                      icon= \
+                      icon.color=$ACCENT_ALT \
+                      script="$PLUGIN_DIR/clock.sh"
+
+sketchybar --add item battery right \
+           --set battery update_freq=120 \
+                        script="$PLUGIN_DIR/battery.sh" \
+           --subscribe battery system_woke power_source_change
+
+sketchybar --add item volume right \
+           --set volume script="$PLUGIN_DIR/volume.sh" \
+           --subscribe volume volume_change
+
+# Force update all items
+sketchybar --update

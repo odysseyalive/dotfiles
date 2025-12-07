@@ -25,7 +25,7 @@ Under the workstation directory, you'll find an example of my setup using great 
 Grammarly and VSCode-php-debug. IMHO, the neovim dap interface is much, much nicer than VSCode's
 implementation. For one thing, you can actually read the variable scope.
 
-index: [Emacs](#emacs), [Tmux](#tmux), [Vim](#vim), [LazyVim](#lazyvim), [Kitty](#kitty), and [Ranger](#ranger)
+index: [Emacs](#emacs), [Tmux](#tmux), [Vim](#vim), [LazyVim](#lazyvim), [Kitty](#kitty), [Ghostty](#ghostty), [AeroSpace](#aerospace), and [Ranger](#ranger)
 
 # Dotfiles Installation
 
@@ -74,6 +74,29 @@ Run as user...
 ```bash
 bash install
 ```
+
+### macOS workstation
+
+Transform your Mac into a tiling window manager setup similar to Omarchy using AeroSpace, Ghostty terminal, and Sketchybar.
+
+```bash
+# First, install basic dotfiles
+bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
+
+# Then run the macOS workstation setup
+bash ~/.yadrlite/setup macos
+```
+
+This installs:
+- **Ghostty** - Modern GPU-accelerated terminal with Kitty graphics protocol (ranger image previews work)
+- **AeroSpace** - i3-like tiling window manager (no SIP required)
+- **Sketchybar** - Custom status bar with workspace indicators
+- **JankyBorders** - Window border highlighting
+- **Development tools** - Node.js (via mise), pnpm, Go tools, PHP, Python
+- **Neovim** - LazyVim configuration with PHP support
+- **Ranger** - File manager with image previews
+
+Requirements: macOS 13 (Ventura) or later
 
 # What's Included
 
@@ -741,6 +764,155 @@ Requirements: [Kitty](https://sw.kovidgoyal.net/kitty/)
 - `Ctrl+Shift+O`: select light and dark themes
 - `Ctrl+Shift+L`: Select light theme
 - `Ctrl+Shift+D`: Select dark theme
+
+# Ghostty
+
+Ghostty is a fast, feature-rich, and cross-platform terminal emulator that uses platform-native UI and GPU acceleration. It supports tabs, splits, and the Kitty graphics protocol for image previews in ranger.
+
+Requirements: [Ghostty](https://ghostty.org/)
+
+[Return to top](#yadrlite)
+
+## Ghostty Configuration
+
+The YADRLite Ghostty configuration uses the SeaShells theme with FiraCode Nerd Font. Key features:
+
+- **Font**: FiraCode Nerd Font 10.5pt
+- **Theme**: SeaShells Dark/Light (switchable)
+- **macOS Option as Alt**: Enabled (required for AeroSpace keybindings)
+- **Kitty Graphics Protocol**: Supported natively (ranger image previews work)
+- **GPU Acceleration**: Metal on macOS, OpenGL on Linux
+
+Configuration location: `~/.config/ghostty/config`
+
+## Ghostty Shortcuts
+
+Ghostty supports tabs, splits, and windows with native UI components. All keybindings are customizable via the config file.
+
+#### Tabs
+
+- `Ctrl+Shift+t`: New tab
+- `Ctrl+Shift+Left`: Previous tab
+- `Ctrl+Shift+Right`: Next tab
+- `Ctrl+Shift+w`: Close tab/split
+- `Ctrl+1-9`: Go to tab by number (macOS: `Cmd+1-9`)
+
+#### Splits
+
+- `Ctrl+Shift+o`: New split (right)
+- `Ctrl+Shift+e`: New split (down)
+- `Ctrl+Alt+Arrow`: Navigate to split (up/down/left/right)
+- `Ctrl+Shift+z`: Toggle split zoom (fullscreen current split)
+- `Ctrl+Shift+=`: Equalize split sizes
+- `Ctrl+d`: Close split (macOS)
+
+#### Windows
+
+- `Ctrl+Shift+n`: New window
+- `Ctrl+Shift+q`: Quit Ghostty
+
+#### Clipboard & Selection
+
+- `Ctrl+Shift+c`: Copy
+- `Ctrl+Shift+v`: Paste
+- `Shift+Click`: Select text
+
+#### Font Size
+
+- `Ctrl+Shift+=`: Increase font size
+- `Ctrl+Shift+-`: Decrease font size
+- `Ctrl+Shift+0`: Reset font size
+
+#### Other
+
+- `Ctrl+Shift+p`: Command palette (Linux 1.2+)
+- `Ctrl+Shift+,`: Open config file
+- `Ctrl+Shift+r`: Reload config
+
+#### Custom Keybindings
+
+Add to `~/.config/ghostty/config`:
+```
+# Vim-style split navigation
+keybind = ctrl+shift+h=goto_split:left
+keybind = ctrl+shift+j=goto_split:bottom
+keybind = ctrl+shift+k=goto_split:top
+keybind = ctrl+shift+l=goto_split:right
+
+# Leader key sequences (like tmux/vim)
+keybind = ctrl+a>c=new_tab
+keybind = ctrl+a>v=new_split:right
+keybind = ctrl+a>s=new_split:down
+```
+
+[Return to top](#yadrlite)
+
+# AeroSpace
+
+AeroSpace is an i3-like tiling window manager for macOS. Unlike yabai, it doesn't require disabling System Integrity Protection (SIP), making it safer and easier to set up. The YADRLite configuration uses vim-style keybindings with Alt as the modifier key.
+
+Requirements: [AeroSpace](https://github.com/nikitabobko/AeroSpace)
+
+[Return to top](#yadrlite)
+
+## AeroSpace Shortcuts
+
+AeroSpace uses `Alt` (Option) as the primary modifier. After installation, grant Accessibility permissions when prompted (System Settings > Privacy & Security > Accessibility).
+
+#### Window Focus
+
+- `Alt+h`: Focus window to the left
+- `Alt+j`: Focus window below
+- `Alt+k`: Focus window above
+- `Alt+l`: Focus window to the right
+
+#### Window Movement
+
+- `Alt+Shift+h`: Move window left
+- `Alt+Shift+j`: Move window down
+- `Alt+Shift+k`: Move window up
+- `Alt+Shift+l`: Move window right
+
+#### Workspaces
+
+- `Alt+1` through `Alt+9`: Switch to workspace 1-9
+- `Alt+Shift+1` through `Alt+Shift+9`: Move window to workspace 1-9
+
+#### Layout Controls
+
+- `Alt+/`: Toggle between horizontal and vertical tiling
+- `Alt+,`: Toggle accordion layout
+- `Alt+f`: Toggle fullscreen
+- `Alt+Shift+f`: Toggle floating/tiling mode
+
+#### Splits
+
+- `Alt+\`: Split horizontally
+- `Alt+Shift+\`: Split vertically
+
+#### Resize
+
+- `Alt+-`: Shrink window
+- `Alt+=`: Expand window
+
+#### Service Mode
+
+- `Alt+Shift+;`: Enter service mode
+  - `Esc`: Reload config and return to main mode
+  - `r`: Flatten workspace tree
+  - `Backspace`: Close all windows except current
+
+#### Float Rules
+
+The following applications open as floating windows by default:
+- Finder
+- System Settings/Preferences
+- Calculator
+- Preview
+
+Configuration location: `~/.config/aerospace/aerospace.toml`
+
+[Return to top](#yadrlite)
 
 # Ranger
 

@@ -84,7 +84,9 @@ if [ "$action" == "tools" ]; then
   sleep 5
   nvm alias default 22.20.0
   nvm use 22.20.0
-  npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
+  # Install pnpm for secure package management
+  npm install -g pnpm
+  pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
   # go lang
   curl -sSL https://git.io/g-install | bash -s -- -y
   sleep 5
@@ -121,7 +123,9 @@ fi
 if [ "$action" == "omarchy" ]; then
   mise install node@22.20.0
   mise use -g node@22.20.0
-  npm install --location=global --save-dev grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
+  # Install pnpm for secure package management
+  npm install -g pnpm
+  pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 
   # go lang
   curl -sSL https://git.io/g-install | bash -s -- -y
@@ -149,6 +153,52 @@ include ~/.config/omarchy/current/theme/kitty.conf
 # (fonts, keybindings, window settings, etc.)
 EOF
 
+  # Configure Ghostty to use Omarchy theme system
+  echo "# # Configuring Ghostty for Omarchy theme switching"
+  mkdir -p ~/.config/ghostty
+  cat >~/.config/ghostty/config <<'EOF'
+# Ghostty Configuration for YADRLite + Omarchy
+# https://ghostty.org
+
+# Font settings
+font-family = FiraCode Nerd Font
+font-size = 10.5
+
+# Terminal settings
+term = xterm-256color
+
+# Scrollback
+scrollback-limit = 10000
+
+# Clipboard
+clipboard-read = allow
+clipboard-write = allow
+
+# Mouse
+mouse-hide-while-typing = true
+
+# Performance
+vsync = true
+
+# Omarchy theme integration
+# Theme colors are loaded from Omarchy's current theme
+# Run 'omarchy theme' to switch themes
+EOF
+
+  # Append Omarchy theme colors if available
+  if [ -f ~/.config/omarchy/current/theme/ghostty.conf ]; then
+    cat ~/.config/omarchy/current/theme/ghostty.conf >> ~/.config/ghostty/config
+    echo "  Ghostty configured with current Omarchy theme"
+  else
+    echo "  Ghostty base config installed (theme will apply when Omarchy theme is set)"
+  fi
+
+  # Install theme sync script
+  mkdir -p ~/.local/bin
+  chmod +x $dir/workstation/scripts/omarchy-theme-sync.sh
+  ln -sf $dir/workstation/scripts/omarchy-theme-sync.sh ~/.local/bin/omarchy-theme-sync
+  echo "  Run 'omarchy-theme-sync' after switching themes to update Ghostty"
+
   # Add custom plugins and settings to existing Omarchy Neovim setup
   echo "# # Adding custom plugins to Neovim (PHP, Copilot, org-mode, etc.)"
   mkdir -p ~/.config/nvim/lua/plugins
@@ -174,6 +224,236 @@ EOF
   fi
 
   echo "Kitty and Neovim configured for Omarchy theme switching"
+fi
+
+# # macOS Workstation Setup
+# # # # # # # # # # # # # # #
+if [ "$action" == "macos" ]; then
+  echo "# # macOS Workstation Setup"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+
+  # Verify macOS environment
+  if [[ "$(uname)" != "Darwin" ]]; then
+    echo "Error: This action is only for macOS systems."
+    exit 1
+  fi
+
+  # Install Homebrew if not present
+  if ! command -v brew &> /dev/null; then
+    echo ""
+    echo "Homebrew is the package manager for macOS and is required for this setup."
+    echo "Learn more at: https://brew.sh"
+    echo ""
+    read -p "Install Homebrew now? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      # Add Homebrew to PATH for current session
+      if [[ -f "/opt/homebrew/bin/brew" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+      elif [[ -f "/usr/local/bin/brew" ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+      fi
+    else
+      echo "Cannot continue without Homebrew. Exiting."
+      exit 1
+    fi
+  fi
+
+  echo "# # Installing Homebrew packages"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+
+  # Add taps
+  brew tap nikitabobko/tap
+  brew tap FelixKratz/formulae
+
+  # Terminal and window management
+  brew install --cask ghostty
+  brew install --cask nikitabobko/tap/aerospace
+  brew install sketchybar
+  brew install borders
+
+  # Development tools
+  brew install neovim tmux ranger
+  brew install git git-lfs
+  brew install ripgrep fd fzf lazygit glow
+  brew install php composer
+  brew install python
+  brew install go
+  brew install w3m atool
+
+  # Nerd Font (required for LazyVim icons and Sketchybar)
+  brew install --cask font-fira-code-nerd-font
+
+  # Node.js via mise (consistent with omarchy action)
+  brew install mise
+  mise install node@22.20.0
+  mise use -g node@22.20.0
+
+  # Source mise for current session
+  eval "$(mise activate bash)"
+
+  # Install pnpm for secure package management
+  echo "# # Installing pnpm and development packages"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  npm install -g pnpm
+
+  # Install development packages via pnpm
+  pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
+
+  # Go tools
+  echo "# # Installing Go tools"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  export GOPATH="$HOME/go"
+  export PATH="$GOPATH/bin:$PATH"
+  go install github.com/junegunn/fzf@latest
+  go install github.com/jesseduffield/lazygit@latest
+  go install github.com/gitleaks/gitleaks/v8@latest
+  go install github.com/charmbracelet/glow@latest
+
+  echo "# # Configuring Ghostty"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  mkdir -p ~/.config/ghostty
+  cp $dir/workstation/macos/ghostty/config ~/.config/ghostty/config
+
+  echo "# # Configuring AeroSpace"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  mkdir -p ~/.config/aerospace
+  cp $dir/workstation/macos/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml
+
+  echo "# # Configuring Sketchybar"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  mkdir -p ~/.config/sketchybar/plugins
+  cp $dir/workstation/macos/sketchybar/sketchybarrc ~/.config/sketchybar/sketchybarrc
+  cp $dir/workstation/macos/sketchybar/plugins/*.sh ~/.config/sketchybar/plugins/
+  chmod +x ~/.config/sketchybar/sketchybarrc
+  chmod +x ~/.config/sketchybar/plugins/*.sh
+
+  echo "# # Configuring JankyBorders"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  mkdir -p ~/.config/borders
+  cp $dir/workstation/macos/borders/bordersrc ~/.config/borders/bordersrc
+  chmod +x ~/.config/borders/bordersrc
+
+  echo "# # Setting up SeaShells theme system"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  mkdir -p ~/.config/themes
+  mkdir -p ~/.local/bin
+
+  # Make theme switch script executable
+  chmod +x $dir/workstation/macos/scripts/theme-switch.sh
+
+  # Create symlink for easy access
+  ln -sf $dir/workstation/macos/scripts/theme-switch.sh ~/.local/bin/theme-switch
+
+  # Set default theme to seashells-dark
+  echo "seashells-dark" > ~/.config/current-theme
+
+  echo "  Theme system installed. Use 'theme-switch dark|light|toggle' to change themes."
+
+  echo "# # Installing config files (nvim, ranger)"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  mkdir -p ~/.config
+  mkdir -p $dir/backup/config 2>/dev/null
+
+  # Backup and install nvim config
+  mv ~/.config/nvim $dir/backup/config/nvim 2>/dev/null
+  cp -r $dir/workstation/nvim ~/.config/nvim
+
+  # Backup and install ranger config
+  mv ~/.config/ranger $dir/backup/config/ranger 2>/dev/null
+  mkdir -p ~/.config/ranger
+  cp -r $dir/workstation/ranger/* ~/.config/ranger/
+
+  # Set proper permissions
+  find ~/.config -type d -exec chmod 0755 {} \;
+  find ~/.config -type f -exec chmod 0644 {} \;
+  find ~/.config -name "*.sh" -execdir chmod u+x {} +
+
+  echo "# # Configuring shell (zsh)"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  ZSHRC=~/.zshrc
+
+  # Backup existing .zshrc
+  if [ -f "$ZSHRC" ]; then
+    cp "$ZSHRC" "$dir/backup/.zshrc"
+  fi
+
+  # Add YADRLite macOS configuration to .zshrc
+  if ! grep -q "YADRLite macOS" "$ZSHRC" 2>/dev/null; then
+    cat >> "$ZSHRC" << 'EOF'
+
+# YADRLite macOS configuration
+# Homebrew
+eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null
+
+# mise (runtime manager)
+eval "$(mise activate zsh)" 2>/dev/null
+
+# pnpm
+export PNPM_HOME="$HOME/Library/pnpm"
+export PATH="$PNPM_HOME:$PATH"
+
+# Go
+export GOPATH="$HOME/go"
+export PATH="$GOPATH/bin:$PATH"
+
+# Local bin (theme-switch, etc.)
+export PATH="$HOME/.local/bin:$PATH"
+
+# Theme switch alias
+alias dark="theme-switch dark"
+alias light="theme-switch light"
+EOF
+    echo "Added YADRLite configuration to ~/.zshrc"
+  fi
+
+  echo ""
+  echo "# # Starting services"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  echo ""
+  echo "IMPORTANT: The following applications will request system permissions:"
+  echo ""
+  echo "1. AeroSpace - Accessibility (required for window management)"
+  echo "2. Sketchybar - Accessibility (for menu bar integration)"
+  echo ""
+  echo "When prompted, go to System Settings > Privacy & Security > Accessibility"
+  echo "and grant access to these applications."
+  echo ""
+  read -p "Press Enter to continue..."
+
+  # Start AeroSpace (will prompt for accessibility permissions)
+  if command -v aerospace &> /dev/null; then
+    echo "Starting AeroSpace..."
+    open -a AeroSpace
+  fi
+
+  # Start Sketchybar
+  if command -v sketchybar &> /dev/null; then
+    echo "Starting Sketchybar..."
+    brew services start sketchybar
+  fi
+
+  # Start JankyBorders
+  if command -v borders &> /dev/null; then
+    echo "Starting JankyBorders..."
+    brew services start borders
+  fi
+
+  echo ""
+  echo "# # macOS Setup Complete"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  echo ""
+  echo "Installed:"
+  echo "  - Ghostty terminal (with Gruvbox Dark theme)"
+  echo "  - AeroSpace tiling window manager (Alt+hjkl for navigation)"
+  echo "  - Sketchybar status bar"
+  echo "  - JankyBorders window borders"
+  echo "  - Neovim with LazyVim configuration"
+  echo "  - Ranger file manager"
+  echo "  - Development tools (Node.js via mise, pnpm, Go tools)"
+  echo ""
+  echo "Please restart your terminal to apply all changes."
 fi
 
 # # Fix Omarchy Login Issues
@@ -252,9 +532,17 @@ if [ "$action" == "install" ]; then
     echo "Gnu/Linux detected..."
     echo '# tmux status options' >>$dir/tmux.conf
     echo "run-shell $dir/tmux/airline-hybrid-patched.tmux" >>$dir/tmux.conf
+  elif [[ "$(uname)" == "Darwin" ]]; then
+    echo "macOS detected..."
+    echo '# tmux status options' >>$dir/tmux.conf
+    echo "run-shell $dir/tmux/airline-hybrid-patched.tmux" >>$dir/tmux.conf
+    echo ""
+    echo "Basic dotfiles installed. For complete macOS workstation setup, run:"
+    echo "  bash ~/.yadrlite/setup macos"
+    echo ""
   else
     rm -rf $dir
-    echo "Please look into Linux. Your OS isn't supported yet."
+    echo "Your OS isn't supported. YADRLite supports Linux, FreeBSD, and macOS."
     exit
   fi
 

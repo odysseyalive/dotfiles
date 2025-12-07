@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# JankyBorders Configuration for YADRLite
+# Window border highlighting for macOS
+# https://github.com/FelixKratz/JankyBorders
+
+THEME_DIR="$HOME/.yadrlite/workstation/macos/themes"
+CURRENT_THEME_FILE="$HOME/.config/current-theme"
+
+# Get current theme
+get_current_theme() {
+  if [ -f "$CURRENT_THEME_FILE" ]; then
+    cat "$CURRENT_THEME_FILE"
+  else
+    echo "seashells-dark"
+  fi
+}
+
+# Default SeaShells Dark colors
+BORDER_ACTIVE="0xff50a3b5"
+BORDER_INACTIVE="0xff0f2838"
+BORDER_WIDTH="2.0"
+
+# Load theme if available
+CURRENT_THEME=$(get_current_theme)
+THEME_CONF="$THEME_DIR/$CURRENT_THEME/borders.conf"
+if [ -f "$THEME_CONF" ]; then
+  source "$THEME_CONF"
+fi
+
+borders active_color="$BORDER_ACTIVE" \
+        inactive_color="$BORDER_INACTIVE" \
+        width="$BORDER_WIDTH" \
+        hidpi=on \
+        style=round
