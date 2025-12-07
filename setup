@@ -183,20 +183,16 @@ clipboard-write = allow
 # Mouse
 mouse-hide-while-typing = true
 
-# Performance
-vsync = true
-
-# Omarchy theme integration
-# Theme colors are loaded from Omarchy's current theme
-# Run 'omarchy theme' to switch themes
+# Theme (synced from Omarchy)
+# Run 'omarchy-theme-sync' after switching themes
 EOF
 
-  # Append Omarchy theme colors if available
-  if [ -f ~/.config/omarchy/current/theme/ghostty.conf ]; then
-    cat ~/.config/omarchy/current/theme/ghostty.conf >> ~/.config/ghostty/config
+  # Run theme sync to create Ghostty theme from Omarchy colors
+  if [ -f ~/.config/omarchy/current/theme/kitty.conf ]; then
+    bash $dir/workstation/scripts/omarchy-theme-sync.sh
     echo "  Ghostty configured with current Omarchy theme"
   else
-    echo "  Ghostty base config installed (theme will apply when Omarchy theme is set)"
+    echo "  Ghostty base config installed (run 'omarchy-theme-sync' after setting theme)"
   fi
 
   # Install theme sync script

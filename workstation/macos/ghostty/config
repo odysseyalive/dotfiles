@@ -31,9 +31,6 @@ mouse-hide-while-typing = true
 # Shell integration
 shell-integration = zsh
 
-# Performance
-vsync = true
-
 # Theme: SeaShells Dark (default)
 # These colors will be updated by theme-switch.sh
 background = 08131a
