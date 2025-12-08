@@ -149,28 +149,28 @@ update_borders() {
   fi
 }
 
-# Update Neovim background
+# Update Neovim theme (using kitty-themes.nvim plugin)
 update_neovim() {
   local theme="$1"
-  local bg="dark"
+  local nvim_theme="SeaShells"
 
   if [[ "$theme" == *"light"* ]]; then
-    bg="light"
+    nvim_theme="SeaShells_Light"
   fi
 
   # Send command to all running Neovim instances via socket
   for sock in /tmp/nvim.*/0; do
     if [ -S "$sock" ]; then
-      nvim --server "$sock" --remote-send "<Cmd>set background=$bg<CR>" 2>/dev/null || true
+      nvim --server "$sock" --remote-send "<Cmd>KittyThemes $nvim_theme<CR>" 2>/dev/null || true
     fi
   done
 
   # Also try the default socket location
   if [ -S "/tmp/nvim.sock" ]; then
-    nvim --server "/tmp/nvim.sock" --remote-send "<Cmd>set background=$bg<CR>" 2>/dev/null || true
+    nvim --server "/tmp/nvim.sock" --remote-send "<Cmd>KittyThemes $nvim_theme<CR>" 2>/dev/null || true
   fi
 
-  echo "  Neovim: Background set to $bg"
+  echo "  Neovim: $nvim_theme"
 }
 
 # Update Starship palette
