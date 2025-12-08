@@ -244,6 +244,20 @@ EOF
     starship init nu | save -f ~/.local/share/nushell/vendor/autoload/starship.nu
   fi
 
+  # Install zoxide (smart cd command)
+  echo "# # Installing zoxide"
+  yay -S --noconfirm zoxide
+
+  # Add zoxide to nushell
+  zoxide init nushell | save -f ~/.local/share/nushell/vendor/autoload/zoxide.nu
+
+  # Add zoxide to bash as fallback
+  if ! grep -q 'zoxide init bash' ~/.bashrc; then
+    echo '' >> ~/.bashrc
+    echo '# Zoxide (smart cd)' >> ~/.bashrc
+    echo 'eval "$(zoxide init bash)"' >> ~/.bashrc
+  fi
+
   # Set nushell as default shell
   echo "Setting nushell as default shell..."
   chsh -s "$(which nu)"
@@ -427,6 +441,20 @@ if [ "$action" == "macos" ]; then
   mkdir -p ~/.local/share/nushell/vendor/autoload
   if command -v starship &> /dev/null; then
     starship init nu | save -f ~/.local/share/nushell/vendor/autoload/starship.nu
+  fi
+
+  # Install zoxide (smart cd command)
+  echo "# # Installing zoxide"
+  brew install zoxide
+
+  # Add zoxide to nushell
+  zoxide init nushell | save -f ~/.local/share/nushell/vendor/autoload/zoxide.nu
+
+  # Add zoxide to zsh as fallback
+  if ! grep -q 'zoxide init zsh' ~/.zshrc 2>/dev/null; then
+    echo '' >> ~/.zshrc
+    echo '# Zoxide (smart cd)' >> ~/.zshrc
+    echo 'eval "$(zoxide init zsh)"' >> ~/.zshrc
   fi
 
   # Set nushell as default shell

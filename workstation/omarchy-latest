@@ -88,6 +88,7 @@ install package aur/inform7-ide aur/lectorte-bin
 install package aur/hplip-plugin
 install package aur/ghostty-git
 install package extra/ttf-cascadia-code-nerd
+install package extra/zoxide
 
 # interactive fiction tools
 # install package aur/inform7-ide-git
