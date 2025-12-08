@@ -895,6 +895,10 @@ AeroSpace uses `Alt` (Option) as the primary modifier. After installation, grant
 - `Alt+-`: Shrink window
 - `Alt+=`: Expand window
 
+#### Theme
+
+- `Alt+t`: Toggle theme (SeaShells dark/light)
+
 #### Service Mode
 
 - `Alt+Shift+;`: Enter service mode
