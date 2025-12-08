@@ -131,6 +131,11 @@ if [ "$action" == "omarchy" ]; then
   echo "# # Installing Fira Code Nerd Font"
   mkdir -p ~/.local/share/fonts
   cp $dir/workstation/fonts/*.ttf ~/.local/share/fonts/
+
+  # Install fontconfig (fixes Ghostty ligatures)
+  echo "# # Installing fontconfig for ligature support"
+  mkdir -p ~/.config/fontconfig
+  cp $dir/workstation/fontconfig/fonts.conf ~/.config/fontconfig/
   fc-cache -fv
 
   # go lang
