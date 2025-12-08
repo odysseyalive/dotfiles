@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Omarchy Theme Sync for Ghostty and Starship
-# Syncs Ghostty and Starship themes with current Omarchy theme
+# Omarchy Theme Sync for Ghostty, Starship, and Tmux
+# Syncs Ghostty, Starship, and Tmux themes with current Omarchy theme
 #
 # Usage:
 #   omarchy-theme-sync           # Sync themes with current Omarchy theme
@@ -133,6 +133,35 @@ git = '$COLOR_CYAN'
 EOF
 
   echo "  Starship palette updated to '$PALETTE_NAME'"
+fi
+
+# ============================================
+# Update Tmux theme (Catppuccin)
+# ============================================
+TMUX_CONF="$HOME/.tmux.conf"
+if [ -f "$TMUX_CONF" ]; then
+  echo "Updating Tmux theme..."
+
+  # Map theme to Catppuccin flavor based on brightness
+  # Check if theme name contains "light" (case insensitive)
+  if [[ "${THEME_NAME,,}" == *"light"* ]]; then
+    TMUX_FLAVOR="latte"
+  else
+    TMUX_FLAVOR="mocha"
+  fi
+
+  # Update flavor in tmux.conf
+  if grep -q "@catppuccin_flavor" "$TMUX_CONF"; then
+    sed -i "s/@catppuccin_flavor '[^']*'/@catppuccin_flavor '$TMUX_FLAVOR'/" "$TMUX_CONF"
+  fi
+
+  # Reload tmux if running
+  if command -v tmux &> /dev/null && tmux list-sessions &> /dev/null 2>&1; then
+    tmux source-file "$TMUX_CONF" 2>/dev/null
+    echo "  Tmux: Theme set to Catppuccin $TMUX_FLAVOR (reloaded)"
+  else
+    echo "  Tmux: Config updated to Catppuccin $TMUX_FLAVOR (restart tmux to apply)"
+  fi
 fi
 
 echo ""

@@ -265,6 +265,20 @@ EOF
   echo "  Nushell installed and set as default shell"
   echo "  Log out and back in for the change to take effect"
 
+  # Install Catppuccin tmux theme
+  echo "# # Installing Catppuccin tmux theme"
+  mkdir -p $dir/tmux/plugin/catppuccin
+  if [ ! -d "$dir/tmux/plugin/catppuccin/tmux" ]; then
+    git clone -b v2.1.3 https://github.com/catppuccin/tmux.git $dir/tmux/plugin/catppuccin/tmux
+  fi
+
+  # Update tmux.conf with nushell as default shell
+  NU_PATH=$(which nu)
+  if [ -n "$NU_PATH" ]; then
+    sed -i "s|set-option -g default-shell.*|set-option -g default-shell $NU_PATH|" ~/.tmux.conf
+    echo "  Tmux configured to use nushell: $NU_PATH"
+  fi
+
   # Add custom plugins and settings to existing Omarchy Neovim setup
   echo "# # Adding custom plugins to Neovim (PHP, Copilot, org-mode, etc.)"
   mkdir -p ~/.config/nvim/lua/plugins
@@ -280,16 +294,24 @@ EOF
   cp $dir/workstation/nvim/lua/config/options.lua ~/.config/nvim/lua/config/options.lua
   cp $dir/workstation/nvim/lua/config/lazy.lua ~/.config/nvim/lua/config/lazy.lua
 
-  # Configure uwsm to use Kitty as default terminal
-  echo "# # Configuring uwsm to use Kitty as default terminal"
+  # Configure uwsm to use Ghostty as default terminal
+  echo "# # Configuring Ghostty as default terminal"
   if [ -f ~/.config/uwsm/default ]; then
-    sed -i 's/^export TERMINAL=.*/export TERMINAL=kitty/' ~/.config/uwsm/default
-    echo "Updated TERMINAL export in ~/.config/uwsm/default"
+    sed -i 's/^export TERMINAL=.*/export TERMINAL=ghostty/' ~/.config/uwsm/default
+    echo "  Updated TERMINAL export in ~/.config/uwsm/default"
   else
-    echo "Warning: ~/.config/uwsm/default not found, skipping terminal configuration"
+    echo "  Warning: ~/.config/uwsm/default not found"
   fi
 
-  echo "Kitty and Neovim configured for Omarchy theme switching"
+  # Also set TERMINAL environment variable in profile
+  if ! grep -q 'export TERMINAL=ghostty' ~/.profile 2>/dev/null; then
+    echo '' >> ~/.profile
+    echo '# Default terminal emulator' >> ~/.profile
+    echo 'export TERMINAL=ghostty' >> ~/.profile
+    echo "  Added TERMINAL=ghostty to ~/.profile"
+  fi
+
+  echo "Ghostty set as default terminal"
 fi
 
 # # macOS Workstation Setup
@@ -385,6 +407,18 @@ if [ "$action" == "macos" ]; then
   mkdir -p ~/.config/ghostty
   cp $dir/workstation/macos/ghostty/config ~/.config/ghostty/config
 
+  # Set Ghostty as default terminal for shell scripts and executables
+  echo "# # Setting Ghostty as default terminal"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  brew install duti
+  # Set Ghostty as handler for shell scripts and public.unix-executable
+  duti -s com.mitchellh.ghostty public.unix-executable all 2>/dev/null || true
+  duti -s com.mitchellh.ghostty public.shell-script all 2>/dev/null || true
+  duti -s com.mitchellh.ghostty .sh all 2>/dev/null || true
+  duti -s com.mitchellh.ghostty .bash all 2>/dev/null || true
+  duti -s com.mitchellh.ghostty .zsh all 2>/dev/null || true
+  echo "  Ghostty set as default for shell scripts and executables"
+
   echo "# # Configuring AeroSpace"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
   mkdir -p ~/.config/aerospace
@@ -463,6 +497,20 @@ if [ "$action" == "macos" ]; then
 
   echo "  Nushell installed and set as default shell"
   echo "  Log out and back in for the change to take effect"
+
+  # Install Catppuccin tmux theme
+  echo "# # Installing Catppuccin tmux theme"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  mkdir -p $dir/tmux/plugin/catppuccin
+  if [ ! -d "$dir/tmux/plugin/catppuccin/tmux" ]; then
+    git clone -b v2.1.3 https://github.com/catppuccin/tmux.git $dir/tmux/plugin/catppuccin/tmux
+  fi
+
+  # Update tmux.conf with nushell as default shell (macOS path)
+  if [ -f ~/.tmux.conf ]; then
+    sed -i '' "s|set-option -g default-shell.*|set-option -g default-shell $NU_PATH|" ~/.tmux.conf
+    echo "  Tmux configured to use nushell: $NU_PATH"
+  fi
 
   echo "# # Setting up SeaShells theme system"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
@@ -684,6 +732,11 @@ if [ "$action" == "install" ]; then
     echo "git clone $tplug"
     git clone $tplug
   done
+
+  # Clone Catppuccin tmux theme
+  echo "Cloning Catppuccin tmux theme..."
+  mkdir -p $dir/tmux/plugin/catppuccin
+  git clone -b v2.1.3 https://github.com/catppuccin/tmux.git $dir/tmux/plugin/catppuccin/tmux
 
   # covers injection into most existing configurations
   if ! grep -q "~/.bashrc" $dir/bash_profile && ! grep -q "~/.bash_profile" $dir/bashrc; then

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # SeaShells Theme Switcher for macOS
-# Switches between light and dark themes for Ghostty, Sketchybar, JankyBorders, and Starship
+# Switches between light and dark themes for Ghostty, Sketchybar, JankyBorders, Starship, and Tmux
 #
 # Usage:
 #   theme-switch.sh dark      # Switch to seashells-dark
@@ -72,6 +72,9 @@ set_theme() {
 
   # Update Starship palette
   update_starship "$theme_path"
+
+  # Update Tmux theme
+  update_tmux "$theme"
 
   # Save current theme
   echo "$theme" > "$CURRENT_THEME_FILE"
@@ -213,6 +216,33 @@ git = '$git'
 EOF
 
     echo "  Starship: Palette updated to '$palette_name'"
+  fi
+}
+
+# Update Tmux theme (Catppuccin)
+update_tmux() {
+  local theme="$1"
+  local tmux_conf="$HOME/.tmux.conf"
+  local tmux_flavor="mocha"
+
+  # Map seashells theme to Catppuccin flavor
+  if [[ "$theme" == *"light"* ]]; then
+    tmux_flavor="latte"
+  fi
+
+  if [ -f "$tmux_conf" ]; then
+    # Update flavor in tmux.conf
+    if grep -q "@catppuccin_flavor" "$tmux_conf"; then
+      sed -i '' "s/@catppuccin_flavor '[^']*'/@catppuccin_flavor '$tmux_flavor'/" "$tmux_conf"
+    fi
+
+    # Reload tmux if running
+    if command -v tmux &> /dev/null && tmux list-sessions &> /dev/null 2>&1; then
+      tmux source-file "$tmux_conf" 2>/dev/null
+      echo "  Tmux: Theme set to Catppuccin $tmux_flavor (reloaded)"
+    else
+      echo "  Tmux: Config updated to Catppuccin $tmux_flavor"
+    fi
   fi
 }
 
