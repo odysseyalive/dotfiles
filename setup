@@ -10,9 +10,9 @@ USEREPO=yes
 dir=~/.yadrlite
 dotfiles_old=backup
 action="${1:-install}"
-declare -a files=('vim vimrc tmux.conf profile bash_profile bashrc vimrc.after emacs emacs.d')
+declare -a files=('vim vimrc tmux.conf bash_profile bashrc vimrc.after emacs emacs.d')
 declare -a config=('kitty nvim ranger')
-declare -a tmuxplugins=('https://github.com/tmux-plugins/tmux-resurrect.git' 'https://github.com/tmux-plugins/tmux-sensible')
+declare -a tmuxplugins=('https://github.com/tmux-plugins/tmux-resurrect.git' 'https://github.com/tmux-plugins/tmux-sensible' 'https://github.com/wfxr/tmux-power.git')
 
 # # Routines
 # # # # # # # # # # # # # # #
@@ -230,13 +230,6 @@ EOF
     echo 'eval "$(zoxide init bash)"' >> ~/.bashrc
   fi
 
-  # Install Catppuccin tmux theme
-  echo "# # Installing Catppuccin tmux theme"
-  mkdir -p $dir/tmux/plugin/catppuccin
-  if [ ! -d "$dir/tmux/plugin/catppuccin/tmux" ]; then
-    git clone -b v2.1.3 https://github.com/catppuccin/tmux.git $dir/tmux/plugin/catppuccin/tmux
-  fi
-
   # Add custom plugins and settings to existing Omarchy Neovim setup
   echo "# # Adding custom plugins to Neovim (PHP, Copilot, org-mode, etc.)"
   mkdir -p ~/.config/nvim/lua/plugins
@@ -412,12 +405,10 @@ if [ "$action" == "macos" ]; then
     echo 'eval "$(zoxide init zsh)"' >> ~/.zshrc
   fi
 
-  # Install Catppuccin tmux theme
-  echo "# # Installing Catppuccin tmux theme"
-  echo "# # # # # # # # # # # # # # # # # # # # # #"
-  mkdir -p $dir/tmux/plugin/catppuccin
-  if [ ! -d "$dir/tmux/plugin/catppuccin/tmux" ]; then
-    git clone -b v2.1.3 https://github.com/catppuccin/tmux.git $dir/tmux/plugin/catppuccin/tmux
+  # Install tmux-power theme (if not already installed via tmuxplugins array)
+  if [ ! -d "$dir/tmux/plugin/tmux-power" ]; then
+    echo "# # Installing tmux-power theme"
+    git clone https://github.com/wfxr/tmux-power.git $dir/tmux/plugin/tmux-power
   fi
 
   echo "# # Setting up SeaShells theme system"
@@ -434,7 +425,40 @@ if [ "$action" == "macos" ]; then
   # Set default theme to seashells-dark
   echo "seashells-dark" > ~/.config/current-theme
 
+  # Run theme-switch to apply default theme (syncs Ghostty, Starship, Tmux)
+  bash $dir/workstation/macos/scripts/theme-switch.sh dark
+
   echo "  Theme system installed. Use 'theme-switch dark|light|toggle' to change themes."
+
+  echo "# # Setting up Caps Lock / Escape swap"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+
+  # Create LaunchAgent to swap Caps Lock and Escape keys
+  mkdir -p ~/Library/LaunchAgents
+  cat > ~/Library/LaunchAgents/com.local.KeyRemapping.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.local.KeyRemapping</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/hidutil</string>
+        <string>property</string>
+        <string>--set</string>
+        <string>{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x700000029},{"HIDKeyboardModifierMappingSrc":0x700000029,"HIDKeyboardModifierMappingDst":0x700000039}]}</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
+EOF
+
+  # Apply the key swap immediately
+  hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x700000029},{"HIDKeyboardModifierMappingSrc":0x700000029,"HIDKeyboardModifierMappingDst":0x700000039}]}'
+
+  echo "  Caps Lock and Escape keys swapped (persists across reboots)"
 
   echo "# # Installing config files (nvim, ranger)"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
@@ -635,11 +659,6 @@ if [ "$action" == "install" ]; then
     echo "git clone $tplug"
     git clone $tplug
   done
-
-  # Clone Catppuccin tmux theme
-  echo "Cloning Catppuccin tmux theme..."
-  mkdir -p $dir/tmux/plugin/catppuccin
-  git clone -b v2.1.3 https://github.com/catppuccin/tmux.git $dir/tmux/plugin/catppuccin/tmux
 
   # covers injection into most existing configurations
   if ! grep -q "~/.bashrc" $dir/bash_profile && ! grep -q "~/.bash_profile" $dir/bashrc; then

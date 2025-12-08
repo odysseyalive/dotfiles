@@ -219,29 +219,47 @@ EOF
   fi
 }
 
-# Update Tmux theme (Catppuccin)
+# Update Tmux theme (tmux-power with SeaShells)
 update_tmux() {
   local theme="$1"
   local tmux_conf="$HOME/.tmux.conf"
-  local tmux_flavor="mocha"
 
-  # Map seashells theme to Catppuccin flavor
+  # Map seashells theme to tmux-power colors
   if [[ "$theme" == *"light"* ]]; then
-    tmux_flavor="latte"
+    # SeaShells Light colors
+    local tmux_tc='#50a3b5'
+    local tmux_g0='#e0d6c8'
+    local tmux_g1='#c8dde8'
+    local tmux_g2='#b8c8d0'
+    local tmux_g3='#2d6870'
+    local tmux_g4='#0f2838'
+    local theme_label="SeaShells Light"
+  else
+    # SeaShells Dark colors
+    local tmux_tc='#50a3b5'
+    local tmux_g0='#08131a'
+    local tmux_g1='#0f2838'
+    local tmux_g2='#1e4862'
+    local tmux_g3='#2d6870'
+    local tmux_g4='#deb88d'
+    local theme_label="SeaShells Dark"
   fi
 
   if [ -f "$tmux_conf" ]; then
-    # Update flavor in tmux.conf
-    if grep -q "@catppuccin_flavor" "$tmux_conf"; then
-      sed -i '' "s/@catppuccin_flavor '[^']*'/@catppuccin_flavor '$tmux_flavor'/" "$tmux_conf"
-    fi
+    # Update tmux-power colors in tmux.conf
+    sed -i '' "s/@tmux_power_theme '[^']*'/@tmux_power_theme '$tmux_tc'/" "$tmux_conf"
+    sed -i '' "s/@tmux_power_g0 '[^']*'/@tmux_power_g0 '$tmux_g0'/" "$tmux_conf"
+    sed -i '' "s/@tmux_power_g1 '[^']*'/@tmux_power_g1 '$tmux_g1'/" "$tmux_conf"
+    sed -i '' "s/@tmux_power_g2 '[^']*'/@tmux_power_g2 '$tmux_g2'/" "$tmux_conf"
+    sed -i '' "s/@tmux_power_g3 '[^']*'/@tmux_power_g3 '$tmux_g3'/" "$tmux_conf"
+    sed -i '' "s/@tmux_power_g4 '[^']*'/@tmux_power_g4 '$tmux_g4'/" "$tmux_conf"
 
     # Reload tmux if running
     if command -v tmux &> /dev/null && tmux list-sessions &> /dev/null 2>&1; then
       tmux source-file "$tmux_conf" 2>/dev/null
-      echo "  Tmux: Theme set to Catppuccin $tmux_flavor (reloaded)"
+      echo "  Tmux: $theme_label (reloaded)"
     else
-      echo "  Tmux: Config updated to Catppuccin $tmux_flavor"
+      echo "  Tmux: $theme_label"
     fi
   fi
 }

@@ -74,6 +74,9 @@ alt-shift-f = 'layout floating tiling'
 alt-backslash = 'split horizontal'
 alt-shift-backslash = 'split vertical'
 
+# Theme toggle (dark/light)
+alt-t = 'exec-and-forget ~/.yadrlite/workstation/macos/scripts/theme-switch.sh toggle'
+
 # Enter service mode for advanced operations
 alt-shift-semicolon = 'mode service'
 

@@ -136,31 +136,47 @@ EOF
 fi
 
 # ============================================
-# Update Tmux theme (Catppuccin)
+# Update Tmux theme (tmux-power with SeaShells)
 # ============================================
 TMUX_CONF="$HOME/.tmux.conf"
 if [ -f "$TMUX_CONF" ]; then
   echo "Updating Tmux theme..."
 
-  # Map theme to Catppuccin flavor based on brightness
   # Check if theme name contains "light" (case insensitive)
   if [[ "${THEME_NAME,,}" == *"light"* ]]; then
-    TMUX_FLAVOR="latte"
+    # SeaShells Light colors
+    TMUX_TC='#50a3b5'
+    TMUX_G0='#e0d6c8'
+    TMUX_G1='#c8dde8'
+    TMUX_G2='#b8c8d0'
+    TMUX_G3='#2d6870'
+    TMUX_G4='#0f2838'
+    THEME_LABEL="SeaShells Light"
   else
-    TMUX_FLAVOR="mocha"
+    # SeaShells Dark colors
+    TMUX_TC='#50a3b5'
+    TMUX_G0='#08131a'
+    TMUX_G1='#0f2838'
+    TMUX_G2='#1e4862'
+    TMUX_G3='#2d6870'
+    TMUX_G4='#deb88d'
+    THEME_LABEL="SeaShells Dark"
   fi
 
-  # Update flavor in tmux.conf
-  if grep -q "@catppuccin_flavor" "$TMUX_CONF"; then
-    sed -i "s/@catppuccin_flavor '[^']*'/@catppuccin_flavor '$TMUX_FLAVOR'/" "$TMUX_CONF"
-  fi
+  # Update tmux-power colors in tmux.conf
+  sed -i "s/@tmux_power_theme '[^']*'/@tmux_power_theme '$TMUX_TC'/" "$TMUX_CONF"
+  sed -i "s/@tmux_power_g0 '[^']*'/@tmux_power_g0 '$TMUX_G0'/" "$TMUX_CONF"
+  sed -i "s/@tmux_power_g1 '[^']*'/@tmux_power_g1 '$TMUX_G1'/" "$TMUX_CONF"
+  sed -i "s/@tmux_power_g2 '[^']*'/@tmux_power_g2 '$TMUX_G2'/" "$TMUX_CONF"
+  sed -i "s/@tmux_power_g3 '[^']*'/@tmux_power_g3 '$TMUX_G3'/" "$TMUX_CONF"
+  sed -i "s/@tmux_power_g4 '[^']*'/@tmux_power_g4 '$TMUX_G4'/" "$TMUX_CONF"
 
   # Reload tmux if running
   if command -v tmux &> /dev/null && tmux list-sessions &> /dev/null 2>&1; then
     tmux source-file "$TMUX_CONF" 2>/dev/null
-    echo "  Tmux: Theme set to Catppuccin $TMUX_FLAVOR (reloaded)"
+    echo "  Tmux: $THEME_LABEL (reloaded)"
   else
-    echo "  Tmux: Config updated to Catppuccin $TMUX_FLAVOR (restart tmux to apply)"
+    echo "  Tmux: $THEME_LABEL (restart tmux to apply)"
   fi
 fi
 
