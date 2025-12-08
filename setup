@@ -219,6 +219,38 @@ EOF
     echo 'eval "$(starship init bash)"' >> ~/.bashrc
   fi
 
+  # Install nushell and set as default shell
+  echo "# # Installing Nushell"
+  yay -S --noconfirm nushell
+
+  # Add nushell to /etc/shells if not present
+  if ! grep -q "$(which nu)" /etc/shells 2>/dev/null; then
+    echo "Adding nushell to /etc/shells (requires sudo)..."
+    which nu | sudo tee -a /etc/shells
+  fi
+
+  # Configure nushell with Starship
+  mkdir -p ~/.config/nushell
+  if [ ! -f ~/.config/nushell/config.nu ]; then
+    nu -c 'config nu --default' > ~/.config/nushell/config.nu 2>/dev/null || touch ~/.config/nushell/config.nu
+  fi
+  if [ ! -f ~/.config/nushell/env.nu ]; then
+    nu -c 'config env --default' > ~/.config/nushell/env.nu 2>/dev/null || touch ~/.config/nushell/env.nu
+  fi
+
+  # Add Starship init to nushell config
+  mkdir -p ~/.local/share/nushell/vendor/autoload
+  if command -v starship &> /dev/null; then
+    starship init nu | save -f ~/.local/share/nushell/vendor/autoload/starship.nu
+  fi
+
+  # Set nushell as default shell
+  echo "Setting nushell as default shell..."
+  chsh -s "$(which nu)"
+
+  echo "  Nushell installed and set as default shell"
+  echo "  Log out and back in for the change to take effect"
+
   # Add custom plugins and settings to existing Omarchy Neovim setup
   echo "# # Adding custom plugins to Neovim (PHP, Copilot, org-mode, etc.)"
   mkdir -p ~/.config/nvim/lua/plugins
@@ -369,6 +401,40 @@ if [ "$action" == "macos" ]; then
     echo '# Starship prompt' >> ~/.zshrc
     echo 'eval "$(starship init zsh)"' >> ~/.zshrc
   fi
+
+  # Install nushell and set as default shell
+  echo "# # Installing Nushell"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  brew install nushell
+
+  # Add nushell to /etc/shells if not present
+  NU_PATH=$(brew --prefix)/bin/nu
+  if ! grep -q "$NU_PATH" /etc/shells 2>/dev/null; then
+    echo "Adding nushell to /etc/shells (requires sudo)..."
+    echo "$NU_PATH" | sudo tee -a /etc/shells
+  fi
+
+  # Configure nushell with Starship
+  mkdir -p ~/.config/nushell
+  if [ ! -f ~/.config/nushell/config.nu ]; then
+    $NU_PATH -c 'config nu --default' > ~/.config/nushell/config.nu 2>/dev/null || touch ~/.config/nushell/config.nu
+  fi
+  if [ ! -f ~/.config/nushell/env.nu ]; then
+    $NU_PATH -c 'config env --default' > ~/.config/nushell/env.nu 2>/dev/null || touch ~/.config/nushell/env.nu
+  fi
+
+  # Add Starship init to nushell config
+  mkdir -p ~/.local/share/nushell/vendor/autoload
+  if command -v starship &> /dev/null; then
+    starship init nu | save -f ~/.local/share/nushell/vendor/autoload/starship.nu
+  fi
+
+  # Set nushell as default shell
+  echo "Setting nushell as default shell..."
+  chsh -s "$NU_PATH"
+
+  echo "  Nushell installed and set as default shell"
+  echo "  Log out and back in for the change to take effect"
 
   echo "# # Setting up SeaShells theme system"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
