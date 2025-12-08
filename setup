@@ -252,24 +252,17 @@ EOF
   cp $dir/workstation/nvim/lua/config/options.lua ~/.config/nvim/lua/config/options.lua
   cp $dir/workstation/nvim/lua/config/lazy.lua ~/.config/nvim/lua/config/lazy.lua
 
-  # Configure uwsm to use Ghostty as default terminal
-  echo "# # Configuring Ghostty as default terminal"
+  # Configure uwsm to use Kitty as default terminal
+  # (Kitty has better Linux support: drag-drop, ranger image previews)
+  echo "# # Configuring Kitty as default terminal"
   if [ -f ~/.config/uwsm/default ]; then
-    sed -i 's/^export TERMINAL=.*/export TERMINAL=ghostty/' ~/.config/uwsm/default
+    sed -i 's/^export TERMINAL=.*/export TERMINAL=kitty/' ~/.config/uwsm/default
     echo "  Updated TERMINAL export in ~/.config/uwsm/default"
   else
     echo "  Warning: ~/.config/uwsm/default not found"
   fi
 
-  # Also set TERMINAL environment variable in profile
-  if ! grep -q 'export TERMINAL=ghostty' ~/.profile 2>/dev/null; then
-    echo '' >> ~/.profile
-    echo '# Default terminal emulator' >> ~/.profile
-    echo 'export TERMINAL=ghostty' >> ~/.profile
-    echo "  Added TERMINAL=ghostty to ~/.profile"
-  fi
-
-  echo "Ghostty set as default terminal"
+  echo "Kitty set as default terminal"
 fi
 
 # # macOS Workstation Setup
