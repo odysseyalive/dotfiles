@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# Omarchy Theme Sync for Ghostty
-# Syncs Ghostty theme with current Omarchy theme
+# Omarchy Theme Sync for Ghostty and Starship
+# Syncs Ghostty and Starship themes with current Omarchy theme
 #
 # Usage:
-#   omarchy-theme-sync           # Sync Ghostty with current Omarchy theme
+#   omarchy-theme-sync           # Sync themes with current Omarchy theme
 #
 # Run this after switching Omarchy themes with 'omarchy theme'
 
 GHOSTTY_CONFIG="$HOME/.config/ghostty/config"
 GHOSTTY_THEMES_DIR="$HOME/.config/ghostty/themes"
+STARSHIP_CONFIG="$HOME/.config/starship.toml"
 OMARCHY_THEME_DIR="$HOME/.config/omarchy/current/theme"
 KITTY_THEME="$OMARCHY_THEME_DIR/kitty.conf"
 GHOSTTY_THEME_CONF="$OMARCHY_THEME_DIR/ghostty.conf"
@@ -39,10 +40,27 @@ if [ ! -f "$KITTY_THEME" ]; then
   exit 1
 fi
 
-# Create themes directory
-mkdir -p "$GHOSTTY_THEMES_DIR"
+# Extract colors from kitty.conf
+echo "Extracting colors from Omarchy theme: $THEME_NAME"
 
-# Extract colors from kitty.conf and create Ghostty theme
+# Get key colors for Starship palette
+COLOR_YELLOW=$(grep -E "^color3\s+" "$KITTY_THEME" | awk '{print $2}')
+COLOR_CYAN=$(grep -E "^color6\s+" "$KITTY_THEME" | awk '{print $2}')
+COLOR_MAGENTA=$(grep -E "^color5\s+" "$KITTY_THEME" | awk '{print $2}')
+COLOR_GREEN=$(grep -E "^color2\s+" "$KITTY_THEME" | awk '{print $2}')
+COLOR_BLUE=$(grep -E "^color4\s+" "$KITTY_THEME" | awk '{print $2}')
+
+# Fallback to defaults if colors not found
+COLOR_YELLOW=${COLOR_YELLOW:-#fba02f}
+COLOR_CYAN=${COLOR_CYAN:-#50a3b5}
+COLOR_MAGENTA=${COLOR_MAGENTA:-#68d3f0}
+COLOR_GREEN=${COLOR_GREEN:-#027b9b}
+COLOR_BLUE=${COLOR_BLUE:-#2d6870}
+
+# ============================================
+# Update Ghostty theme
+# ============================================
+mkdir -p "$GHOSTTY_THEMES_DIR"
 echo "Creating Ghostty theme: $THEME_NAME"
 
 THEME_FILE="$GHOSTTY_THEMES_DIR/$THEME_NAME"
@@ -75,40 +93,47 @@ EOF
 
 # Update Ghostty config to use the theme
 if [ -f "$GHOSTTY_CONFIG" ]; then
-  # Update existing theme line or add it
   if grep -q "^theme\s*=" "$GHOSTTY_CONFIG"; then
     sed -i "s/^theme\s*=.*/theme = $THEME_NAME/" "$GHOSTTY_CONFIG"
   else
     echo "theme = $THEME_NAME" >> "$GHOSTTY_CONFIG"
   fi
-else
-  # Create basic config
-  cat > "$GHOSTTY_CONFIG" << EOF
-# Ghostty Configuration for YADRLite + Omarchy
-# https://ghostty.org
-
-# Font settings
-font-family = FiraCode Nerd Font
-font-size = 10.5
-
-# Terminal settings
-term = xterm-256color
-
-# Scrollback
-scrollback-limit = 10000
-
-# Clipboard
-clipboard-read = allow
-clipboard-write = allow
-
-# Mouse
-mouse-hide-while-typing = true
-
-# Theme (synced from Omarchy)
-theme = $THEME_NAME
-EOF
 fi
 
-echo "Ghostty theme '$THEME_NAME' created at $THEME_FILE"
-echo "Ghostty config updated to use theme"
-echo "Restart Ghostty or open a new window to see changes"
+echo "  Ghostty theme updated"
+
+# ============================================
+# Update Starship palette
+# ============================================
+if [ -f "$STARSHIP_CONFIG" ]; then
+  echo "Updating Starship palette..."
+
+  # Create lowercase theme name for palette
+  PALETTE_NAME=$(echo "$THEME_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
+
+  # Update palette reference
+  sed -i "s/^palette = .*/palette = '$PALETTE_NAME'/" "$STARSHIP_CONFIG"
+
+  # Remove existing palette section and add new one
+  # First, remove old palette block (from [palettes.* to next section or EOF)
+  sed -i '/^\[palettes\./,/^\[/{ /^\[palettes\./d; /^\[/!d; }' "$STARSHIP_CONFIG"
+
+  # Append new palette
+  cat >> "$STARSHIP_CONFIG" << EOF
+
+[palettes.$PALETTE_NAME]
+bracket = '$COLOR_YELLOW'
+time = '$COLOR_CYAN'
+user = '$COLOR_MAGENTA'
+at = '$COLOR_GREEN'
+host = '$COLOR_GREEN'
+path = '$COLOR_BLUE'
+prompt = '$COLOR_YELLOW'
+git = '$COLOR_CYAN'
+EOF
+
+  echo "  Starship palette updated to '$PALETTE_NAME'"
+fi
+
+echo ""
+echo "Theme sync complete! Restart your terminal to see changes."

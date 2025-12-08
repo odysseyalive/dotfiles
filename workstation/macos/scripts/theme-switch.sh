@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # SeaShells Theme Switcher for macOS
-# Switches between light and dark themes for Ghostty, Sketchybar, and JankyBorders
+# Switches between light and dark themes for Ghostty, Sketchybar, JankyBorders, and Starship
 #
 # Usage:
 #   theme-switch.sh dark      # Switch to seashells-dark
@@ -11,6 +11,7 @@
 
 THEME_DIR="$HOME/.config/themes"
 CURRENT_THEME_FILE="$HOME/.config/current-theme"
+STARSHIP_CONFIG="$HOME/.config/starship.toml"
 YADRLITE_THEMES="$HOME/.yadrlite/workstation/macos/themes"
 
 # Ensure theme directory exists
@@ -68,6 +69,9 @@ set_theme() {
 
   # Update Neovim background
   update_neovim "$theme"
+
+  # Update Starship palette
+  update_starship "$theme_path"
 
   # Save current theme
   echo "$theme" > "$CURRENT_THEME_FILE"
@@ -164,6 +168,52 @@ update_neovim() {
   fi
 
   echo "  Neovim: Background set to $bg"
+}
+
+# Update Starship palette
+update_starship() {
+  local theme_path="$1"
+  local colors_file="$theme_path/colors.sh"
+
+  if [ -f "$colors_file" ] && [ -f "$STARSHIP_CONFIG" ]; then
+    # Source theme colors
+    source "$colors_file"
+
+    # Use theme colors or fallback to defaults
+    local bracket="${ACCENT:-#fba02f}"
+    local time="${ACCENT:-#50a3b5}"
+    local user="${FG:-#68d3f0}"
+    local at="${ACCENT:-#027b9b}"
+    local host="${ACCENT:-#027b9b}"
+    local path="${BORDER_ACTIVE:-#2d6870}"
+    local prompt="${ACCENT:-#fba02f}"
+    local git="${ACCENT:-#50a3b5}"
+
+    # Create palette name from theme
+    local palette_name=$(basename "$theme_path" | tr '-' '_')
+
+    # Update palette reference
+    sed -i '' "s/^palette = .*/palette = '$palette_name'/" "$STARSHIP_CONFIG"
+
+    # Remove existing palette section
+    sed -i '' '/^\[palettes\./,/^\[/{ /^\[palettes\./d; /^\[/!d; }' "$STARSHIP_CONFIG"
+
+    # Append new palette
+    cat >> "$STARSHIP_CONFIG" << EOF
+
+[palettes.$palette_name]
+bracket = '$bracket'
+time = '$time'
+user = '$user'
+at = '$at'
+host = '$host'
+path = '$path'
+prompt = '$prompt'
+git = '$git'
+EOF
+
+    echo "  Starship: Palette updated to '$palette_name'"
+  fi
 }
 
 # Toggle theme

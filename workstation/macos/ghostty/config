@@ -3,8 +3,11 @@
 # https://ghostty.org
 
 # Font settings
-font-family = FiraCode Nerd Font
+# Using Cascadia Code (not Nerd Font) for working ligatures
+# https://github.com/ghostty-org/ghostty/discussions/4586
+font-family = Cascadia Code
 font-size = 10.5
+font-feature = calt, liga, ss01, ss19, ss20
 
 # Terminal settings
 term = xterm-256color

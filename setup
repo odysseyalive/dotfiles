@@ -204,7 +204,20 @@ EOF
   mkdir -p ~/.local/bin
   chmod +x $dir/workstation/scripts/omarchy-theme-sync.sh
   ln -sf $dir/workstation/scripts/omarchy-theme-sync.sh ~/.local/bin/omarchy-theme-sync
-  echo "  Run 'omarchy-theme-sync' after switching themes to update Ghostty"
+  echo "  Run 'omarchy-theme-sync' after switching themes to update Ghostty and Starship"
+
+  # Install Starship prompt
+  echo "# # Installing Starship prompt"
+  curl -sS https://starship.rs/install.sh | sh -s -- -y
+  mkdir -p ~/.config
+  cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
+
+  # Add Starship init to bashrc if not already present
+  if ! grep -q 'starship init bash' ~/.bashrc; then
+    echo '' >> ~/.bashrc
+    echo '# Starship prompt' >> ~/.bashrc
+    echo 'eval "$(starship init bash)"' >> ~/.bashrc
+  fi
 
   # Add custom plugins and settings to existing Omarchy Neovim setup
   echo "# # Adding custom plugins to Neovim (PHP, Copilot, org-mode, etc.)"
@@ -289,8 +302,11 @@ if [ "$action" == "macos" ]; then
   brew install go
   brew install w3m atool
 
-  # Nerd Font (required for LazyVim icons and Sketchybar)
-  brew install --cask font-fira-code-nerd-font
+  # Fonts
+  # Cascadia Code for Ghostty (has working ligatures)
+  # Nerd Font for LazyVim icons and Sketchybar
+  brew install --cask font-cascadia-code
+  brew install --cask font-caskaydia-cove-nerd-font
 
   # Node.js via mise (consistent with omarchy action)
   brew install mise
@@ -341,6 +357,18 @@ if [ "$action" == "macos" ]; then
   mkdir -p ~/.config/borders
   cp $dir/workstation/macos/borders/bordersrc ~/.config/borders/bordersrc
   chmod +x ~/.config/borders/bordersrc
+
+  echo "# # Installing Starship prompt"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  brew install starship
+  cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
+
+  # Add Starship init to zshrc if not already present
+  if ! grep -q 'starship init zsh' ~/.zshrc 2>/dev/null; then
+    echo '' >> ~/.zshrc
+    echo '# Starship prompt' >> ~/.zshrc
+    echo 'eval "$(starship init zsh)"' >> ~/.zshrc
+  fi
 
   echo "# # Setting up SeaShells theme system"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
