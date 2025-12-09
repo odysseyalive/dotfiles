@@ -236,19 +236,111 @@ max_volume = 200
 style = "./style.css"
 EOF
 
-# configure hyprland volume keys to allow 200% max volume
+# install global volume control script (affects ALL sinks and apps)
+log "installing global volume control script"
+mkdir -p ~/.local/bin
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/workstation/scripts/omarchy-volume" ]; then
+  cp "$SCRIPT_DIR/workstation/scripts/omarchy-volume" ~/.local/bin/omarchy-volume
+elif [ -f ~/.yadrlite/workstation/scripts/omarchy-volume ]; then
+  cp ~/.yadrlite/workstation/scripts/omarchy-volume ~/.local/bin/omarchy-volume
+else
+  # Create the script inline if not found
+  cat >~/.local/bin/omarchy-volume <<'VOLSCRIPT'
+#!/bin/bash
+# Global volume control - affects ALL sinks and streams simultaneously
+
+ACTION="$1"
+AMOUNT="${2:-5}"
+MAX_VOLUME="${3:-200}"
+
+get_all_sinks() {
+    pactl list short sinks | awk '{print $1}'
+}
+
+get_all_sink_inputs() {
+    pactl list short sink-inputs | awk '{print $1}'
+}
+
+get_current_volume() {
+    pactl list sinks | grep -E "^\s+Volume:" | head -1 | grep -oP '\d+%' | head -1 | tr -d '%'
+}
+
+set_volume_all() {
+    local vol="$1"
+    if [ "$vol" -gt "$MAX_VOLUME" ]; then
+        vol="$MAX_VOLUME"
+    elif [ "$vol" -lt 0 ]; then
+        vol=0
+    fi
+    for sink in $(get_all_sinks); do
+        pactl set-sink-volume "$sink" "${vol}%"
+    done
+    for input in $(get_all_sink_inputs); do
+        pactl set-sink-input-volume "$input" "${vol}%"
+    done
+    echo "$vol"
+}
+
+case "$ACTION" in
+    raise|up|+)
+        current=$(get_current_volume)
+        new=$((current + AMOUNT))
+        set_volume_all "$new"
+        ;;
+    lower|down|-)
+        current=$(get_current_volume)
+        new=$((current - AMOUNT))
+        set_volume_all "$new"
+        ;;
+    mute-toggle|toggle)
+        for sink in $(get_all_sinks); do
+            pactl set-sink-mute "$sink" toggle
+        done
+        for input in $(get_all_sink_inputs); do
+            pactl set-sink-input-mute "$input" toggle
+        done
+        ;;
+    set)
+        set_volume_all "$AMOUNT"
+        ;;
+    get)
+        get_current_volume
+        ;;
+    balance)
+        for sink in $(get_all_sinks); do
+            vol=$(pactl get-sink-volume "$sink" | grep -oP '\d+%' | head -1 | tr -d '%')
+            pactl set-sink-volume "$sink" "${vol}%" 2>/dev/null
+        done
+        for input in $(get_all_sink_inputs); do
+            vol=$(pactl get-sink-input-volume "$input" 2>/dev/null | grep -oP '\d+%' | head -1 | tr -d '%')
+            [ -n "$vol" ] && pactl set-sink-input-volume "$input" "${vol}%" 2>/dev/null
+        done
+        echo "Balance fixed"
+        ;;
+    *)
+        echo "Usage: omarchy-volume <raise|lower|mute-toggle|set|get|balance> [amount] [max-volume]"
+        exit 1
+        ;;
+esac
+VOLSCRIPT
+fi
+chmod +x ~/.local/bin/omarchy-volume
+log "global volume control script installed"
+
+# configure hyprland volume keys to allow 200% max volume and control ALL sinks/apps
 if [ -f ~/.config/hypr/bindings.conf ]; then
-  if ! grep -q "max-volume 200" ~/.config/hypr/bindings.conf; then
+  if ! grep -q "omarchy-volume" ~/.config/hypr/bindings.conf; then
     cat >>~/.config/hypr/bindings.conf <<'EOF'
 
-# Volume keys with 200% max volume support
+# Volume keys with 200% max volume support - controls ALL sinks/apps globally
 $osdclient = swayosd-client --monitor "$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')"
-bindeld = ,XF86AudioRaiseVolume, Volume up, exec, $osdclient --output-volume raise --max-volume 200
-bindeld = ,XF86AudioLowerVolume, Volume down, exec, $osdclient --output-volume lower --max-volume 200
-bindeld = ALT, XF86AudioRaiseVolume, Volume up precise, exec, $osdclient --output-volume +1 --max-volume 200
-bindeld = ALT, XF86AudioLowerVolume, Volume down precise, exec, $osdclient --output-volume -1 --max-volume 200
+bindeld = ,XF86AudioRaiseVolume, Volume up, exec, ~/.local/bin/omarchy-volume raise 5 200 && $osdclient --output-volume raise --max-volume 200
+bindeld = ,XF86AudioLowerVolume, Volume down, exec, ~/.local/bin/omarchy-volume lower 5 200 && $osdclient --output-volume lower --max-volume 200
+bindeld = ALT, XF86AudioRaiseVolume, Volume up precise, exec, ~/.local/bin/omarchy-volume raise 1 200 && $osdclient --output-volume +1 --max-volume 200
+bindeld = ALT, XF86AudioLowerVolume, Volume down precise, exec, ~/.local/bin/omarchy-volume lower 1 200 && $osdclient --output-volume -1 --max-volume 200
 EOF
-    log "hyprland volume bindings configured for 200% max volume"
+    log "hyprland volume bindings configured for global volume control with 200% max"
   fi
 fi
 

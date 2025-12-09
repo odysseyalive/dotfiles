@@ -1,0 +1,87 @@
+#!/bin/bash
+# Global volume control - affects ALL sinks and streams simultaneously
+
+ACTION="$1"
+AMOUNT="${2:-5}"
+MAX_VOLUME="${3:-200}"
+
+get_all_sinks() {
+    pactl list short sinks | awk '{print $1}'
+}
+
+get_all_sink_inputs() {
+    pactl list short sink-inputs | awk '{print $1}'
+}
+
+get_current_volume() {
+    # Get average volume across all sinks (use highest as reference)
+    pactl list sinks | grep -E "^\s+Volume:" | head -1 | grep -oP '\d+%' | head -1 | tr -d '%'
+}
+
+set_volume_all() {
+    local vol="$1"
+
+    # Clamp volume
+    if [ "$vol" -gt "$MAX_VOLUME" ]; then
+        vol="$MAX_VOLUME"
+    elif [ "$vol" -lt 0 ]; then
+        vol=0
+    fi
+
+    # Set volume on all sinks
+    for sink in $(get_all_sinks); do
+        pactl set-sink-volume "$sink" "${vol}%"
+    done
+
+    # Set volume on all sink inputs (application streams)
+    for input in $(get_all_sink_inputs); do
+        pactl set-sink-input-volume "$input" "${vol}%"
+    done
+
+    echo "$vol"
+}
+
+case "$ACTION" in
+    raise|up|+)
+        current=$(get_current_volume)
+        new=$((current + AMOUNT))
+        set_volume_all "$new"
+        ;;
+    lower|down|-)
+        current=$(get_current_volume)
+        new=$((current - AMOUNT))
+        set_volume_all "$new"
+        ;;
+    mute-toggle|toggle)
+        for sink in $(get_all_sinks); do
+            pactl set-sink-mute "$sink" toggle
+        done
+        for input in $(get_all_sink_inputs); do
+            pactl set-sink-input-mute "$input" toggle
+        done
+        ;;
+    set)
+        set_volume_all "$AMOUNT"
+        ;;
+    get)
+        get_current_volume
+        ;;
+    balance)
+        # Fix balance on all sinks - set both channels equal
+        for sink in $(get_all_sinks); do
+            # Get current volume percentage (just one number)
+            vol=$(pactl get-sink-volume "$sink" | grep -oP '\d+%' | head -1 | tr -d '%')
+            # Set volume which resets balance
+            pactl set-sink-volume "$sink" "${vol}%" 2>/dev/null
+        done
+        for input in $(get_all_sink_inputs); do
+            vol=$(pactl get-sink-input-volume "$input" 2>/dev/null | grep -oP '\d+%' | head -1 | tr -d '%')
+            [ -n "$vol" ] && pactl set-sink-input-volume "$input" "${vol}%" 2>/dev/null
+        done
+        echo "Balance fixed"
+        ;;
+    *)
+        echo "Usage: omarchy-volume <raise|lower|mute-toggle|set|get|balance> [amount] [max-volume]"
+        exit 1
+        ;;
+esac
