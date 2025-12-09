@@ -125,6 +125,10 @@ if [ "$action" == "omarchy" ]; then
   mise use -g node@22.20.0
   # Install pnpm for secure package management
   npm install -g pnpm
+  pnpm setup
+  # Source pnpm environment for current session
+  export PNPM_HOME="$HOME/.local/share/pnpm"
+  export PATH="$PNPM_HOME:$PATH"
   pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 
   # Install Fira Code Nerd Font
@@ -332,6 +336,10 @@ if [ "$action" == "macos" ]; then
   echo "# # Installing pnpm and development packages"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
   npm install -g pnpm
+  pnpm setup
+  # Source pnpm environment for current session
+  export PNPM_HOME="$HOME/Library/pnpm"
+  export PATH="$PNPM_HOME:$PATH"
 
   # Install development packages via pnpm
   pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
