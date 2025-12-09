@@ -86,6 +86,8 @@ if [ "$action" == "tools" ]; then
   nvm use 22.20.0
   # Install pnpm for secure package management
   npm install -g pnpm
+  [ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc"
+  pnpm setup
   pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
   # go lang
   curl -sSL https://git.io/g-install | bash -s -- -y
@@ -125,6 +127,7 @@ if [ "$action" == "omarchy" ]; then
   mise use -g node@22.20.0
   # Install pnpm for secure package management
   npm install -g pnpm
+  [ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc"
   pnpm setup
   # Source pnpm environment for current session
   export PNPM_HOME="$HOME/.local/share/pnpm"
@@ -218,9 +221,9 @@ EOF
 
   # Add Starship init to bashrc if not already present
   if ! grep -q 'starship init bash' ~/.bashrc; then
-    echo '' >> ~/.bashrc
-    echo '# Starship prompt' >> ~/.bashrc
-    echo 'eval "$(starship init bash)"' >> ~/.bashrc
+    echo '' >>~/.bashrc
+    echo '# Starship prompt' >>~/.bashrc
+    echo 'eval "$(starship init bash)"' >>~/.bashrc
   fi
 
   # Install zoxide (smart cd command)
@@ -229,9 +232,9 @@ EOF
 
   # Add zoxide to bash
   if ! grep -q 'zoxide init bash' ~/.bashrc; then
-    echo '' >> ~/.bashrc
-    echo '# Zoxide (smart cd)' >> ~/.bashrc
-    echo 'eval "$(zoxide init bash)"' >> ~/.bashrc
+    echo '' >>~/.bashrc
+    echo '# Zoxide (smart cd)' >>~/.bashrc
+    echo 'eval "$(zoxide init bash)"' >>~/.bashrc
   fi
 
   # Add custom plugins and settings to existing Omarchy Neovim setup
@@ -275,7 +278,7 @@ if [ "$action" == "macos" ]; then
   fi
 
   # Install Homebrew if not present
-  if ! command -v brew &> /dev/null; then
+  if ! command -v brew &>/dev/null; then
     echo ""
     echo "Homebrew is the package manager for macOS and is required for this setup."
     echo "Learn more at: https://brew.sh"
@@ -336,6 +339,7 @@ if [ "$action" == "macos" ]; then
   echo "# # Installing pnpm and development packages"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
   npm install -g pnpm
+  [ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc"
   pnpm setup
   # Source pnpm environment for current session
   export PNPM_HOME="$HOME/Library/pnpm"
@@ -397,9 +401,9 @@ if [ "$action" == "macos" ]; then
 
   # Add Starship init to zshrc if not already present
   if ! grep -q 'starship init zsh' ~/.zshrc 2>/dev/null; then
-    echo '' >> ~/.zshrc
-    echo '# Starship prompt' >> ~/.zshrc
-    echo 'eval "$(starship init zsh)"' >> ~/.zshrc
+    echo '' >>~/.zshrc
+    echo '# Starship prompt' >>~/.zshrc
+    echo 'eval "$(starship init zsh)"' >>~/.zshrc
   fi
 
   # Install zoxide (smart cd command)
@@ -408,9 +412,9 @@ if [ "$action" == "macos" ]; then
 
   # Add zoxide to zsh
   if ! grep -q 'zoxide init zsh' ~/.zshrc 2>/dev/null; then
-    echo '' >> ~/.zshrc
-    echo '# Zoxide (smart cd)' >> ~/.zshrc
-    echo 'eval "$(zoxide init zsh)"' >> ~/.zshrc
+    echo '' >>~/.zshrc
+    echo '# Zoxide (smart cd)' >>~/.zshrc
+    echo 'eval "$(zoxide init zsh)"' >>~/.zshrc
   fi
 
   # Install tmux-power theme (if not already installed via tmuxplugins array)
@@ -431,7 +435,7 @@ if [ "$action" == "macos" ]; then
   ln -sf $dir/workstation/macos/scripts/theme-switch.sh ~/.local/bin/theme-switch
 
   # Set default theme to seashells-dark
-  echo "seashells-dark" > ~/.config/current-theme
+  echo "seashells-dark" >~/.config/current-theme
 
   # Run theme-switch to apply default theme (syncs Ghostty, Starship, Tmux)
   bash $dir/workstation/macos/scripts/theme-switch.sh dark
@@ -443,7 +447,7 @@ if [ "$action" == "macos" ]; then
 
   # Create LaunchAgent to swap Caps Lock and Escape keys
   mkdir -p ~/Library/LaunchAgents
-  cat > ~/Library/LaunchAgents/com.local.KeyRemapping.plist << 'EOF'
+  cat >~/Library/LaunchAgents/com.local.KeyRemapping.plist <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -498,7 +502,7 @@ EOF
 
   # Add YADRLite macOS configuration to .zshrc
   if ! grep -q "YADRLite macOS" "$ZSHRC" 2>/dev/null; then
-    cat >> "$ZSHRC" << 'EOF'
+    cat >>"$ZSHRC" <<'EOF'
 
 # YADRLite macOS configuration
 # Homebrew
@@ -540,19 +544,19 @@ EOF
   read -p "Press Enter to continue..."
 
   # Start AeroSpace (will prompt for accessibility permissions)
-  if command -v aerospace &> /dev/null; then
+  if command -v aerospace &>/dev/null; then
     echo "Starting AeroSpace..."
     open -a AeroSpace
   fi
 
   # Start Sketchybar
-  if command -v sketchybar &> /dev/null; then
+  if command -v sketchybar &>/dev/null; then
     echo "Starting Sketchybar..."
     brew services start sketchybar
   fi
 
   # Start JankyBorders
-  if command -v borders &> /dev/null; then
+  if command -v borders &>/dev/null; then
     echo "Starting JankyBorders..."
     brew services start borders
   fi
