@@ -335,8 +335,8 @@ if [ -f ~/.config/hypr/bindings.conf ]; then
 
 # Volume keys with 200% max volume support - controls ALL sinks/apps globally
 $osdclient = swayosd-client --monitor "$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')"
-bindeld = ,XF86AudioRaiseVolume, Volume up, exec, ~/.local/bin/omarchy-volume raise 5 200 && $osdclient --output-volume raise --max-volume 200
-bindeld = ,XF86AudioLowerVolume, Volume down, exec, ~/.local/bin/omarchy-volume lower 5 200 && $osdclient --output-volume lower --max-volume 200
+bindeld = ,XF86AudioRaiseVolume, Volume up, exec, ~/.local/bin/omarchy-volume raise 3 200 && $osdclient --output-volume raise --max-volume 200
+bindeld = ,XF86AudioLowerVolume, Volume down, exec, ~/.local/bin/omarchy-volume lower 3 200 && $osdclient --output-volume lower --max-volume 200
 bindeld = ALT, XF86AudioRaiseVolume, Volume up precise, exec, ~/.local/bin/omarchy-volume raise 1 200 && $osdclient --output-volume +1 --max-volume 200
 bindeld = ALT, XF86AudioLowerVolume, Volume down precise, exec, ~/.local/bin/omarchy-volume lower 1 200 && $osdclient --output-volume -1 --max-volume 200
 EOF
