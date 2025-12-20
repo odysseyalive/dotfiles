@@ -1,68 +1,59 @@
-# Starship Prompt Configuration for YADRLite
-# Mimics the original bash PS1 prompt style
-# https://starship.rs/config/
+# Josean-dev Powerlevel10k style prompt for Starship
+# Two-line prompt with box drawing connectors
+# Compatible with omarchy-theme-sync
 
-# Use the current theme palette (updated by theme-sync scripts)
+# Palette set by omarchy-theme-sync
 palette = 'seashells'
 
-# Prompt format - two-line prompt like the original PS1
-# Line 1: [time] user@host path
-# Line 2: ~$
 format = """
-$line_break\
-[\\[](bracket)$time[\\]](bracket) \
-$username\
-[@](at)\
-$hostname \
-$directory\
-$git_branch\
-$git_status\
-$line_break\
-[~\\$](prompt) """
+[╭─](bright-black) $directory$git_branch$git_status$fill$time
+[╰─](bright-black)$character"""
 
-# Disable the default newline at start (we handle it in format)
-add_newline = false
+add_newline = true
 
-# Time module - HH:MM:SS format
+[character]
+success_symbol = "[❯](green)"
+error_symbol = "[❯](red)"
+format = "$symbol "
+
+[directory]
+format = "[󰉋 $path]($style) "
+style = "path"
+truncation_length = 3
+truncate_to_repo = false
+home_symbol = "~"
+
+[git_branch]
+format = "[ $branch]($style) "
+style = "git"
+symbol = ""
+
+[git_status]
+format = "[$all_status$ahead_behind]($style)"
+style = "prompt"
+untracked = "?"
+modified = "!"
+staged = "+"
+deleted = "✘"
+renamed = "»"
+stashed = "$"
+ahead = "⇡"
+behind = "⇣"
+diverged = "⇕"
+conflicted = "="
+
+[fill]
+symbol = " ·"
+style = "bright-black"
+
 [time]
 disabled = false
-format = '[$time]($style)'
-style = 'time'
-time_format = '%T'
+format = "[󰥔 $time]($style)"
+style = "time"
+time_format = "%I:%M:%S %p"
 
-# Username
-[username]
-show_always = true
-format = '[$user]($style)'
-style_user = 'user'
-style_root = 'bold red'
-
-# Hostname
-[hostname]
-ssh_only = false
-format = '[$hostname]($style)'
-style = 'host'
-
-# Directory
-[directory]
-format = '[$path]($style)'
-style = 'path'
-truncation_length = 8
-truncate_to_repo = false
-
-# Git branch
-[git_branch]
-format = ' [$symbol$branch]($style)'
-style = 'git'
-symbol = ''
-
-# Git status
-[git_status]
-format = '[$all_status$ahead_behind]($style)'
-style = 'git'
-
-# SeaShells Dark palette (default)
-# This section is updated by omarchy-theme-sync or theme-switch.sh
+# Palette managed by omarchy-theme-sync
+# Run 'omarchy-theme-sync' after theme changes
 [palettes.seashells]
 bracket = '#fba02f'
 time = '#50a3b5'

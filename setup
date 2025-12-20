@@ -219,22 +219,45 @@ EOF
   mkdir -p ~/.config
   cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
 
-  # Add Starship init to bashrc if not already present
-  if ! grep -q 'starship init bash' ~/.bashrc; then
-    echo '' >>~/.bashrc
-    echo '# Starship prompt' >>~/.bashrc
-    echo 'eval "$(starship init bash)"' >>~/.bashrc
-  fi
-
   # Install zoxide (smart cd command)
   echo "# # Installing zoxide"
   yay -S --noconfirm zoxide
 
-  # Add zoxide to bash
-  if ! grep -q 'zoxide init bash' ~/.bashrc; then
-    echo '' >>~/.bashrc
-    echo '# Zoxide (smart cd)' >>~/.bashrc
-    echo 'eval "$(zoxide init bash)"' >>~/.bashrc
+  # Shell configuration - prefer zsh if installed, fallback to bash
+  echo "# # Configuring shell"
+  if command -v zsh &>/dev/null; then
+    echo "  Zsh detected - configuring zsh with Starship"
+
+    # Copy zshrc from dotfiles
+    cp $dir/zsh/zshrc ~/.zshrc
+
+    # Prompt user to change default shell
+    echo ""
+    echo "  Zsh is installed. To make it your default shell, run:"
+    echo "    chsh -s \$(which zsh)"
+    echo ""
+  else
+    echo "  Zsh not found - configuring bash with Starship"
+
+    # Add Starship init to bashrc if not already present
+    if ! grep -q 'starship init bash' ~/.bashrc; then
+      echo '' >>~/.bashrc
+      echo '# Starship prompt' >>~/.bashrc
+      echo 'eval "$(starship init bash)"' >>~/.bashrc
+    fi
+
+    # Add zoxide to bash
+    if ! grep -q 'zoxide init bash' ~/.bashrc; then
+      echo '' >>~/.bashrc
+      echo '# Zoxide (smart cd)' >>~/.bashrc
+      echo 'eval "$(zoxide init bash)"' >>~/.bashrc
+    fi
+
+    echo ""
+    echo "  TIP: Install zsh for a better shell experience:"
+    echo "    sudo pacman -S zsh"
+    echo "    Then re-run: bash ~/.yadrlite/setup omarchy"
+    echo ""
   fi
 
   # Add custom plugins and settings to existing Omarchy Neovim setup
