@@ -29,8 +29,17 @@
                    :repo "copilot-emacs/copilot.el"
                    :branch "main"
                    :files ("*.el"))
-  :hook ((prog-mode . copilot-mode)
-         (text-mode . copilot-mode))
+  :defer t  ; Don't load until manually enabled or server is installed
+  :commands (copilot-mode copilot-login)
+  :init
+  ;; Only auto-enable if copilot server is installed
+  (defun yadrlite--maybe-enable-copilot ()
+    "Enable copilot-mode only if the server is installed."
+    (when (and (fboundp 'copilot-mode)
+               (ignore-errors (copilot-server-executable)))
+      (copilot-mode 1)))
+  :hook ((prog-mode . yadrlite--maybe-enable-copilot)
+         (text-mode . yadrlite--maybe-enable-copilot))
   :bind (:map copilot-completion-map
               ("TAB" . copilot-accept-completion)
               ("<tab>" . copilot-accept-completion)
