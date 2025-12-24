@@ -10,6 +10,29 @@
 
 ;;; Code:
 
+;; Show startup progress
+(defvar yadrlite--init-start-time (current-time))
+(defvar yadrlite--first-run (not (file-exists-p (expand-file-name "elpa" user-emacs-directory))))
+
+(defun yadrlite--display-startup-message (msg)
+  "Display MSG in a centered buffer during startup."
+  (when yadrlite--first-run
+    (with-current-buffer (get-buffer-create "*Startup*")
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert "\n\n\n")
+        (insert (propertize "  YADRLite Emacs\n" 'face '(:height 1.5 :weight bold)))
+        (insert "\n")
+        (insert (format "  %s\n" msg))
+        (insert "\n  This may take a few minutes on first launch...\n"))
+      (goto-char (point-min))
+      (special-mode))
+    (switch-to-buffer "*Startup*")
+    (redisplay t)))
+
+(when yadrlite--first-run
+  (yadrlite--display-startup-message "Installing packages..."))
+
 ;; Add lisp directory to load path
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
@@ -91,9 +114,13 @@
 ;; Load Seashells dark theme
 (load-theme 'seashells-dark t)
 
-;; Display startup time
+;; Display startup time and cleanup
 (add-hook 'emacs-startup-hook
           (lambda ()
+            ;; Kill startup buffer if it exists
+            (when (get-buffer "*Startup*")
+              (kill-buffer "*Startup*"))
+            ;; Show startup message
             (message "Emacs loaded in %s with %d garbage collections."
                      (format "%.2f seconds"
                              (float-time
