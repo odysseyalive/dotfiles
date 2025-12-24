@@ -118,6 +118,18 @@ if [ "$action" == "tools" ]; then
   find ~/.config -type d -exec chmod 0755 {} \;
   find ~/.config -type f -exec chmod 0644 {} \;
   find ~/.config -name "*.sh" -execdir chmod u+x {} +
+
+  # Install Starship prompt
+  echo "# # Installing Starship prompt"
+  curl -sS https://starship.rs/install.sh | sh -s -- -y
+  cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
+
+  # Add Starship init to bashrc if not already present
+  if ! grep -q 'starship init bash' ~/.bashrc; then
+    echo '' >>~/.bashrc
+    echo '# Starship prompt' >>~/.bashrc
+    echo 'eval "$(starship init bash)"' >>~/.bashrc
+  fi
 fi
 
 # nvm install v18.20.4
