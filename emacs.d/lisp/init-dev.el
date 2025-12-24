@@ -5,11 +5,11 @@
 
 ;;; Code:
 
-;; Flycheck - Syntax checking
+;; Flycheck - Syntax checking (LSP auto-enables per buffer)
 (use-package flycheck
   :ensure t
   :diminish flycheck-mode
-  :init (global-flycheck-mode)
+  ;; Don't use global-flycheck-mode - LSP enables it per-buffer automatically
   :custom
   (flycheck-checker-error-threshold nil)
   :config
@@ -78,7 +78,22 @@
   :diminish php-mode
   :mode (("\\.php\\'" . php-mode)
          ("\\.tpl\\'" . php-mode)
-         ("\\.inc\\'" . php-mode)))
+         ("\\.inc\\'" . php-mode))
+  :hook (php-mode . (lambda ()
+                      (setq indent-tabs-mode nil
+                            tab-width 4
+                            c-basic-offset 4
+                            php-mode-coding-style 'psr2)))
+  :config
+  ;; Disable all PHP flycheck checkers globally - use LSP instead
+  (with-eval-after-load 'flycheck
+    (setq-default flycheck-disabled-checkers
+                  (append flycheck-disabled-checkers
+                          '(php php-phpcs php-phpmd))))
+  ;; Format on save using LSP
+  (add-hook 'php-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook #'lsp-format-buffer nil t))))
 
 (defun toggle-php-flavor-mode ()
   "Toggle mode between PHP & Web-Mode Helper modes."

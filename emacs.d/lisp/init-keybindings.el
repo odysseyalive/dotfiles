@@ -29,7 +29,7 @@
    "]" '(enlarge-window-horizontally :which-key "Expand Window")
    "-" '(shrink-window :which-key "Shrink Window")
    "=" '(enlarge-window :which-key "Grow Window")
-   "e" '(flycheck-list-errors-toggle :which-key "Error List")
+   "e" '(flycheck-list-errors :which-key "Error List")
    "h" '(call-dashboard :which-key "Dashboard")
    "j" '(avy-goto-char :which-key "Jump to Character")
    "m" '(deer :which-key "Browse Current Directory")
@@ -184,6 +184,7 @@
    "pp" '(vertico-repeat :which-key "Resume Last Search")
    "pr" '(consult-recent-file :which-key "Open Recent Project File")
    "ps" '(consult-ripgrep :which-key "Search in Project")
+   "pk" '(projectile-kill-buffers :which-key "Kill Project Buffers")
    "pm" '(magit-status :which-key "Git Status")
    "pw" '(consult-line :which-key "Search in Buffer"))
 

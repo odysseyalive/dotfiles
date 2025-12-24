@@ -21,21 +21,8 @@
 ;; Set frame parameters early
 (push '(alpha . (97 . 97)) default-frame-alist)
 
-;; On first run, allow display so user sees progress
-;; On subsequent runs, inhibit for faster startup
-(defvar yadrlite--early-first-run
-  (not (file-exists-p (expand-file-name "elpa" user-emacs-directory))))
-
-(unless yadrlite--early-first-run
-  (setq inhibit-redisplay t)
-  (setq inhibit-message t))
-
-;; Restore after init
-(add-hook 'window-setup-hook
-          (lambda ()
-            (setq inhibit-redisplay nil)
-            (setq inhibit-message nil)
-            (redisplay)))
+;; Don't inhibit display - causes issues with some configurations
+;; The GC threshold optimization provides the main speedup anyway
 
 ;; Prevent unwanted runtime native compilation
 (when (featurep 'native-compile)

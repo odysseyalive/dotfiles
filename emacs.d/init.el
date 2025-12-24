@@ -63,7 +63,10 @@
 ;; Evil mode (before keybindings)
 (require 'init-evil)
 
-;; UI and visual elements
+;; Git, Projectile, and other tools (before UI for dashboard)
+(require 'init-tools)
+
+;; UI and visual elements (dashboard needs projectile)
 (require 'init-ui)
 
 ;; Completion stack (Vertico/Corfu/Consult)
@@ -86,9 +89,6 @@
 
 ;; Org-mode
 (require 'init-org)
-
-;; Git, Projectile, and other tools
-(require 'init-tools)
 
 ;; Terminal configuration
 (require 'init-terminal)

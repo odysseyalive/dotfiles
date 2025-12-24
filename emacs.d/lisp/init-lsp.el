@@ -5,28 +5,41 @@
 
 ;;; Code:
 
-;; Intelephense license key
-(setq lsp-intelephense-licence-key
-      (expand-file-name "~/.config/intelephense/licence.txt"))
+;; Intelephense configuration
+(defun yadrlite--read-intelephense-key ()
+  "Read Intelephense license key from file."
+  (let ((key-file (expand-file-name "~/.config/intelephense/licence.txt")))
+    (when (file-exists-p key-file)
+      (string-trim (with-temp-buffer
+                     (insert-file-contents key-file)
+                     (buffer-string))))))
+
+(with-eval-after-load 'lsp-mode
+  (when-let ((key (yadrlite--read-intelephense-key)))
+    (setq lsp-intelephense-licence-key key))
+  ;; Prefer Intelephense over other PHP servers
+  (setq lsp-intelephense-multi-root nil)
+  (setq lsp-intelephense-storage-path
+        (expand-file-name "~/.cache/intelephense")))
 
 ;; LSP Mode
 (use-package lsp-mode
   :ensure t
   :commands (lsp lsp-deferred)
-  :hook ((php-mode . lsp-deferred)
-         (sass-mode . lsp-deferred)
-         (css-mode . lsp-deferred)
-         (typescript-mode . lsp-deferred)
-         (web-mode . lsp-deferred)
-         (toml-mode . lsp-deferred)
-         (json-mode . lsp-deferred)
-         (yaml-mode . lsp-deferred)
-         (go-mode . lsp-deferred)
+  :hook ((php-mode . lsp)
+         (sass-mode . lsp)
+         (css-mode . lsp)
+         (typescript-mode . lsp)
+         (web-mode . lsp)
+         (toml-mode . lsp)
+         (json-mode . lsp)
+         (yaml-mode . lsp)
+         (go-mode . lsp)
          (lsp-mode . lsp-enable-which-key-integration))
   :init
   (setq lsp-keymap-prefix "C-c l")
   :custom
-  (lsp-idle-delay 0.500)
+  (lsp-idle-delay 0.1)
   (lsp-log-io nil)
   (lsp-enable-file-watchers t)
   (lsp-file-watch-threshold nil)
@@ -34,7 +47,8 @@
   (lsp-modeline-diagnostics-enable t)
   (lsp-modeline-diagnostics-scope :workspace)
   (lsp-warn-no-matched-clients nil)
-  (lsp-diagnostics-provider :flycheck)
+  ;; Let LSP auto-configure flycheck (official recommendation)
+  (lsp-diagnostics-provider :auto)
   (lsp-completion-provider :none)  ; Use Corfu instead
   (lsp-headerline-breadcrumb-enable t)
   (lsp-semantic-tokens-enable t)
@@ -64,13 +78,19 @@
   (lsp-ui-doc-include-signature t)
   (lsp-ui-doc-show-with-cursor nil)
   (lsp-ui-doc-show-with-mouse t)
-  (lsp-ui-sideline-enable nil)
+  (lsp-ui-sideline-enable t)
+  (lsp-ui-sideline-show-diagnostics t)
   (lsp-ui-peek-enable t)
   (lsp-ui-peek-list-width 60)
   (lsp-ui-peek-peek-height 25)
   :bind (:map lsp-ui-mode-map
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
               ([remap xref-find-references] . lsp-ui-peek-find-references)))
+
+;; Auto-install LSP servers
+(with-eval-after-load 'lsp-mode
+  ;; Prompt to install LSP server if not found
+  (setq lsp-auto-install-server t))
 
 ;; LSP doc toggle function
 (defvar lsp-ui-doc-visible nil
@@ -115,8 +135,10 @@
   :ensure t
   :after lsp-mode
   :commands dap-debug
-  :hook ((python-mode . dap-ui-mode)
-         (python-mode . dap-mode))
+  :hook ((php-mode . dap-mode)
+         (php-mode . dap-ui-mode)
+         (python-mode . dap-mode)
+         (python-mode . dap-ui-mode))
   :diminish dap-mode
   :custom
   (dap-auto-configure-features '(locals controls tooltip))
@@ -125,6 +147,17 @@
   (require 'dap-php)
   (require 'dap-python)
   (require 'dap-lldb)
+
+  ;; PHP Xdebug configuration
+  (dap-register-debug-template
+   "PHP Xdebug"
+   (list :type "php"
+         :request "launch"
+         :name "PHP Xdebug"
+         :stopOnEntry t
+         :port 9003  ; Xdebug 3 default port
+         :pathMappings (ht ("/var/www/html" "${workspaceFolder}"))))
+
   (defun dap-python--pyenv-executable-find (command)
     (with-venv (executable-find "python"))))
 

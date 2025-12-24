@@ -84,21 +84,37 @@
   :config
   (which-key-mode 1))
 
-;; Fira code ligatures
-(use-package fira-code-mode
-  :ensure t
-  :if (display-graphic-p)
-  :custom
-  (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x"))
-  :hook prog-mode
-  :config
-  (fira-code-mode-set-font))
-
-;; Font configuration
+;; Font configuration - match Kitty: CaskaydiaCove Nerd Font
 (when (display-graphic-p)
   (set-face-attribute 'default nil
-                      :font "FiraCode Nerd Font Mono"
-                      :height 120))
+                      :family "CaskaydiaCove Nerd Font"
+                      :height 120)
+
+  ;; Enable ligatures natively (Emacs 28+)
+  (when (and (fboundp 'set-char-table-range) (>= emacs-major-version 28))
+    (let ((alist '((?! . ".\\(?:==\\|[!=]\\)")
+                   (?# . ".\\(?:###?\\|_(\\|[#(:=?[_{]\\)")
+                   (?& . ".\\(?:&&\\)")
+                   (?* . ".\\(?:\\*\\*\\|[*/]\\)")
+                   (?+ . ".\\(?:\\+\\+\\|[+>]\\)")
+                   (?- . ".\\(?:-[->]\\|<<\\|>>\\|[<>|~-]\\)")
+                   (?. . ".\\(?:\\.[.<]\\|[.=]\\)")
+                   (?/ . ".\\(?:\\*\\*\\|//\\|==\\|[*/=>]\\)")
+                   (?: . ".\\(?::[:=]\\|[:<=>]\\)")
+                   (?< . ".\\(?:!--\\|&&\\|\\+>\\|--\\|->\\|-[<>|]\\|/>\\|</\\||\\(?:||\\)?\\|~[~>]\\|[$*+./:<=?@^|~-]\\)")
+                   (?= . ".\\(?:!=\\|/=\\|:=\\|=[=>]\\|>>\\|[!<=>|]\\)")
+                   (?> . ".\\(?:=>\\|>[=>-]\\|[]:=>-]\\)")
+                   (?? . ".\\(?:\\?[.:=?]\\|[.:=]\\)")
+                   (?w . ".\\(?:ww\\)")
+                   (?| . ".\\(?:->\\|=>\\||[=>-]\\|[]=>|}-]\\)")
+                   (?~ . ".\\(?:~>\\|[=>@~-]\\)"))))
+      (dolist (char-regexp alist)
+        (set-char-table-range composition-function-table (car char-regexp)
+                              `([,(cdr char-regexp) 0 font-shape-gstring])))))
+
+  ;; Nerd icons use the same font family
+  (set-fontset-font t '(#xe000 . #xf8ff) (font-spec :family "CaskaydiaCove Nerd Font") nil 'prepend)
+  (set-fontset-font t '(#xf0000 . #xfffff) (font-spec :family "CaskaydiaCove Nerd Font") nil 'prepend))
 
 ;; Emojify
 (use-package emojify
@@ -119,22 +135,29 @@
 
 (use-package dashboard
   :ensure t
-  :custom
-  (dashboard-startup-banner 'official)
-  (dashboard-center-content t)
-  (dashboard-set-heading-icons t)
-  (dashboard-set-file-icons t)
-  (dashboard-set-navigator t)
-  (dashboard-set-init-info t)
-  (dashboard-week-agenda t)
-  (dashboard-banner-logo-title "Welcome to YADRLite")
-  (dashboard-items '((recents . 10)
-                     (bookmarks . 5)
-                     (projects . 10)))
+  :after projectile
   :config
-  (dashboard-modify-heading-icons '((bookmarks . "book")))
+  ;; Must be set before dashboard-setup-startup-hook
+  (setq dashboard-projects-backend 'projectile)
+  (setq dashboard-items '((recents . 5)
+                          (projects . 10)
+                          (bookmarks . 5)))
+  (setq dashboard-startup-banner 'official)
+  (setq dashboard-center-content t)
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (setq dashboard-set-navigator t)
+  (setq dashboard-set-init-info t)
+  (setq dashboard-week-agenda t)
+  (setq dashboard-banner-logo-title "Welcome to YADRLite")
+  ;; Use perspective-aware project switching
+  (setq dashboard-projects-switch-function 'projectile-persp-switch-project)
+  (dashboard-modify-heading-icons '((bookmarks . "book")
+                                    (projects . "briefcase")))
   (dashboard-setup-startup-hook)
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
+  (setq initial-buffer-choice (lambda ()
+                                (dashboard-refresh-buffer)
+                                (get-buffer-create "*dashboard*"))))
 
 (defun call-dashboard ()
   "Jump to the dashboard buffer, if doesn't exist create one."

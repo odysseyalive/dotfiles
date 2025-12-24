@@ -9,13 +9,36 @@
 (use-package projectile
   :ensure t
   :diminish projectile-mode
-  :init
-  (projectile-mode +1)
+  :demand t  ; Load immediately, don't defer
   :custom
   (projectile-completion-system 'default)
   (projectile-enable-caching t)
+  :config
+  (projectile-mode +1)
   :bind-keymap
   ("C-c p" . projectile-command-map))
+
+;; Perspective - per-project workspaces
+(use-package perspective
+  :ensure t
+  :demand t
+  :custom
+  (persp-mode-prefix-key (kbd "C-c M-p"))
+  (persp-state-default-file (expand-file-name "persp-state" user-emacs-directory))
+  :init
+  (persp-mode)
+  :config
+  ;; Auto-save perspectives on quit and switch
+  (add-hook 'kill-emacs-hook #'persp-state-save)
+  (add-hook 'persp-switch-hook #'persp-state-save)
+  ;; Load saved perspectives on startup
+  (when (file-exists-p persp-state-default-file)
+    (persp-state-load persp-state-default-file)))
+
+;; Bridge perspective with projectile
+(use-package persp-projectile
+  :ensure t
+  :after (perspective projectile))
 
 ;; Magit
 (use-package magit
@@ -45,13 +68,17 @@
   (neo-show-hidden-files t)
   (neo-smart-open t)
   (neo-theme (if (display-graphic-p) 'nerd-icons 'arrow))
-  (neo-vc-integration '(face))
+  (neo-vc-integration '(face char))  ; Show both color and character for git status
   (neo-window-position 'left)
   (neo-window-width 50)
+  (neo-autorefresh t)  ; Auto-refresh on file changes
   :config
+  ;; Use projectile to find project root
+  (setq neo-force-change-root t)
   (add-hook 'neotree-mode-hook
             (lambda ()
-              (define-key evil-normal-state-local-map (kbd "RET") 'neotree-enter-hide))))
+              (define-key evil-normal-state-local-map (kbd "RET") 'neotree-enter-hide)
+              (define-key evil-normal-state-local-map (kbd "gr") 'neotree-refresh))))
 
 (defun neo-open-file-hide (full-path &optional arg)
   "Open a file node and hides tree."
