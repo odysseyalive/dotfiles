@@ -68,7 +68,35 @@ if [ "$action" == "update" ]; then
   else
     cd $dir
     git pull --rebase
+
+    # Install/update tmux plugins
+    echo "# # Updating tmux plugins"
+    mkdir -p $dir/tmux/plugin
+    mkdir -p ~/.tmux/plugins
+    for tplug in "${tmuxplugins[@]}"; do
+      plugname=$(basename $tplug .git)
+      if [ ! -d "$dir/tmux/plugin/$plugname" ]; then
+        echo "Installing $plugname..."
+        git clone $tplug $dir/tmux/plugin/$plugname
+      fi
+    done
     update $dir/tmux/plugin
+
+    # Install Starship if not present
+    if ! command -v starship &>/dev/null; then
+      echo "# # Installing Starship prompt"
+      curl -sS https://starship.rs/install.sh | sh -s -- -y
+    fi
+    # Update Starship config
+    mkdir -p ~/.config
+    cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
+    # Add Starship init to bashrc if not already present
+    if ! grep -q 'starship init bash' ~/.bashrc 2>/dev/null; then
+      echo '' >>~/.bashrc
+      echo '# Starship prompt' >>~/.bashrc
+      echo 'eval "$(starship init bash)"' >>~/.bashrc
+    fi
+
     echo "The update is finished."
   fi
 fi
