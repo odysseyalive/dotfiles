@@ -1,19 +1,17 @@
 #!/bin/bash
 
-# Omarchy Theme Sync for Ghostty, Starship, and Tmux
-# Syncs Ghostty, Starship, and Tmux themes with current Omarchy theme
+# Omarchy Theme Sync for Kitty, Starship, and Tmux
+# Syncs terminal colors with current Omarchy theme - live updates without restart
 #
 # Usage:
 #   omarchy-theme-sync           # Sync themes with current Omarchy theme
 #
-# Run this after switching Omarchy themes with 'omarchy theme'
+# Install as Omarchy hook for automatic sync:
+#   ln -sf ~/.yadrlite/workstation/scripts/omarchy-theme-sync.sh ~/.config/omarchy/hooks/theme-set
 
-GHOSTTY_CONFIG="$HOME/.config/ghostty/config"
-GHOSTTY_THEMES_DIR="$HOME/.config/ghostty/themes"
 STARSHIP_CONFIG="$HOME/.config/starship.toml"
 OMARCHY_THEME_DIR="$HOME/.config/omarchy/current/theme"
 KITTY_THEME="$OMARCHY_THEME_DIR/kitty.conf"
-GHOSTTY_THEME_CONF="$OMARCHY_THEME_DIR/ghostty.conf"
 
 # Check if Omarchy theme exists
 if [ ! -d "$OMARCHY_THEME_DIR" ]; then
@@ -21,12 +19,9 @@ if [ ! -d "$OMARCHY_THEME_DIR" ]; then
   exit 1
 fi
 
-# Get theme name from Omarchy ghostty.conf or kitty.conf
+# Get theme name from kitty.conf
 THEME_NAME=""
-if [ -f "$GHOSTTY_THEME_CONF" ]; then
-  THEME_NAME=$(grep -oP 'theme\s*=\s*\K\S+' "$GHOSTTY_THEME_CONF" | head -1)
-fi
-if [ -z "$THEME_NAME" ] && [ -f "$KITTY_THEME" ]; then
+if [ -f "$KITTY_THEME" ]; then
   THEME_NAME=$(grep -oP '##\s*name:\s*\K.*' "$KITTY_THEME" | head -1)
 fi
 if [ -z "$THEME_NAME" ]; then
@@ -41,7 +36,7 @@ if [ ! -f "$KITTY_THEME" ]; then
 fi
 
 # Extract colors from kitty.conf
-echo "Extracting colors from Omarchy theme: $THEME_NAME"
+echo "Syncing theme: $THEME_NAME"
 
 # Get key colors for Starship palette
 COLOR_YELLOW=$(grep -E "^color3\s+" "$KITTY_THEME" | awk '{print $2}')
@@ -58,49 +53,21 @@ COLOR_GREEN=${COLOR_GREEN:-#027b9b}
 COLOR_BLUE=${COLOR_BLUE:-#2d6870}
 
 # ============================================
-# Update Ghostty theme
+# Update Kitty (live reload)
 # ============================================
-mkdir -p "$GHOSTTY_THEMES_DIR"
-echo "Creating Ghostty theme: $THEME_NAME"
-
-THEME_FILE="$GHOSTTY_THEMES_DIR/$THEME_NAME"
-
-cat > "$THEME_FILE" << EOF
-# $THEME_NAME Theme for Ghostty
-# Auto-generated from Omarchy theme by omarchy-theme-sync
-
-EOF
-
-# Extract and convert colors from kitty.conf
-{
-  grep -E "^background\s+" "$KITTY_THEME" | sed 's/background\s\+#\?/background = /'
-  grep -E "^foreground\s+" "$KITTY_THEME" | sed 's/foreground\s\+#\?/foreground = /'
-  grep -E "^cursor\s+" "$KITTY_THEME" | sed 's/cursor\s\+#\?/cursor-color = /'
-  grep -E "^cursor_text_color\s+" "$KITTY_THEME" | sed 's/cursor_text_color\s\+#\?/cursor-text = /'
-  grep -E "^selection_background\s+" "$KITTY_THEME" | sed 's/selection_background\s\+#\?/selection-background = /'
-  grep -E "^selection_foreground\s+" "$KITTY_THEME" | sed 's/selection_foreground\s\+#\?/selection-foreground = /'
-  echo ""
-  echo "# Normal colors"
-  for i in {0..7}; do
-    grep -E "^color$i\s+" "$KITTY_THEME" | sed "s/color$i\s\+/palette = $i=/"
-  done
-  echo ""
-  echo "# Bright colors"
-  for i in {8..15}; do
-    grep -E "^color$i\s+" "$KITTY_THEME" | sed "s/color$i\s\+/palette = $i=/"
-  done
-} >> "$THEME_FILE"
-
-# Update Ghostty config to use the theme
-if [ -f "$GHOSTTY_CONFIG" ]; then
-  if grep -q "^theme\s*=" "$GHOSTTY_CONFIG"; then
-    sed -i "s/^theme\s*=.*/theme = $THEME_NAME/" "$GHOSTTY_CONFIG"
+if pgrep -x kitty > /dev/null 2>&1; then
+  echo "Updating Kitty colors..."
+  # Try kitty remote control first (requires allow_remote_control in kitty.conf)
+  if kitty @ set-colors --all "$KITTY_THEME" 2>/dev/null; then
+    echo "  Kitty: colors updated via remote control"
   else
-    echo "theme = $THEME_NAME" >> "$GHOSTTY_CONFIG"
+    # Fallback: signal kitty to reload config (may not work with includes)
+    pkill -SIGUSR1 kitty 2>/dev/null
+    echo "  Kitty: sent reload signal (restart if colors don't update)"
   fi
+else
+  echo "  Kitty: not running"
 fi
-
-echo "  Ghostty theme updated"
 
 # ============================================
 # Update Starship palette
@@ -136,31 +103,56 @@ EOF
 fi
 
 # ============================================
-# Update Tmux theme (tmux-power with SeaShells)
+# Update Tmux theme (using colors from Omarchy theme)
 # ============================================
 TMUX_CONF="$HOME/.tmux.conf"
 if [ -f "$TMUX_CONF" ]; then
   echo "Updating Tmux theme..."
 
-  # Check if theme name contains "light" (case insensitive)
-  if [[ "${THEME_NAME,,}" == *"light"* ]]; then
-    # SeaShells Light colors
-    TMUX_TC='#50a3b5'
-    TMUX_G0='#e0d6c8'
-    TMUX_G1='#c8dde8'
-    TMUX_G2='#b8c8d0'
-    TMUX_G3='#2d6870'
-    TMUX_G4='#0f2838'
-    THEME_LABEL="SeaShells Light"
+  # Get background color to determine light/dark
+  BG_COLOR=$(grep -E "^background\s+" "$KITTY_THEME" | awk '{print $2}')
+  FG_COLOR=$(grep -E "^foreground\s+" "$KITTY_THEME" | awk '{print $2}')
+
+  # Extract RGB from background to determine light/dark
+  # Remove # and convert to decimal
+  BG_HEX="${BG_COLOR#\#}"
+  if [ ${#BG_HEX} -eq 6 ]; then
+    BG_R=$((16#${BG_HEX:0:2}))
+    BG_G=$((16#${BG_HEX:2:2}))
+    BG_B=$((16#${BG_HEX:4:2}))
+    BG_LUMINANCE=$(( (BG_R * 299 + BG_G * 587 + BG_B * 114) / 1000 ))
   else
-    # SeaShells Dark colors
-    TMUX_TC='#50a3b5'
-    TMUX_G0='#08131a'
-    TMUX_G1='#0f2838'
-    TMUX_G2='#1e4862'
-    TMUX_G3='#2d6870'
-    TMUX_G4='#deb88d'
-    THEME_LABEL="SeaShells Dark"
+    BG_LUMINANCE=0  # Default to dark if can't parse
+  fi
+
+  # Get additional colors for tmux bar
+  # Note: In light themes, color0 may be light (inverted), so use color7 or foreground for dark text
+  COLOR_BLACK=$(grep -E "^color0\s+" "$KITTY_THEME" | awk '{print $2}')
+  COLOR_WHITE=$(grep -E "^color7\s+" "$KITTY_THEME" | awk '{print $2}')
+  COLOR_BLACK=${COLOR_BLACK:-#0f2838}
+  COLOR_WHITE=${COLOR_WHITE:-#deb88d}
+
+  # Light theme if luminance > 128
+  if [ "$BG_LUMINANCE" -gt 128 ]; then
+    # Light theme: TC is used for BOTH text AND accent backgrounds
+    # So TC must be dark (for text) and segment bg's must be light (for contrast)
+    # Use FG_COLOR (dark) for text, not color0 (which may be light in light themes)
+    TMUX_TC="$COLOR_BLUE"     # Dark teal - accent color (text & active bg)
+    TMUX_G0="$BG_COLOR"       # Cream - main bar background
+    TMUX_G1="$BG_COLOR"       # Cream - blends with bar
+    TMUX_G2="$COLOR_CYAN"     # Light cyan - segment bg (TC text readable on this)
+    TMUX_G3="$COLOR_GREEN"    # Teal - accent
+    TMUX_G4="$FG_COLOR"       # Dark (foreground) - text on cream bar bg
+    THEME_LABEL="Light"
+  else
+    # Dark theme: G0=darkest (bar bg), G4=lightest (text)
+    TMUX_TC="$COLOR_CYAN"     # Cyan - text on colored segments
+    TMUX_G0="$BG_COLOR"       # Dark - main bar background
+    TMUX_G1="$COLOR_BLACK"    # Darker - secondary segments
+    TMUX_G2="$COLOR_BLUE"     # Medium - accent segments
+    TMUX_G3="$COLOR_GREEN"    # Accent
+    TMUX_G4="$FG_COLOR"       # Light - text on bar
+    THEME_LABEL="Dark"
   fi
 
   # Update tmux-power colors in tmux.conf
@@ -173,12 +165,53 @@ if [ -f "$TMUX_CONF" ]; then
 
   # Reload tmux if running
   if command -v tmux &> /dev/null && tmux list-sessions &> /dev/null 2>&1; then
-    tmux source-file "$TMUX_CONF" 2>/dev/null
-    echo "  Tmux: $THEME_LABEL (reloaded)"
+    # Set tmux-power options in the running session
+    tmux set -g @tmux_power_theme "$TMUX_TC"
+    tmux set -g @tmux_power_g0 "$TMUX_G0"
+    tmux set -g @tmux_power_g1 "$TMUX_G1"
+    tmux set -g @tmux_power_g2 "$TMUX_G2"
+    tmux set -g @tmux_power_g3 "$TMUX_G3"
+    tmux set -g @tmux_power_g4 "$TMUX_G4"
+
+    # Re-run tmux-power plugin to regenerate status bar with new colors
+    TMUX_POWER_SCRIPT="$HOME/.yadrlite/tmux/plugin/tmux-power/tmux-power.tmux"
+    if [ -f "$TMUX_POWER_SCRIPT" ]; then
+      tmux run-shell "$TMUX_POWER_SCRIPT" 2>/dev/null
+    fi
+
+    echo "  Tmux: $THEME_LABEL (live updated)"
   else
-    echo "  Tmux: $THEME_LABEL (restart tmux to apply)"
+    echo "  Tmux: $THEME_LABEL (start tmux to see changes)"
   fi
 fi
 
+# ============================================
+# Update GTK/System color scheme (for Chrome and other GTK apps)
+# ============================================
+if [ "$BG_LUMINANCE" -gt 128 ]; then
+  COLOR_SCHEME="prefer-light"
+else
+  COLOR_SCHEME="prefer-dark"
+fi
+
+# Set GTK color scheme via gsettings (GNOME/GTK apps including Chrome)
+if command -v gsettings &> /dev/null; then
+  gsettings set org.gnome.desktop.interface color-scheme "$COLOR_SCHEME" 2>/dev/null
+  echo "  GTK/Chrome: $COLOR_SCHEME"
+fi
+
+# Also update via dconf for Hyprland/wlroots environments
+if command -v dconf &> /dev/null; then
+  dconf write /org/gnome/desktop/interface/color-scheme "'$COLOR_SCHEME'" 2>/dev/null
+fi
+
+# ============================================
+# Signal Neovim to reload colorscheme
+# ============================================
+NVIM_THEME_TRIGGER="$HOME/.cache/nvim-theme-trigger"
+mkdir -p "$(dirname "$NVIM_THEME_TRIGGER")"
+echo "$THEME_NAME" > "$NVIM_THEME_TRIGGER"
+echo "  Neovim: theme trigger updated (will reload on focus)"
+
 echo ""
-echo "Theme sync complete! Restart your terminal to see changes."
+echo "Theme sync complete!"

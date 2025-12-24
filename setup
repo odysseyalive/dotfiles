@@ -263,6 +263,9 @@ include ~/.config/omarchy/current/theme/kitty.conf
 
 # Add your personal Kitty settings below this line
 # (fonts, keybindings, window settings, etc.)
+
+# Enable remote control for live theme switching (omarchy-theme-sync)
+allow_remote_control yes
 EOF
 
   # Configure Ghostty to use Omarchy theme system
@@ -305,7 +308,11 @@ EOF
   mkdir -p ~/.local/bin
   chmod +x $dir/workstation/scripts/omarchy-theme-sync.sh
   ln -sf $dir/workstation/scripts/omarchy-theme-sync.sh ~/.local/bin/omarchy-theme-sync
-  echo "  Run 'omarchy-theme-sync' after switching themes to update Ghostty and Starship"
+
+  # Install Omarchy hook for automatic theme sync
+  mkdir -p ~/.config/omarchy/hooks
+  ln -sf $dir/workstation/scripts/omarchy-theme-sync.sh ~/.config/omarchy/hooks/theme-set
+  echo "  Theme sync installed - runs automatically when you switch themes with 'omarchy theme'"
 
   # Install Starship prompt
   echo "# # Installing Starship prompt"
@@ -551,13 +558,18 @@ if [ "$action" == "macos" ]; then
   # Create symlink for easy access
   ln -sf $dir/workstation/macos/scripts/theme-switch.sh ~/.local/bin/theme-switch
 
-  # Set default theme to seashells-dark
-  echo "seashells-dark" >~/.config/current-theme
+  # Auto-detect system appearance and set initial theme
+  bash $dir/workstation/macos/scripts/theme-switch.sh auto
 
-  # Run theme-switch to apply default theme (syncs Ghostty, Starship, Tmux)
-  bash $dir/workstation/macos/scripts/theme-switch.sh dark
+  # Install LaunchAgent for automatic theme switching based on system appearance
+  echo "# # Installing automatic theme watcher"
+  mkdir -p ~/Library/LaunchAgents
+  cp $dir/workstation/macos/scripts/com.yadrlite.theme-watcher.plist ~/Library/LaunchAgents/
+  launchctl unload ~/Library/LaunchAgents/com.yadrlite.theme-watcher.plist 2>/dev/null || true
+  launchctl load ~/Library/LaunchAgents/com.yadrlite.theme-watcher.plist
 
-  echo "  Theme system installed. Use 'theme-switch dark|light|toggle' to change themes."
+  echo "  Theme system installed with automatic light/dark mode switching!"
+  echo "  Manual commands: 'theme-switch dark|light|toggle|auto'"
 
   echo "# # Setting up Caps Lock / Escape swap"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
@@ -639,9 +651,10 @@ export PATH="$GOPATH/bin:$PATH"
 # Local bin (theme-switch, etc.)
 export PATH="$HOME/.local/bin:$PATH"
 
-# Theme switch alias
+# Theme switch aliases
 alias dark="theme-switch dark"
 alias light="theme-switch light"
+alias auto-theme="theme-switch auto"
 EOF
     echo "Added YADRLite configuration to ~/.zshrc"
   fi

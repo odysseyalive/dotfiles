@@ -7,6 +7,8 @@
 #   theme-switch.sh dark      # Switch to seashells-dark
 #   theme-switch.sh light     # Switch to seashells-light
 #   theme-switch.sh toggle    # Toggle between themes
+#   theme-switch.sh auto      # Switch based on system appearance (light/dark mode)
+#   theme-switch.sh watch     # Watch for system appearance changes and auto-switch
 #   theme-switch.sh           # Show current theme
 
 THEME_DIR="$HOME/.config/themes"
@@ -274,6 +276,51 @@ toggle_theme() {
   fi
 }
 
+# Get system appearance (light or dark)
+get_system_appearance() {
+  # Check if dark mode is enabled
+  if defaults read -g AppleInterfaceStyle &>/dev/null; then
+    echo "dark"
+  else
+    echo "light"
+  fi
+}
+
+# Auto-switch based on system appearance
+auto_switch() {
+  local system_mode=$(get_system_appearance)
+  local current=$(get_current_theme)
+
+  # Only switch if different from current
+  if [[ "$system_mode" == "dark" && "$current" != *"dark"* ]]; then
+    set_theme "dark"
+  elif [[ "$system_mode" == "light" && "$current" != *"light"* ]]; then
+    set_theme "light"
+  else
+    echo "Theme already matches system appearance ($system_mode)"
+  fi
+}
+
+# Watch for system appearance changes
+watch_appearance() {
+  echo "Watching for system appearance changes..."
+  echo "Press Ctrl+C to stop"
+
+  local last_mode=$(get_system_appearance)
+  auto_switch  # Initial sync
+
+  while true; do
+    sleep 2
+    local current_mode=$(get_system_appearance)
+    if [[ "$current_mode" != "$last_mode" ]]; then
+      echo ""
+      echo "System appearance changed to: $current_mode"
+      auto_switch
+      last_mode="$current_mode"
+    fi
+  done
+}
+
 # Main
 case "${1:-}" in
   dark|seashells-dark)
@@ -285,10 +332,17 @@ case "${1:-}" in
   toggle)
     toggle_theme
     ;;
+  auto)
+    auto_switch
+    ;;
+  watch)
+    watch_appearance
+    ;;
   "")
     echo "Current theme: $(get_current_theme)"
+    echo "System appearance: $(get_system_appearance)"
     echo ""
-    echo "Usage: $(basename $0) [dark|light|toggle]"
+    echo "Usage: $(basename $0) [dark|light|toggle|auto|watch]"
     ;;
   *)
     set_theme "$1"

@@ -7,6 +7,27 @@
 -- Or remove existing autocmds by their group name (which is prefixed with `lazyvim_` for the defaults)
 -- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
 
+-- Reload colorscheme when terminal theme changes (via omarchy-theme-sync)
+local theme_trigger_file = vim.fn.expand("~/.cache/nvim-theme-trigger")
+local last_theme_mtime = 0
+
+vim.api.nvim_create_autocmd("FocusGained", {
+  pattern = "*",
+  callback = function()
+    local ok, stats = pcall(vim.loop.fs_stat, theme_trigger_file)
+    if ok and stats and stats.mtime.sec > last_theme_mtime then
+      last_theme_mtime = stats.mtime.sec
+      -- Re-apply the current colorscheme to pick up terminal color changes
+      local current = vim.g.colors_name
+      if current then
+        vim.schedule(function()
+          vim.cmd.colorscheme(current)
+        end)
+      end
+    end
+  end,
+})
+
 -- Disable expensive features for large files
 vim.api.nvim_create_autocmd("BufReadPre", {
   pattern = "*",
