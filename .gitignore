@@ -6,7 +6,6 @@ bashrc
 CLAUDE.md
 Session.vim
 emacs
-emacs.d/*
 tmux.conf
 tags
 tmux/plugin
@@ -19,7 +18,18 @@ vim/spell/*
 vimrc.after
 vimrc
 zshrc
-!emacs.d/emacs.init
+
+# Emacs generated files (keep config, ignore runtime)
+emacs.d/elpa/
+emacs.d/eln-cache/
+emacs.d/auto-save-list/
+emacs.d/transient/
+emacs.d/tree-sitter/
+emacs.d/.lsp-session*
+emacs.d/quelpa/
+emacs.d/elmo/
+emacs.d/wl-tmp/
+
 !vim/autoload/plug.vim
 !vim/vimrc.after
 !vim/vimrc

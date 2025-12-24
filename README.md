@@ -56,7 +56,8 @@ bash ~/.yadrlite/setup remove
 #### To install this Emacs configuration without the rest of YADRLite
 
 ```bash
-curl https://raw.githubusercontent.com/odysseyalive/dotfiles/master/emacs.d/emacs.init > ~/.emacs
+git clone https://github.com/odysseyalive/dotfiles.git ~/.yadrlite
+ln -s ~/.yadrlite/emacs.d ~/.emacs.d
 ```
 
 # My Workstation
@@ -92,8 +93,9 @@ This installs:
 - **AeroSpace** - i3-like tiling window manager (no SIP required)
 - **Sketchybar** - Custom status bar with workspace indicators
 - **JankyBorders** - Window border highlighting
-- **Development tools** - Node.js (via mise), pnpm, Go tools, PHP, Python
+- **Emacs 30** - via emacs-plus with native-comp, tree-sitter, imagemagick
 - **Neovim** - LazyVim configuration with PHP support
+- **Development tools** - Node.js (via mise), pnpm, Go tools, PHP, Python
 - **Ranger** - File manager with image previews
 
 Requirements: macOS 13 (Ventura) or later
@@ -119,22 +121,28 @@ Linux distros and MacOS.
 
 # Emacs
 
-Requirements: [Emacs 27.2+ w/ Lua support](https://www.gnu.org/software/emacs/)
+Requirements: [Emacs 29+](https://www.gnu.org/software/emacs/)
 
-Suggested: [Silver Searcher](https://github.com/ggreer/the_silver_searcher)
+Suggested: [Ripgrep](https://github.com/BurntSushi/ripgrep), [fd](https://github.com/sharkdp/fd)
 
-Emacs has a huge performance advantage over Vi. This configuration includes
-the [Evil](https://www.emacswiki.org/emacs/Evil) package, which emulates Vim's
-modal functionality. In Evil mode Emacs shares keybindings familiar to the YADR
-package. Switching between Emacs and Evil mode is done by C-z. There is inline
-documentation with live hints for ease of discovery. After entering Emacs, just
-hit the leader key (,) to get started. Hit the leader key twice for a fuzzy
-command search.
+This configuration uses a modular structure with modern packages:
 
-NOTE: I have some personal concerns about Emacs 28's performance. However, I'm
-excited about the new developments in 29. Therefore, I would strongly suggest
-sticking with version 27 for now. If your distro doesn't have it, there are
-compilation examples in each workstation script.
+- **Syntax**: Tree-sitter for fast highlighting (no slowdown on large files)
+- **Completion**: Vertico + Consult + Orderless + Marginalia (replaced Helm/Ivy)
+- **In-buffer completion**: Corfu + Cape (replaced Company)
+- **Navigation**: Avy (replaced ace-jump)
+- **Modeline**: Doom-modeline with nerd-icons
+- **Theme**: Seashells dark/light with `,tt` toggle
+- **Email**: Wanderlust (direct IMAP, no external sync tools)
+- **LSP**: lsp-mode with lsp-ui
+- **Debugging**: DAP-mode (run `,dp` to install PHP debug adapter)
+- **AI**: GitHub Copilot with chat (run `,cl` to login)
+- **Grammar**: Grammarly via LSP (run `,gl` to login)
+
+The [Evil](https://www.emacswiki.org/emacs/Evil) package emulates Vim's modal
+functionality. Switch between Emacs and Evil mode with `C-z`. There is inline
+documentation with live hints via which-key. Hit the leader key (`,`) to get
+started, or hit it twice for a fuzzy command search.
 
 [Return to top](#yadrlite)
 
@@ -167,11 +175,15 @@ alternative to the Emacs Pinky.
 - `,U`: Update All Packages
 - `,/`: Search current project
 
+#### Toggles
+
+- `,tt`: Toggle dark/light theme (Seashells)
+
 #### Emacs Applications
 
 - `,ai`: Open IRC
 - `,at`: Open a terminal
-- `,am`: Open Mu4e for Email
+- `,am`: Open Wanderlust for Email
 - `,aw`: Browse the web from Emacs
 
 #### Buffer Shortcuts
@@ -186,7 +198,26 @@ alternative to the Emacs Pinky.
 - `,bs`: Save buffer
 - `:w`: Save buffer, VIM equivalent
 
-#### Dap-Mode Shortcuts: e
+#### Copilot Shortcuts
+
+Requires Node.js 18+ and a GitHub Copilot subscription. Run `,cl` to login.
+
+- `,cc`: Open Copilot Chat
+- `,ce`: Explain selected code
+- `,cf`: Fix selected code
+- `,co`: Optimize selected code
+- `,cr`: Review selected code
+- `,ct`: Generate tests
+- `,cd`: Generate documentation
+- `,cl`: Login to Copilot
+- `,cs`: Toggle Copilot mode
+- `TAB`: Accept completion
+- `M-]`: Next suggestion
+- `M-[`: Previous suggestion
+- `M-RET`: Accept line
+- `M-<right>`: Accept word
+
+#### Dap-Mode Shortcuts
 
 - `,da`: Delete all breakpoints
 - `,db`: Toggles breakpoint on current line
@@ -211,18 +242,22 @@ alternative to the Emacs Pinky.
 - `,fr`: Find References to hovered function
 - `,fs`: Find Documentation
 
-#### Grammer Shortcuts
+#### Grammar Shortcuts
 
 - `,ga`: See Antonyms
-- `,gs`: View spelling errors
 - `,gc`: Correct spelling of word under cursor
-- `,gd`: See definition of word under cursor
-- `,gd`: See related words for word under cursor
-- `,gt`: See synonyms (thesaurus) of word under cursor
+- `,gd`: Word Definition & Thesaurus
+- `,ge`: Insert Emoji
+- `,gg`: Check grammar (Grammarly)
+- `,gi`: Insert Icon (nerd-icons)
+- `,gl`: Login to Grammarly
+- `,gs`: View spelling errors
+- `,gw`: Word Lookup
 
 #### Line Shortcuts
 
 - `,la`: Artist mode, draw on screen with cursor
+- `,lb`: Beautify code
 - `,lc`: Toggle HTML color codes
 - `,le`: Encrypt selection
 - `,ld`: Decrypt selection
@@ -254,13 +289,14 @@ alternative to the Emacs Pinky.
 - `,p[`: Go to next change in file
 - `,p]`: Go to previous change in file
 - `,pd`: Search in directory
-- `,ph`: History of buffer
 - `,pf`: Fuzzy file finder (CtrlP)
-- `,pp`: Resume previous search/filter
-- `,pr`: Open recent project
-- `,ps`: Search in current project
+- `,ph`: History of buffer
 - `,pm`: Git status with Magit
-- `,pw`: Swoop
+- `,pp`: Resume previous search/filter
+- `,pP`: Open recent project
+- `,pr`: Open recent file
+- `,ps`: Search in current project
+- `,pw`: Search in buffer
 
 #### Lisp Debugging Shortcuts
 
@@ -300,6 +336,68 @@ alternative to the Emacs Pinky.
 
 - `<ctrl>-z`: Toggles Emacs/Vim Mode
 - `<ctrl>-x t`: Tab Controls
+
+## Wanderlust Email Setup
+
+Wanderlust is a fast IMAP email client that connects directly to your mail server without needing external sync tools like mbsync or offlineimap.
+
+#### 1. Create ~/.wl with your email settings
+
+```bash
+cp ~/.yadrlite/emacs.d/lisp/wl-template.el ~/.wl
+```
+
+Edit `~/.wl` with your server details:
+
+```elisp
+;;; Your Identity
+(setq wl-from "Your Name <you@example.com>"
+      user-mail-address "you@example.com"
+      user-full-name "Your Name")
+
+;;; IMAP Server (incoming mail)
+(setq elmo-imap4-default-server "imap.example.com"
+      elmo-imap4-default-user "you@example.com"
+      elmo-imap4-default-port 993
+      elmo-imap4-default-stream-type 'ssl)
+
+;;; SMTP Server (outgoing mail)
+(setq wl-smtp-posting-server "smtp.example.com"
+      wl-smtp-posting-user "you@example.com"
+      wl-smtp-posting-port 587
+      wl-smtp-connection-type 'starttls
+      wl-smtp-authenticate-type "plain")
+```
+
+#### 2. Create ~/.authinfo.gpg for credentials
+
+```
+machine imap.example.com login you@example.com password YOUR_PASSWORD port 993
+machine smtp.example.com login you@example.com password YOUR_PASSWORD port 587
+```
+
+Encrypt with: `gpg -c ~/.authinfo` (creates ~/.authinfo.gpg, then delete ~/.authinfo)
+
+#### 3. Gmail Example
+
+For Gmail, use an [App Password](https://myaccount.google.com/apppasswords):
+
+```elisp
+(setq elmo-imap4-default-server "imap.gmail.com"
+      elmo-imap4-default-user "you@gmail.com")
+
+(setq wl-smtp-posting-server "smtp.gmail.com"
+      wl-smtp-posting-user "you@gmail.com")
+
+(setq wl-default-folder "%INBOX"
+      wl-draft-folder "%[Gmail]/Drafts"
+      wl-trash-folder "%[Gmail]/Trash"
+      wl-sent-folder "%[Gmail]/Sent Mail")
+```
+
+#### 4. Run Wanderlust
+
+Press `,am` or run `M-x wl`
 
 [Return to top](#yadrlite)
 

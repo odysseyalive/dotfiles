@@ -10,7 +10,7 @@ USEREPO=yes
 dir=~/.yadrlite
 dotfiles_old=backup
 action="${1:-install}"
-declare -a files=('vim vimrc tmux.conf bash_profile bashrc vimrc.after emacs emacs.d')
+declare -a files=('vim vimrc tmux.conf bash_profile bashrc vimrc.after emacs.d')
 declare -a config=('kitty nvim ranger')
 declare -a tmuxplugins=('https://github.com/tmux-plugins/tmux-resurrect.git' 'https://github.com/tmux-plugins/tmux-sensible' 'https://github.com/wfxr/tmux-power.git')
 
@@ -97,6 +97,51 @@ if [ "$action" == "update" ]; then
       echo 'eval "$(starship init bash)"' >>~/.bashrc
     fi
 
+    # Check Emacs dependencies
+    echo ""
+    echo "# # Emacs Configuration Status"
+    echo "# # # # # # # # # # # # # # # # # # # # # #"
+
+    missing_deps=""
+
+    # Check Emacs
+    if command -v emacs &>/dev/null; then
+      emacs_version=$(emacs --version | head -1 | grep -oE '[0-9]+\.[0-9]+')
+      echo "✓ Emacs $emacs_version"
+      if [[ "${emacs_version%%.*}" -lt 29 ]]; then
+        echo "  ⚠ Upgrade to Emacs 29+ for tree-sitter support"
+      fi
+    else
+      echo "✗ Emacs not installed"
+      missing_deps="emacs "
+    fi
+
+    # Check Node.js (required for Copilot, Grammarly, LSP)
+    if command -v node &>/dev/null; then
+      node_version=$(node --version)
+      echo "✓ Node.js $node_version"
+    else
+      echo "✗ Node.js not installed (required for Copilot, Grammarly)"
+      missing_deps="${missing_deps}node "
+    fi
+
+    # Check ripgrep (required for consult-ripgrep)
+    if command -v rg &>/dev/null; then
+      echo "✓ ripgrep installed"
+    else
+      echo "✗ ripgrep not installed (required for project search)"
+      missing_deps="${missing_deps}ripgrep "
+    fi
+
+    if [ -n "$missing_deps" ]; then
+      echo ""
+      echo "Missing dependencies. Run 'bash ~/.yadrlite/setup tools' to install."
+    else
+      echo ""
+      echo "All Emacs dependencies satisfied."
+    fi
+
+    echo ""
     echo "The update is finished."
   fi
 fi
@@ -132,6 +177,58 @@ if [ "$action" == "tools" ]; then
   go install github.com/gitleaks/gitleaks/v8@latest
   go install github.com/charmbracelet/glow@latest
 
+  # Install ripgrep and fd (pre-built binaries for Emacs consult)
+  echo "# # Installing ripgrep and fd"
+  mkdir -p ~/.local/bin
+  export PATH="$HOME/.local/bin:$PATH"
+
+  # Detect architecture
+  ARCH=$(uname -m)
+  case "$ARCH" in
+    x86_64) ARCH_RG="x86_64"; ARCH_FD="x86_64" ;;
+    aarch64|arm64) ARCH_RG="aarch64"; ARCH_FD="aarch64" ;;
+    *) echo "Unsupported architecture: $ARCH"; ARCH_RG="" ;;
+  esac
+
+  if [ -n "$ARCH_RG" ]; then
+    # ripgrep
+    if ! command -v rg &>/dev/null; then
+      RG_VERSION="14.1.1"
+      curl -sL "https://github.com/BurntSushi/ripgrep/releases/download/${RG_VERSION}/ripgrep-${RG_VERSION}-${ARCH_RG}-unknown-linux-musl.tar.gz" | tar xz -C /tmp
+      cp /tmp/ripgrep-${RG_VERSION}-${ARCH_RG}-unknown-linux-musl/rg ~/.local/bin/
+      rm -rf /tmp/ripgrep-${RG_VERSION}-${ARCH_RG}-unknown-linux-musl
+      echo "Installed ripgrep to ~/.local/bin"
+    else
+      echo "ripgrep already installed"
+    fi
+
+    # fd
+    if ! command -v fd &>/dev/null; then
+      FD_VERSION="10.2.0"
+      curl -sL "https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/fd-v${FD_VERSION}-${ARCH_FD}-unknown-linux-musl.tar.gz" | tar xz -C /tmp
+      cp /tmp/fd-v${FD_VERSION}-${ARCH_FD}-unknown-linux-musl/fd ~/.local/bin/
+      rm -rf /tmp/fd-v${FD_VERSION}-${ARCH_FD}-unknown-linux-musl
+      echo "Installed fd to ~/.local/bin"
+    else
+      echo "fd already installed"
+    fi
+  fi
+
+  # Add ~/.local/bin to PATH in bashrc if not present
+  if ! grep -q 'export PATH="$HOME/.local/bin' ~/.bashrc; then
+    echo '' >>~/.bashrc
+    echo '# Local binaries' >>~/.bashrc
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >>~/.bashrc
+  fi
+
+  # Install Nerd Font (required for Emacs doom-modeline and nerd-icons)
+  echo "# # Installing Nerd Font"
+  mkdir -p ~/.local/share/fonts
+  cp $dir/workstation/fonts/*.ttf ~/.local/share/fonts/
+  if command -v fc-cache &>/dev/null; then
+    fc-cache -fv ~/.local/share/fonts
+  fi
+
   # Install config files (kitty, nvim, ranger)
   echo "# # Installing config files (kitty, nvim, ranger)"
   echo "# # # # # # # # # # # # # # # # # # # # # # # # #"
@@ -157,6 +254,41 @@ if [ "$action" == "tools" ]; then
     echo '' >>~/.bashrc
     echo '# Starship prompt' >>~/.bashrc
     echo 'eval "$(starship init bash)"' >>~/.bashrc
+  fi
+
+  # Emacs installation guidance
+  echo ""
+  echo "# # Emacs Installation"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  if command -v emacs &>/dev/null; then
+    emacs_version=$(emacs --version | head -1 | grep -oE '[0-9]+\.[0-9]+')
+    echo "Emacs $emacs_version is already installed."
+    if [[ "${emacs_version%%.*}" -lt 29 ]]; then
+      echo "Consider upgrading to Emacs 29+ for tree-sitter support."
+    fi
+  else
+    echo "Emacs is not installed. To install the terminal version (emacs-nox):"
+    echo ""
+    if [ -f /etc/arch-release ]; then
+      echo "  sudo pacman -S emacs-nox"
+    elif [ -f /etc/debian_version ]; then
+      echo "  # For Emacs 30 on Debian/Ubuntu:"
+      echo "  sudo add-apt-repository ppa:ubuntuhandbook1/emacs"
+      echo "  sudo apt update && sudo apt install emacs-nox"
+    elif [ -f /etc/fedora-release ] || [ -f /etc/redhat-release ]; then
+      echo "  sudo dnf install emacs-nox"
+    elif [ -f /etc/alpine-release ]; then
+      echo "  sudo apk add emacs-nox"
+    elif [ -f /etc/SuSE-release ] || [ -f /etc/opensuse-release ]; then
+      echo "  sudo zypper install emacs-nox"
+    else
+      echo "  Install 'emacs-nox' using your system package manager."
+    fi
+    echo ""
+    echo "After installing, run Emacs to auto-install packages, then:"
+    echo "  ,cl  - Login to GitHub Copilot"
+    echo "  ,gl  - Login to Grammarly"
+    echo "  ,dp  - Install PHP debug adapter"
   fi
 fi
 
@@ -368,6 +500,7 @@ if [ "$action" == "macos" ]; then
   # Add taps
   brew tap nikitabobko/tap
   brew tap FelixKratz/formulae
+  brew tap d12frosted/emacs-plus
 
   # Terminal and window management
   brew install --cask ghostty
@@ -383,6 +516,14 @@ if [ "$action" == "macos" ]; then
   brew install python
   brew install go
   brew install w3m atool
+
+  # Emacs with native compilation and tree-sitter
+  echo "# # Installing Emacs"
+  echo "# # # # # # # # # # # # # # # # # # # # # #"
+  brew install emacs-plus@30 --with-native-comp --with-imagemagick --with-tree-sitter
+  # Link Emacs.app to Applications
+  osascript -e 'tell application "Finder" to make alias file to posix file "/opt/homebrew/opt/emacs-plus@30/Emacs.app" at POSIX file "/Applications"' 2>/dev/null || \
+    ln -sf /opt/homebrew/opt/emacs-plus@30/Emacs.app /Applications/Emacs.app
 
   # Fonts
   # Cascadia Code for Ghostty (has working ligatures)
@@ -629,13 +770,20 @@ EOF
   echo "# # # # # # # # # # # # # # # # # # # # # #"
   echo ""
   echo "Installed:"
-  echo "  - Ghostty terminal (with Gruvbox Dark theme)"
+  echo "  - Ghostty terminal (with SeaShells theme)"
   echo "  - AeroSpace tiling window manager (Alt+hjkl for navigation)"
   echo "  - Sketchybar status bar"
   echo "  - JankyBorders window borders"
+  echo "  - Emacs 30 with native-comp, tree-sitter, Copilot, Grammarly"
   echo "  - Neovim with LazyVim configuration"
   echo "  - Ranger file manager"
   echo "  - Development tools (Node.js via mise, pnpm, Go tools)"
+  echo ""
+  echo "Emacs first-time setup:"
+  echo "  1. Run Emacs - packages will auto-install on first launch"
+  echo "  2. Run ,cl to login to GitHub Copilot"
+  echo "  3. Run ,gl to login to Grammarly"
+  echo "  4. Run ,dp to install PHP debug adapter"
   echo ""
   echo "Please restart your terminal to apply all changes."
 fi
@@ -706,10 +854,8 @@ if [ "$action" == "install" ]; then
   echo "# # # # # # # # # # # # # # # # # # # # # #"
   cat $dir/vim/vimrc >>$dir/vimrc 2>/dev/null
   cat $dir/vim/vimrc.after >>$dir/vimrc.after 2>/dev/null
-  cp $dir/emacs.d/emacs.init $dir/emacs
-  mkdir -p $dir/emacs.d/.extension
-  unzip $dir/workstation/extension/xdebug-vscode-plugin.zip -d $dir/emacs.d/.extension
-  sed -i "s@multi-term-program.*@multi-term-program \"$(which bash)\")@" $dir/emacs 2>/dev/null
+  # Emacs uses modular init.el structure in emacs.d/
+  # PHP debugging: run M-x dap-php-setup in Emacs to install vscode-php-debug
   cat $dir/tmux/tmux.conf >$dir/tmux.conf
   if [[ "$(uname)" == "Linux" || "$(uname)" == "FreeBSD" ]]; then
     echo "Gnu/Linux detected..."
@@ -758,10 +904,14 @@ if [ "$action" == "install" ]; then
   done
 
   echo ""
-  echo "This script does not install ack, emacs, silversearcher, tmux or"
-  echo "Vim with Lua support. That's something you might look into."
+  echo "The dotfiles are installed!"
   echo ""
-  echo "The dotfiles are installed. Restart the terminal or re-login to"
-  echo "remote deployment to see changes."
+  echo "Next steps:"
+  echo "  1. Install development tools:  bash ~/.yadrlite/setup tools"
+  echo "  2. Install Emacs (see distro-specific command from setup tools)"
+  echo "  3. Restart your terminal"
+  echo ""
+  echo "For macOS workstation setup:  bash ~/.yadrlite/setup macos"
+  echo "For Omarchy (Arch) setup:     bash ~/.yadrlite/setup omarchy"
   echo ""
 fi
