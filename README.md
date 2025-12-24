@@ -102,7 +102,7 @@ settings directory for reference. This package is ready for deployment on most
 Linux distros and MacOS.
 
 **Vim / Tmux**\
-![screenshot](https://github.com/odysseyalive/dotfiles/raw/master/assets/lazyvim-tmux.jpeg?raw=true)
+![screenshot](https://github.com/odysseyalive/dotfiles/raw/master/assets/lazyvim-tmux.png?raw=true)
 
 # Tmux
 
