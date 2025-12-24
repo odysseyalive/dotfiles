@@ -21,9 +21,14 @@
 ;; Set frame parameters early
 (push '(alpha . (97 . 97)) default-frame-alist)
 
-;; Prevent the glimpse of un-styled Emacs by disabling these early
-(setq inhibit-redisplay t)
-(setq inhibit-message t)
+;; On first run, allow display so user sees progress
+;; On subsequent runs, inhibit for faster startup
+(defvar yadrlite--early-first-run
+  (not (file-exists-p (expand-file-name "elpa" user-emacs-directory))))
+
+(unless yadrlite--early-first-run
+  (setq inhibit-redisplay t)
+  (setq inhibit-message t))
 
 ;; Restore after init
 (add-hook 'window-setup-hook
