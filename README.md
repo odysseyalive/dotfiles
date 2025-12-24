@@ -77,6 +77,7 @@ bash ~/.yadrlite/setup macos
 ```
 
 This installs:
+
 - **Ghostty** - Modern GPU-accelerated terminal with Kitty graphics protocol (ranger image previews work)
 - **AeroSpace** - i3-like tiling window manager (no SIP required)
 - **Sketchybar** - Custom status bar with workspace indicators
@@ -101,7 +102,7 @@ settings directory for reference. This package is ready for deployment on most
 Linux distros and MacOS.
 
 **Vim / Tmux**\
-![screenshot](https://github.com/odysseyalive/dotfiles/raw/master/assets/vim-tmux.jpeg?raw=true)
+![screenshot](https://github.com/odysseyalive/dotfiles/raw/master/assets/lazyvim-tmux.jpeg?raw=true)
 
 # Tmux
 
@@ -632,6 +633,7 @@ Ghostty supports tabs, splits, and windows with native UI components. All keybin
 #### Custom Keybindings
 
 Add to `~/.config/ghostty/config`:
+
 ```
 # Vim-style split navigation
 keybind = ctrl+shift+h=goto_split:left
@@ -709,6 +711,7 @@ AeroSpace uses `Alt` (Option) as the primary modifier. After installation, grant
 #### Float Rules
 
 The following applications open as floating windows by default:
+
 - Finder
 - System Settings/Preferences
 - Calculator
