@@ -10,7 +10,7 @@ USEREPO=yes
 dir=~/.yadrlite
 dotfiles_old=backup
 action="${1:-install}"
-declare -a files=('vim vimrc tmux.conf bash_profile bashrc vimrc.after emacs.d')
+declare -a files=('vim vimrc tmux.conf bash_profile bashrc vimrc.after')
 declare -a config=('kitty nvim ranger')
 declare -a tmuxplugins=('https://github.com/tmux-plugins/tmux-resurrect.git' 'https://github.com/tmux-plugins/tmux-sensible' 'https://github.com/wfxr/tmux-power.git')
 
@@ -95,50 +95,6 @@ if [ "$action" == "update" ]; then
       echo '' >>~/.bashrc
       echo '# Starship prompt' >>~/.bashrc
       echo 'eval "$(starship init bash)"' >>~/.bashrc
-    fi
-
-    # Check Emacs dependencies
-    echo ""
-    echo "# # Emacs Configuration Status"
-    echo "# # # # # # # # # # # # # # # # # # # # # #"
-
-    missing_deps=""
-
-    # Check Emacs
-    if command -v emacs &>/dev/null; then
-      emacs_version=$(emacs --version | head -1 | grep -oE '[0-9]+\.[0-9]+')
-      echo "✓ Emacs $emacs_version"
-      if [[ "${emacs_version%%.*}" -lt 29 ]]; then
-        echo "  ⚠ Upgrade to Emacs 29+ for tree-sitter support"
-      fi
-    else
-      echo "✗ Emacs not installed"
-      missing_deps="emacs "
-    fi
-
-    # Check Node.js (required for Copilot, Grammarly, LSP)
-    if command -v node &>/dev/null; then
-      node_version=$(node --version)
-      echo "✓ Node.js $node_version"
-    else
-      echo "✗ Node.js not installed (required for Copilot, Grammarly)"
-      missing_deps="${missing_deps}node "
-    fi
-
-    # Check ripgrep (required for consult-ripgrep)
-    if command -v rg &>/dev/null; then
-      echo "✓ ripgrep installed"
-    else
-      echo "✗ ripgrep not installed (required for project search)"
-      missing_deps="${missing_deps}ripgrep "
-    fi
-
-    if [ -n "$missing_deps" ]; then
-      echo ""
-      echo "Missing dependencies. Run 'bash ~/.yadrlite/setup tools' to install."
-    else
-      echo ""
-      echo "All Emacs dependencies satisfied."
     fi
 
     echo ""
@@ -256,40 +212,6 @@ if [ "$action" == "tools" ]; then
     echo 'eval "$(starship init bash)"' >>~/.bashrc
   fi
 
-  # Emacs installation guidance
-  echo ""
-  echo "# # Emacs Installation"
-  echo "# # # # # # # # # # # # # # # # # # # # # #"
-  if command -v emacs &>/dev/null; then
-    emacs_version=$(emacs --version | head -1 | grep -oE '[0-9]+\.[0-9]+')
-    echo "Emacs $emacs_version is already installed."
-    if [[ "${emacs_version%%.*}" -lt 29 ]]; then
-      echo "Consider upgrading to Emacs 29+ for tree-sitter support."
-    fi
-  else
-    echo "Emacs is not installed. To install the terminal version (emacs-nox):"
-    echo ""
-    if [ -f /etc/arch-release ]; then
-      echo "  sudo pacman -S emacs-nox"
-    elif [ -f /etc/debian_version ]; then
-      echo "  # For Emacs 30 on Debian/Ubuntu:"
-      echo "  sudo add-apt-repository ppa:ubuntuhandbook1/emacs"
-      echo "  sudo apt update && sudo apt install emacs-nox"
-    elif [ -f /etc/fedora-release ] || [ -f /etc/redhat-release ]; then
-      echo "  sudo dnf install emacs-nox"
-    elif [ -f /etc/alpine-release ]; then
-      echo "  sudo apk add emacs-nox"
-    elif [ -f /etc/SuSE-release ] || [ -f /etc/opensuse-release ]; then
-      echo "  sudo zypper install emacs-nox"
-    else
-      echo "  Install 'emacs-nox' using your system package manager."
-    fi
-    echo ""
-    echo "After installing, run Emacs to auto-install packages, then:"
-    echo "  ,cl  - Login to GitHub Copilot"
-    echo "  ,gl  - Login to Grammarly"
-    echo "  ,dp  - Install PHP debug adapter"
-  fi
 fi
 
 # nvm install v18.20.4
@@ -500,7 +422,6 @@ if [ "$action" == "macos" ]; then
   # Add taps
   brew tap nikitabobko/tap
   brew tap FelixKratz/formulae
-  brew tap d12frosted/emacs-plus
 
   # Terminal and window management
   brew install --cask ghostty
@@ -516,14 +437,6 @@ if [ "$action" == "macos" ]; then
   brew install python
   brew install go
   brew install w3m atool
-
-  # Emacs with native compilation and tree-sitter
-  echo "# # Installing Emacs"
-  echo "# # # # # # # # # # # # # # # # # # # # # #"
-  brew install emacs-plus@30 --with-native-comp --with-imagemagick --with-tree-sitter
-  # Link Emacs.app to Applications
-  osascript -e 'tell application "Finder" to make alias file to posix file "/opt/homebrew/opt/emacs-plus@30/Emacs.app" at POSIX file "/Applications"' 2>/dev/null || \
-    ln -sf /opt/homebrew/opt/emacs-plus@30/Emacs.app /Applications/Emacs.app
 
   # Fonts
   # Cascadia Code for Ghostty (has working ligatures)
@@ -774,16 +687,9 @@ EOF
   echo "  - AeroSpace tiling window manager (Alt+hjkl for navigation)"
   echo "  - Sketchybar status bar"
   echo "  - JankyBorders window borders"
-  echo "  - Emacs 30 with native-comp, tree-sitter, Copilot, Grammarly"
   echo "  - Neovim with LazyVim configuration"
   echo "  - Ranger file manager"
   echo "  - Development tools (Node.js via mise, pnpm, Go tools)"
-  echo ""
-  echo "Emacs first-time setup:"
-  echo "  1. Run Emacs - packages will auto-install on first launch"
-  echo "  2. Run ,cl to login to GitHub Copilot"
-  echo "  3. Run ,gl to login to Grammarly"
-  echo "  4. Run ,dp to install PHP debug adapter"
   echo ""
   echo "Please restart your terminal to apply all changes."
 fi
@@ -850,12 +756,10 @@ if [ "$action" == "install" ]; then
     mv ~/.$cfile $dir/$dotfiles_old/ 2>/dev/null
   done
 
-  echo "# # Vim, Emacs and Tmux Configurations"
+  echo "# # Vim and Tmux Configurations"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
   cat $dir/vim/vimrc >>$dir/vimrc 2>/dev/null
   cat $dir/vim/vimrc.after >>$dir/vimrc.after 2>/dev/null
-  # Emacs uses modular init.el structure in emacs.d/
-  # PHP debugging: run M-x dap-php-setup in Emacs to install vscode-php-debug
   cat $dir/tmux/tmux.conf >$dir/tmux.conf
   if [[ "$(uname)" == "Linux" || "$(uname)" == "FreeBSD" ]]; then
     echo "Gnu/Linux detected..."
@@ -908,8 +812,7 @@ if [ "$action" == "install" ]; then
   echo ""
   echo "Next steps:"
   echo "  1. Install development tools:  bash ~/.yadrlite/setup tools"
-  echo "  2. Install Emacs (see distro-specific command from setup tools)"
-  echo "  3. Restart your terminal"
+  echo "  2. Restart your terminal"
   echo ""
   echo "For macOS workstation setup:  bash ~/.yadrlite/setup macos"
   echo "For Omarchy (Arch) setup:     bash ~/.yadrlite/setup omarchy"

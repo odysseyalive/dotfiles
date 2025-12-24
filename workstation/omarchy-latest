@@ -90,7 +90,6 @@ install package aur/ghostty-git
 install package extra/ttf-cascadia-code-nerd
 install package extra/zoxide
 install package extra/zsh
-install pacakge extra/emacs-wayland
 
 # interactive fiction tools
 # install package aur/inform7-ide-git
