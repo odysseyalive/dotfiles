@@ -6,7 +6,7 @@
 palette = 'seashells'
 
 format = """
-[╭─](bright-black) $directory$git_branch$git_status$fill$time
+[╭─](bright-black) $username[@](at)$hostname $directory$git_branch$git_status$fill$time
 [╰─](bright-black)$character"""
 
 add_newline = true
@@ -15,6 +15,17 @@ add_newline = true
 success_symbol = "[❯](green)"
 error_symbol = "[❯](red)"
 format = "$symbol "
+
+[username]
+style_user = "user"
+style_root = "red bold"
+format = "[$user]($style)"
+show_always = true
+
+[hostname]
+style = "host"
+format = "[$hostname]($style)"
+ssh_only = false
 
 [directory]
 format = "[󰉋 $path]($style) "
