@@ -29,5 +29,7 @@ export NNN_COLORS='#0a1b2c3d;1234'
 export NNN_FCOLORS='c1e2272e006033f7c6d6abc4'
 export PATH="$HOME/.local/bin:$PATH"
 
-# Default Prompt
-export PS1="\n\[\033[0;33m\][\[\033[0;36m\]\t\[\033[0;33m\]] \[\033[0;35m\]\u\[\033[0;32m\]@\H \[\033[0;34m\]\w\n\[\033[0;33m\]~\\$ \[\033[0;0m\]"
+# Default Prompt (only if Starship is not installed)
+if ! command -v starship &>/dev/null; then
+  export PS1="\n\[\033[0;33m\][\[\033[0;36m\]\t\[\033[0;33m\]] \[\033[0;35m\]\u\[\033[0;32m\]@\H \[\033[0;34m\]\w\n\[\033[0;33m\]~\\$ \[\033[0;0m\]"
+fi
