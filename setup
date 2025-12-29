@@ -85,7 +85,7 @@ if [ "$action" == "update" ]; then
     # Install Starship if not present
     if ! command -v starship &>/dev/null; then
       echo "# # Installing Starship prompt"
-      curl -sS https://starship.rs/install.sh | sh -s -- -y
+      curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null
     fi
     # Update Starship config
     mkdir -p ~/.config
@@ -202,7 +202,7 @@ if [ "$action" == "tools" ]; then
 
   # Install Starship prompt
   echo "# # Installing Starship prompt"
-  curl -sS https://starship.rs/install.sh | sh -s -- -y
+  curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null
   cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
 
   # Add Starship init to bashrc if not already present
@@ -316,7 +316,7 @@ EOF
 
   # Install Starship prompt
   echo "# # Installing Starship prompt"
-  curl -sS https://starship.rs/install.sh | sh -s -- -y
+  curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null
   mkdir -p ~/.config
   cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
 
