@@ -6,7 +6,7 @@
 palette = 'seashells'
 
 format = """
-[╭─](bright-black) $username[@](at)$hostname $directory$git_branch$git_status$fill$time
+[╭─](bright-black) $username[@](at)$hostname $directory$git_branch$git_status$python$fill$time
 [╰─](bright-black)$character"""
 
 add_newline = true
@@ -52,6 +52,10 @@ ahead = "⇡"
 behind = "⇣"
 diverged = "⇕"
 conflicted = "="
+
+[python]
+format = "[ $virtualenv]($style) "
+style = "yellow"
 
 [fill]
 symbol = " ·"
