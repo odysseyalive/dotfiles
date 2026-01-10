@@ -85,7 +85,7 @@ if [ "$action" == "update" ]; then
     # Install Starship if not present
     if ! command -v starship &>/dev/null; then
       echo "# # Installing Starship prompt"
-      curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null
+      curl -sS https://starship.rs/install.sh | sh -s -- -y >/dev/null
     fi
     # Update Starship config
     mkdir -p ~/.config
@@ -117,7 +117,7 @@ if [ "$action" == "tools" ]; then
   npm install -g pnpm
   [ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc"
   pnpm setup
-  pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
+  pnpm install -g grunt-cli gulp gulp-cli csslint typescript typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
   # go lang
   curl -sSL https://git.io/g-install | bash -s -- -y
   sleep 5
@@ -141,9 +141,18 @@ if [ "$action" == "tools" ]; then
   # Detect architecture
   ARCH=$(uname -m)
   case "$ARCH" in
-    x86_64) ARCH_RG="x86_64"; ARCH_FD="x86_64" ;;
-    aarch64|arm64) ARCH_RG="aarch64"; ARCH_FD="aarch64" ;;
-    *) echo "Unsupported architecture: $ARCH"; ARCH_RG="" ;;
+  x86_64)
+    ARCH_RG="x86_64"
+    ARCH_FD="x86_64"
+    ;;
+  aarch64 | arm64)
+    ARCH_RG="aarch64"
+    ARCH_FD="aarch64"
+    ;;
+  *)
+    echo "Unsupported architecture: $ARCH"
+    ARCH_RG=""
+    ;;
   esac
 
   if [ -n "$ARCH_RG" ]; then
@@ -202,7 +211,7 @@ if [ "$action" == "tools" ]; then
 
   # Install Starship prompt
   echo "# # Installing Starship prompt"
-  curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null
+  curl -sS https://starship.rs/install.sh | sh -s -- -y >/dev/null
   cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
 
   # Add Starship init to bashrc if not already present
@@ -226,7 +235,7 @@ if [ "$action" == "omarchy" ]; then
   # Source pnpm environment for current session
   export PNPM_HOME="$HOME/.local/share/pnpm"
   export PATH="$PNPM_HOME:$PATH"
-  pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
+  pnpm install -g grunt-cli gulp gulp-cli csslint typescript typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 
   # Install Fira Code Nerd Font
   echo "# # Installing Fira Code Nerd Font"
@@ -316,7 +325,7 @@ EOF
 
   # Install Starship prompt
   echo "# # Installing Starship prompt"
-  curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null
+  curl -sS https://starship.rs/install.sh | sh -s -- -y >/dev/null
   mkdir -p ~/.config
   cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
 
@@ -470,7 +479,7 @@ if [ "$action" == "macos" ]; then
   export PATH="$PNPM_HOME:$PATH"
 
   # Install development packages via pnpm
-  pnpm install -g grunt-cli gulp gulp-cli csslint typescript@3.0 typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
+  pnpm install -g grunt-cli gulp gulp-cli csslint typescript typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
 
   # Go tools
   echo "# # Installing Go tools"
