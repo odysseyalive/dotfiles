@@ -396,6 +396,35 @@ EOF
   fi
 
   echo "Kitty set as default terminal"
+
+  # Configure Chrome for development (SSL bypass flags)
+  echo "# # Configuring Chrome for development"
+  mkdir -p ~/.local/share/applications
+  cat >~/.local/share/applications/google-chrome.desktop <<'EOF'
+[Desktop Entry]
+Version=1.0
+Name=Google Chrome (dev)
+GenericName=Web Browser
+Comment=Access the Internet (SSL bypass enabled for dev)
+StartupWMClass=Google-chrome
+Exec=/usr/bin/google-chrome-stable --ignore-certificate-errors --ignore-ssl-errors --allow-running-insecure-content %U
+StartupNotify=true
+Terminal=false
+Icon=google-chrome
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=application/pdf;application/rdf+xml;application/rss+xml;application/xhtml+xml;application/xhtml_xml;application/xml;image/gif;image/jpeg;image/png;image/webp;text/html;text/xml;x-scheme-handler/http;x-scheme-handler/https;
+Actions=new-window;new-private-window;
+
+[Desktop Action new-window]
+Name=New Window
+Exec=/usr/bin/google-chrome-stable --ignore-certificate-errors --ignore-ssl-errors --allow-running-insecure-content
+
+[Desktop Action new-private-window]
+Name=New Incognito Window
+Exec=/usr/bin/google-chrome-stable --ignore-certificate-errors --ignore-ssl-errors --allow-running-insecure-content --incognito
+EOF
+  echo "  Chrome configured with SSL bypass flags for local development"
 fi
 
 # # macOS Workstation Setup

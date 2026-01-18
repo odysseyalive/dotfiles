@@ -90,6 +90,7 @@ install package aur/ghostty-git
 install package extra/ttf-cascadia-code-nerd
 install package extra/zoxide
 install package extra/zsh
+install package aur/google-chrome
 
 # interactive fiction tools
 # install package aur/inform7-ide-git
