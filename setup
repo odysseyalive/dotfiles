@@ -226,6 +226,10 @@ fi
 # nvm install v18.20.4
 # # # # # # # # # # # # # # #
 if [ "$action" == "omarchy" ]; then
+  # Disable btrfs quota to prevent system slowdown
+  echo "# # Disabling btrfs quota"
+  sudo btrfs quota disable /
+
   mise install node@22.20.0
   mise use -g node@22.20.0
   # Install pnpm for secure package management
