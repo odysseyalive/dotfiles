@@ -401,6 +401,17 @@ EOF
 
   echo "Kitty set as default terminal"
 
+  # Install pandoc memory limiter wrapper
+  # Prevents pandoc from consuming all system memory (OOM)
+  echo "# # Installing pandoc memory limiter"
+  mkdir -p ~/.local/bin
+  cat >~/.local/bin/pandoc <<'PANDOC_EOF'
+#!/bin/sh
+exec systemd-run --user --scope -p MemoryMax=4G -p MemorySwapMax=1G --quiet /usr/bin/pandoc "$@"
+PANDOC_EOF
+  chmod +x ~/.local/bin/pandoc
+  echo "  pandoc wrapper installed (4G RAM / 1G swap limit)"
+
   # Configure Chrome for development (SSL bypass flags)
   echo "# # Configuring Chrome for development"
   mkdir -p ~/.local/share/applications
