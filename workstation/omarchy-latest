@@ -91,6 +91,7 @@ install package extra/ttf-cascadia-code-nerd
 install package extra/zoxide
 install package extra/zsh
 install package aur/google-chrome
+install package aur/python-azure-cognitiveservices-speech
 
 # interactive fiction tools
 # install package aur/inform7-ide-git

@@ -28,6 +28,14 @@ vim.api.nvim_create_autocmd("FocusGained", {
   end,
 })
 
+-- Disable diagnostics for markdown files
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "markdown", "md" },
+  callback = function()
+    vim.diagnostic.enable(false, { bufnr = 0 })
+  end,
+})
+
 -- Disable expensive features for large files
 vim.api.nvim_create_autocmd("BufReadPre", {
   pattern = "*",
