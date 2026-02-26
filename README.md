@@ -929,3 +929,7 @@ The ranger interface uses three columns: parent directory (left), current direct
 - `F`: Toggle freeze files (improve performance)
 
 [Return to top](#yadrlite)
+
+# Credits
+
+Maintained with [Claude Enforcer](https://github.com/odysseyalive/claude-enforcer)

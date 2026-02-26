@@ -97,6 +97,10 @@ if [ "$action" == "update" ]; then
       echo 'eval "$(starship init bash)"' >>~/.bashrc
     fi
 
+    # Ensure XDG tmux config exists (tmux 3.5+ checks ~/.config/tmux/ first)
+    mkdir -p ~/.config/tmux
+    ln -sf $dir/tmux.conf ~/.config/tmux/tmux.conf
+
     echo ""
     echo "The update is finished."
   fi
@@ -872,6 +876,10 @@ if [ "$action" == "install" ]; then
   for cfile in ${files[@]}; do
     ln -s $dir/$cfile ~/.$cfile
   done
+
+  # XDG tmux config (tmux 3.5+ checks ~/.config/tmux/ before ~/.tmux.conf)
+  mkdir -p ~/.config/tmux
+  ln -sf $dir/tmux.conf ~/.config/tmux/tmux.conf
 
   echo ""
   echo "The dotfiles are installed!"
