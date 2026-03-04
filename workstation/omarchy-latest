@@ -92,6 +92,8 @@ install package extra/zoxide
 install package extra/zsh
 install package aur/google-chrome
 install package aur/python-azure-cognitiveservices-speech
+install package extra/wtype extra/wl-clipboard extra/libnotify
+install package aur/voxtype-bin
 
 # interactive fiction tools
 # install package aur/inform7-ide-git
@@ -114,6 +116,20 @@ curl -s https://erb.pw/get-syncterm.sh | bash
 log "installing custom configuration"
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup)"
 bash ~/.yadrlite/setup omarchy
+
+# Enable SSH agent for passphrase caching
+log "configuring ssh-agent"
+systemctl --user enable --now ssh-agent.socket
+if ! grep -q 'SSH_AUTH_SOCK' ~/.zshrc 2>/dev/null; then
+  echo '' >> ~/.zshrc
+  echo '# SSH agent socket' >> ~/.zshrc
+  echo 'export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"' >> ~/.zshrc
+fi
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+touch ~/.ssh/config && chmod 600 ~/.ssh/config
+if ! grep -q 'AddKeysToAgent' ~/.ssh/config 2>/dev/null; then
+  sed -i '1i AddKeysToAgent yes\n' ~/.ssh/config
+fi
 
 # Configure Starship prompt
 log "configuring starship prompt"

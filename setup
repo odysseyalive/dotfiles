@@ -416,6 +416,74 @@ PANDOC_EOF
   chmod +x ~/.local/bin/pandoc
   echo "  pandoc wrapper installed (4G RAM / 1G swap limit)"
 
+  # Install Voxtype (push-to-talk speech-to-text)
+  echo "# # Installing Voxtype speech-to-text"
+  if command -v voxtype &>/dev/null; then
+    # Download default model if not present
+    if [ ! -f ~/.local/share/voxtype/models/ggml-base.en.bin ]; then
+      voxtype setup --download
+    fi
+
+    # Configure for Hyprland push-to-talk (disable built-in hotkey, use compositor keybindings)
+    mkdir -p ~/.config/voxtype
+    if [ -f ~/.config/voxtype/config.toml ]; then
+      # Patch: disable built-in hotkey detection
+      if grep -q 'key = "SCROLLLOCK"' ~/.config/voxtype/config.toml; then
+        sed -i '/^\[hotkey\]/,/^$/{
+          /^\[hotkey\]/c\[hotkey]\nenabled = false
+          /^key = /d
+          /^modifiers = /d
+        }' ~/.config/voxtype/config.toml
+      fi
+    else
+      cat >~/.config/voxtype/config.toml <<'VOXTYPE_EOF'
+state_file = "auto"
+
+[hotkey]
+enabled = false
+
+[audio]
+device = "default"
+sample_rate = 16000
+max_duration_secs = 60
+
+[whisper]
+model = "base.en"
+language = "en"
+translate = false
+
+[output]
+mode = "type"
+fallback_to_clipboard = true
+type_delay_ms = 0
+
+[output.notification]
+on_recording_start = false
+on_recording_stop = false
+on_transcription = true
+VOXTYPE_EOF
+    fi
+
+    # Add push-to-talk keybinding to Hyprland
+    if [ -f ~/.config/hypr/bindings.conf ]; then
+      if ! grep -q "voxtype" ~/.config/hypr/bindings.conf; then
+        cat >>~/.config/hypr/bindings.conf <<'EOF'
+
+# Push-to-talk dictation (Voxtype) — hold to speak, release to transcribe
+bind = SUPER ALT, V, exec, voxtype record start
+bindr = SUPER ALT, V, exec, voxtype record stop
+bindr = SUPER, V, exec, voxtype record stop
+EOF
+      fi
+    fi
+
+    # Enable systemd user service
+    systemctl --user enable voxtype 2>/dev/null
+    echo "  Voxtype configured (Super+Alt+V push-to-talk)"
+  else
+    echo "  Voxtype not found, skipping configuration"
+  fi
+
   # Configure Chrome for development (SSL bypass flags)
   echo "# # Configuring Chrome for development"
   mkdir -p ~/.local/share/applications
