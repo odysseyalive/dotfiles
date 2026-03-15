@@ -363,6 +363,16 @@ EOF
   fi
 fi
 
+# Fix Lenovo dock USB autosuspend loop (VIA Labs USB 3.1 hub)
+# Prevents kernel from repeatedly trying to enumerate/suspend dock ports
+log "configuring lenovo dock usb fix"
+if ! [ -f /etc/udev/rules.d/50-lenovo-dock.rules ]; then
+  echo '# Disable autosuspend for Lenovo dock USB hub (VIA Labs)
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="17ef", ATTR{idProduct}=="307f", ATTR{power/control}="on"' | sudo tee /etc/udev/rules.d/50-lenovo-dock.rules >/dev/null
+  sudo udevadm control --reload-rules
+  log "lenovo dock usb udev rule installed"
+fi
+
 # clean everything
 yay -Scc --noconfirm
 
