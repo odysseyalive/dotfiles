@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+setopt nullglob
 
 echo "# # Configuring Ghostty"
 mkdir -p ~/.config/ghostty

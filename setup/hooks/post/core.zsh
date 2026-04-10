@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+setopt nullglob
 
 SHELL_RC=$(get_shell_rc)
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+setopt nullglob
 
 echo "# # Disabling btrfs quota"
 sudo btrfs quota disable / 2>/dev/null || true
