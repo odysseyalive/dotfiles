@@ -20,7 +20,7 @@ sed_i() {
 echo "# # Installing Dotfiles"
 echo "# # # # # # # # # # # # # # # # # # # # # #"
 
-if [ -f "$dir/install.sh" ] || [ -f "$dir/setup.sh" ]; then
+if [ -d "$dir/.git" ]; then
   echo ""
   echo "YADRLite is already installed in $dir."
   echo "Use ~/.yadrlite/setup.sh to manage your installation."
