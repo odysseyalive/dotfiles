@@ -1,5 +1,7 @@
 # YADRLite
 
+![Setup Demo](assets/demo.gif)
+
 This repository is a collection of tools that I use in my workflow.
 
 Credit:
