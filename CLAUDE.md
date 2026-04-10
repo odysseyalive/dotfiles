@@ -18,10 +18,24 @@ bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/mas
 zsh ~/.yadrlite/setup.sh tools
 ```
 
-This installs Node.js (via nvm), Go tools, and essential language servers including:
+This installs Go tools, and essential language servers including:
 - TypeScript/JavaScript tools (eslint, babel-eslint, js-beautify)
 - PHP tools (intelephense)
 - Go utilities (fzf, lazygit, gitleaks, glow)
+
+### Language Management (ASDF)
+```bash
+zsh ~/.yadrlite/setup.sh --with-langs
+# Or a specific language
+zsh ~/.yadrlite/setup.sh --with-lang-ruby-3.2.0
+```
+This manages Node.js, Python, Ruby, and Golang installations globally via the ASDF version manager.
+
+### Apply Rolling Migrations
+```bash
+zsh ~/.yadrlite/setup.sh --migrate
+```
+Executes cumulative pre/post hooks found in `setup/migrations/v*` (e.g., migrating from legacy NVM to ASDF) automatically.
 
 ### Update Dotfiles
 ```bash
@@ -124,7 +138,7 @@ See the dedicated skills above for editor-specific workflows (`/lazyvim`, `/vim-
 
 3. **Tmux Shell Detection**: The setup script automatically detects the user's shell and configures tmux accordingly (line 168-170 in setup)
 
-4. **Platform Support**: Only Linux and FreeBSD are supported (macOS support removed, see setup script line 171-178)
+4. **Platform Support**: Linux, FreeBSD, and macOS are supported. macOS workstation setup requires running `zsh ~/.yadrlite/setup.sh macos` after the basic installation.
 
 5. **Backup Strategy**: All original dotfiles are backed up to `~/.yadrlite/backup/` before installation
 
