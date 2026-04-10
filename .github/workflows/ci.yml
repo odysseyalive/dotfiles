@@ -4,7 +4,12 @@ on:
   push:
     branches: [ master ]
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ master ]
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   test:
@@ -39,16 +44,14 @@ jobs:
     - name: Run Tests
       run: ~/.local/lib/shellspec/shellspec --shell zsh
 
-  demo:
-    name: Generate Setup Demo GIF
+  auto-generate:
+    name: Generate Artifacts (Demo & Changelog)
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           ref: ${{ github.head_ref }}
           
       - name: Install dependencies
@@ -76,22 +79,31 @@ jobs:
             echo "Error: assets/demo.gif is missing or empty!"
             exit 1
           fi
+
+      - name: Generate Changelog
+        uses: orhun/git-cliff-action@v3
+        with:
+          config: cliff.toml
+          args: --unreleased
+        env:
+          OUTPUT: CHANGELOG.md
           
       - name: Commit changes
         id: auto_commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update generated setup demo gif"
-          file_pattern: 'assets/*.gif'
+          commit_message: "chore: update generated artifacts (changelog, demo gif) [skip ci]"
+          file_pattern: 'assets/*.gif CHANGELOG.md'
           branch: ${{ github.head_ref }}
 
       - name: Comment on PR with Demo Link
         uses: thollander/actions-comment-pull-request@v2
+        if: steps.auto_commit.outputs.changes_detected == 'true'
         with:
           message: |
             ### 🎬 Setup Routing Demo GIF Updated
             
-            The terminal recording has been automatically re-generated for this branch.
+            The terminal recording and CHANGELOG have been automatically re-generated for this branch.
             
             ![VHS GIF](https://raw.githubusercontent.com/${{ github.repository }}/${{ steps.auto_commit.outputs.commit_hash || github.sha }}/assets/demo.gif)
           comment_tag: "vhs-demo-gif"
