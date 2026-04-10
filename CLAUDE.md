@@ -54,7 +54,7 @@ bash install
 - Creates symbolic links in home directory for: `.vim`, `.vimrc`, `.tmux.conf`, `.profile`, `.bash_profile`, `.bashrc`, `.vimrc.after`, `.emacs`, `.emacs.d`
 - Copies configurations to `~/.config/` for: nvim, ranger
 - Clones and sets up tmux plugins (tmux-resurrect, tmux-sensible)
-- Supports actions: `install`, `update`, `remove`, `tools`, `omarchy`
+- Supports actions: `install`, `update`, `remove`, `tools`, `omarchy`, `macos`, `keyboard`
 
 ### Directory Layout
 
