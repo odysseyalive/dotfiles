@@ -1,0 +1,47 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Shell scripts (sh, bash, zsh)
+[*.{sh,bash,zsh,command}]
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+# Vim and Tmux configurations
+[*.{vim,conf}]
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+# Lua (LazyVim config)
+[*.lua]
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+# Markdown and text files
+[*.{md,txt}]
+charset = utf-8
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+# YAML files (GitHub Actions, etc)
+[*.{yml,yaml}]
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+# PHP (per existing conventions)
+[*.php]
+charset = utf-8
+indent_style = space
+indent_size = 4

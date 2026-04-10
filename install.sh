@@ -109,10 +109,10 @@ for tplug in $tmuxplugins; do
 done
 
 # covers injection into most existing configurations
-if ! grep -q "~/.bashrc" "$dir/bash_profile" && ! grep -q "~/.bash_profile" "$dir/bashrc"; then
+if ! grep -q "$HOME/.bashrc" "$dir/bash_profile" && ! grep -q "$HOME/.bash_profile" "$dir/bashrc"; then
   cat "$dir/bash/bashrc" >>"$dir/bashrc" 2>/dev/null
-  echo "source ~/.bashrc" >>"$dir/bash_profile" 2>/dev/null
-elif ! grep -q "~/.bashrc" "$dir/bash_profile"; then
+  echo "source $HOME/.bashrc" >>"$dir/bash_profile" 2>/dev/null
+elif ! grep -q "$HOME/.bashrc" "$dir/bash_profile"; then
   cat "$dir/bash/bashrc" >>"$dir/bash_profile" 2>/dev/null
 else
   cat "$dir/bash/bashrc" >>"$dir/bashrc" 2>/dev/null
