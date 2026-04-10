@@ -6,7 +6,7 @@ source "$(dirname "$0")/setup/common.sh"
 action="${1:-setup}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")" && pwd)"
 
-# Legacy compat: run specific files if invoked directly (e.g. tools.sh, update.sh)
+# Legacy compat: run specific files if invoked directly
 if [[ -x "$SCRIPT_DIR/setup/${action}.sh" && "$action" != "setup" ]]; then
   "$SCRIPT_DIR/setup/${action}.sh"
   exit $?
@@ -15,11 +15,22 @@ fi
 # Argument parsing for scalable setup
 OS_OVERRIDE=""
 typeset -a FEATURES=()
+typeset -a YADR_ASDF_LANGS=()
+USE_ASDF=1
 
 for arg in "$@"; do
   case $arg in
     --macos) OS_OVERRIDE="Darwin" ;;
     --linux) OS_OVERRIDE="Linux" ;;
+    --without-asdf) USE_ASDF=0 ;;
+    --with-langs)
+      FEATURES+=("langs")
+      YADR_ASDF_LANGS+=("all")
+      ;;
+    --with-lang-*)
+      FEATURES+=("langs")
+      YADR_ASDF_LANGS+=("${arg#--with-lang-}")
+      ;;
     --with-*) FEATURES+=("${arg#--with-}") ;;
     setup|help) ;;
     *)
@@ -43,7 +54,10 @@ if [[ "$action" == "help" ]]; then
   echo "Usage: ./setup.sh [--macos | --linux] [--with-<feature>...]"
   echo ""
   echo "Features dynamically load from 'brewfiles/<feature>.Brewfile' or 'setup/hooks/pre|post/<feature>.zsh'"
-  echo "Example: ./setup.sh --macos --with-gnu --with-keyboard"
+  echo "Example 1: ./setup.sh --macos --with-gnu --with-keyboard"
+  echo "Example 2: ./setup.sh --with-langs                # Installs node, python, ruby, golang via asdf"
+  echo "Example 3: ./setup.sh --with-lang-ruby-3.2.0      # Installs a specific language and version via asdf"
+  echo "Example 4: ./setup.sh --with-tools --without-asdf # Installs node via nvm and go via g-install instead"
   echo ""
   echo "Legacy Actions:"
   echo "  tools     - Alias for standard setup + node tools"
@@ -65,6 +79,35 @@ if [[ "$action" == "macos" && ${FEATURES[(ie)macos]} -gt ${#FEATURES} ]]; then
 fi
 if [[ "$action" == "tools" && ${FEATURES[(ie)tools]} -gt ${#FEATURES} ]]; then
   FEATURES+=("tools")
+fi
+
+# If tools are requested, we need Node.js and Go
+if (( ${FEATURES[(Ie)tools]} )); then
+  if [[ "$USE_ASDF" == "1" ]]; then
+    FEATURES+=("langs")
+    YADR_ASDF_LANGS+=("nodejs" "golang")
+  else
+    FEATURES+=("nvm" "golang-legacy")
+  fi
+fi
+
+# Deduplicate features and ensure 'langs', 'nvm', 'golang-legacy' run before 'tools'
+FEATURES=("${(@u)FEATURES}")
+
+reorder_feature_first() {
+  local target_feat="$1"
+  if (( ${FEATURES[(Ie)$target_feat]} )); then
+    FEATURES=("$target_feat" "${FEATURES[@]:#$target_feat}")
+  fi
+}
+
+reorder_feature_first "nvm"
+reorder_feature_first "golang-legacy"
+reorder_feature_first "langs"
+
+# Export ASDF variables for the hook to use
+if [[ "$USE_ASDF" == "1" ]]; then
+  export YADR_ASDF_LANGS_STR="${YADR_ASDF_LANGS[*]}"
 fi
 
 echo "==> Starting YADRLite Setup (OS: $OS_LOWER)"
