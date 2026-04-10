@@ -42,6 +42,13 @@ bash ~/.yadrlite/setup tools
 bash ~/.yadrlite/setup update
 ```
 
+#### Keyboard Remapping (Opt-in)
+
+Swap Caps Lock and Escape keys (macOS only currently):
+```bash
+bash ~/.yadrlite/setup keyboard
+```
+
 #### Uninstall and Restore to Prior Configuration
 
 ```bash
