@@ -163,11 +163,23 @@ the user if they want to record the knowledge in the awareness ledger. Use
 `/awareness-ledger record [type]` to capture it. Always finish the immediate
 work first — suggest capture after, not during.
 
-## Testing
+## Testing and Code Quality
 
-The repository does not include automated tests. Manual testing involves:
-1. Installing in a clean environment
-2. Verifying symbolic links in home directory
-3. Testing plugin installations (`:PlugInstall` for Vim, Lazy sync for LazyVim)
-4. Confirming tmux plugin functionality
-5. Testing removal/restore with `bash ~/.yadrlite/setup remove`
+The repository includes a `Makefile` for automated testing, formatting, and linting. The test suite uses [ShellSpec](https://shellspec.info/) (a BDD testing framework for shell scripts).
+
+To see all available commands:
+```bash
+make help
+```
+
+To run the complete test suite and linter:
+```bash
+make check
+```
+
+Automated testing is configured via GitHub Actions (`.github/workflows/ci.yml`) and runs across both Ubuntu and macOS to ensure cross-platform compliance.
+
+**Key Tools:**
+- **ShellSpec**: Used for behavioral and unit testing of `install.sh` and the `setup/*` scripts.
+- **ShellCheck**: Statically analyzes `install.sh` for POSIX `sh` compliance and safety.
+- **Zsh Syntax**: The `make lint` target automatically runs `zsh -n` across all `.sh` files in the `setup/` directory to catch syntax errors before execution.

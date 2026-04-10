@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Lint & Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install ShellSpec
+      run: curl -fsSL https://git.io/shellspec | sh -s -- --yes
+
+    - name: Install Linting Tools
+      run: |
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          sudo apt-get install -y shellcheck zsh
+        elif [ "$RUNNER_OS" = "macOS" ]; then
+          brew install shellcheck zsh
+        fi
+
+    - name: Run Zsh Syntax Checks
+      run: |
+        zsh -n setup.sh setup/*.sh
+
+    - name: Run ShellCheck on install.sh
+      run: |
+        shellcheck -s sh install.sh
+
+    - name: Run Tests
+      run: ~/.local/lib/shellspec/shellspec --shell zsh
