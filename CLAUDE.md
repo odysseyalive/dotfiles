@@ -54,7 +54,7 @@ bash install
 - Creates symbolic links in home directory for: `.vim`, `.vimrc`, `.tmux.conf`, `.profile`, `.bash_profile`, `.bashrc`, `.vimrc.after`, `.emacs`, `.emacs.d`
 - Copies configurations to `~/.config/` for: nvim, ranger
 - Clones and sets up tmux plugins (tmux-resurrect, tmux-sensible)
-- Supports actions: `install`, `update`, `remove`, `tools`, `omarchy`
+- Supports actions: `install`, `update`, `remove`, `tools`, `omarchy`, `macos`, `keyboard`
 
 ### Directory Layout
 
@@ -116,7 +116,7 @@ See the dedicated skills above for editor-specific workflows (`/lazyvim`, `/vim-
 
 3. **Tmux Shell Detection**: The setup script automatically detects the user's shell and configures tmux accordingly (line 168-170 in setup)
 
-4. **Platform Support**: Only Linux and FreeBSD are supported (macOS support removed, see setup script line 171-178)
+4. Platform Support: Linux, FreeBSD, and macOS are supported. macOS workstation setup requires running `bash ~/.yadrlite/setup macos` after the basic installation.
 
 5. **Backup Strategy**: All original dotfiles are backed up to `~/.yadrlite/backup/` before installation
 
