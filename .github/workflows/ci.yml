@@ -38,3 +38,61 @@ jobs:
 
     - name: Run Tests
       run: ~/.local/lib/shellspec/shellspec --shell zsh
+
+  demo:
+    name: Generate Setup Demo GIF
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg ttyd zsh
+          
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.21.0'
+          
+      - name: Install VHS
+        run: |
+          go install github.com/charmbracelet/vhs@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          
+      - name: Generate demo gif
+        run: |
+          mkdir -p assets
+          vhs scripts/demo.tape
+
+      - name: Validate generated asset
+        run: |
+          if [ ! -s assets/demo.gif ]; then
+            echo "Error: assets/demo.gif is missing or empty!"
+            exit 1
+          fi
+          
+      - name: Commit changes
+        id: auto_commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update generated setup demo gif"
+          file_pattern: 'assets/*.gif'
+          branch: ${{ github.head_ref }}
+
+      - name: Comment on PR with Demo Link
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ### 🎬 Setup Routing Demo GIF Updated
+            
+            The terminal recording has been automatically re-generated for this branch.
+            
+            ![VHS GIF](https://raw.githubusercontent.com/${{ github.repository }}/${{ steps.auto_commit.outputs.commit_hash || github.sha }}/assets/demo.gif)
+          comment_tag: "vhs-demo-gif"
+          mode: "upsert"
