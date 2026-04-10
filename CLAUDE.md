@@ -116,7 +116,7 @@ See the dedicated skills above for editor-specific workflows (`/lazyvim`, `/vim-
 
 3. **Tmux Shell Detection**: The setup script automatically detects the user's shell and configures tmux accordingly (line 168-170 in setup)
 
-4. **Platform Support**: Only Linux and FreeBSD are supported (macOS support removed, see setup script line 171-178)
+4. Platform Support: Linux, FreeBSD, and macOS are supported. macOS workstation setup requires running `bash ~/.yadrlite/setup macos` after the basic installation.
 
 5. **Backup Strategy**: All original dotfiles are backed up to `~/.yadrlite/backup/` before installation
 

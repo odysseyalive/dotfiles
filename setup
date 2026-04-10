@@ -16,6 +16,14 @@ declare -a tmuxplugins=('https://github.com/tmux-plugins/tmux-resurrect.git' 'ht
 
 # # Routines
 # # # # # # # # # # # # # # #
+function sed_i {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed -i '' "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
 function installed {
   local inststatus=yes
   if [[ $($1 2>&1) =~ (not found) ]]; then
@@ -85,7 +93,11 @@ if [ "$action" == "update" ]; then
     # Install Starship if not present
     if ! command -v starship &>/dev/null; then
       echo "# # Installing Starship prompt"
-      curl -sS https://starship.rs/install.sh | sh -s -- -y >/dev/null
+      if [[ "$(uname -s)" == "Darwin" ]] && command -v brew &>/dev/null; then
+        brew install starship
+      else
+        curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin >/dev/null
+      fi
     fi
     # Update Starship config
     mkdir -p ~/.config
@@ -142,44 +154,65 @@ if [ "$action" == "tools" ]; then
   mkdir -p ~/.local/bin
   export PATH="$HOME/.local/bin:$PATH"
 
-  # Detect architecture
+  # Detect architecture and OS
   ARCH=$(uname -m)
-  case "$ARCH" in
-  x86_64)
-    ARCH_RG="x86_64"
-    ARCH_FD="x86_64"
-    ;;
-  aarch64 | arm64)
-    ARCH_RG="aarch64"
-    ARCH_FD="aarch64"
-    ;;
-  *)
-    echo "Unsupported architecture: $ARCH"
-    ARCH_RG=""
-    ;;
-  esac
+  OS=$(uname -s)
 
-  if [ -n "$ARCH_RG" ]; then
-    # ripgrep
-    if ! command -v rg &>/dev/null; then
-      RG_VERSION="14.1.1"
-      curl -sL "https://github.com/BurntSushi/ripgrep/releases/download/${RG_VERSION}/ripgrep-${RG_VERSION}-${ARCH_RG}-unknown-linux-musl.tar.gz" | tar xz -C /tmp
-      cp /tmp/ripgrep-${RG_VERSION}-${ARCH_RG}-unknown-linux-musl/rg ~/.local/bin/
-      rm -rf /tmp/ripgrep-${RG_VERSION}-${ARCH_RG}-unknown-linux-musl
-      echo "Installed ripgrep to ~/.local/bin"
-    else
-      echo "ripgrep already installed"
+  if [[ "$OS" == "Darwin" ]]; then
+    # Ensure Homebrew is in PATH
+    if ! command -v brew &>/dev/null; then
+      if [[ -f "/opt/homebrew/bin/brew" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+      elif [[ -f "/usr/local/bin/brew" ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+      fi
     fi
 
-    # fd
-    if ! command -v fd &>/dev/null; then
-      FD_VERSION="10.2.0"
-      curl -sL "https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/fd-v${FD_VERSION}-${ARCH_FD}-unknown-linux-musl.tar.gz" | tar xz -C /tmp
-      cp /tmp/fd-v${FD_VERSION}-${ARCH_FD}-unknown-linux-musl/fd ~/.local/bin/
-      rm -rf /tmp/fd-v${FD_VERSION}-${ARCH_FD}-unknown-linux-musl
-      echo "Installed fd to ~/.local/bin"
+    if command -v brew &>/dev/null; then
+      echo "Installing ripgrep and fd via Homebrew..."
+      brew install ripgrep fd
     else
-      echo "fd already installed"
+      echo "Warning: Homebrew not found. Skipping ripgrep and fd installation."
+    fi
+  else
+    # Linux logic
+    case "$ARCH" in
+    x86_64)
+      ARCH_RG="x86_64"
+      ARCH_FD="x86_64"
+      ;;
+    aarch64 | arm64)
+      ARCH_RG="aarch64"
+      ARCH_FD="aarch64"
+      ;;
+    *)
+      echo "Unsupported architecture: $ARCH"
+      ARCH_RG=""
+      ;;
+    esac
+
+    if [ -n "$ARCH_RG" ]; then
+      # ripgrep
+      if ! command -v rg &>/dev/null; then
+        RG_VERSION="14.1.1"
+        curl -sL "https://github.com/BurntSushi/ripgrep/releases/download/${RG_VERSION}/ripgrep-${RG_VERSION}-${ARCH_RG}-unknown-linux-musl.tar.gz" | tar xz -C /tmp
+        cp /tmp/ripgrep-${RG_VERSION}-${ARCH_RG}-unknown-linux-musl/rg ~/.local/bin/
+        rm -rf /tmp/ripgrep-${RG_VERSION}-${ARCH_RG}-unknown-linux-musl
+        echo "Installed ripgrep to ~/.local/bin"
+      else
+        echo "ripgrep already installed"
+      fi
+
+      # fd
+      if ! command -v fd &>/dev/null; then
+        FD_VERSION="10.2.0"
+        curl -sL "https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/fd-v${FD_VERSION}-${ARCH_FD}-unknown-linux-musl.tar.gz" | tar xz -C /tmp
+        cp /tmp/fd-v${FD_VERSION}-${ARCH_FD}-unknown-linux-musl/fd ~/.local/bin/
+        rm -rf /tmp/fd-v${FD_VERSION}-${ARCH_FD}-unknown-linux-musl
+        echo "Installed fd to ~/.local/bin"
+      else
+        echo "fd already installed"
+      fi
     fi
   fi
 
@@ -215,7 +248,11 @@ if [ "$action" == "tools" ]; then
 
   # Install Starship prompt
   echo "# # Installing Starship prompt"
-  curl -sS https://starship.rs/install.sh | sh -s -- -y >/dev/null
+  if [[ "$(uname -s)" == "Darwin" ]] && command -v brew &>/dev/null; then
+    brew install starship
+  else
+    curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin >/dev/null
+  fi
   cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
 
   # Add Starship init to bashrc if not already present
@@ -333,7 +370,7 @@ EOF
 
   # Install Starship prompt
   echo "# # Installing Starship prompt"
-  curl -sS https://starship.rs/install.sh | sh -s -- -y >/dev/null
+  curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin >/dev/null
   mkdir -p ~/.config
   cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
 
@@ -526,6 +563,15 @@ if [ "$action" == "macos" ]; then
     exit 1
   fi
 
+  # Detect Homebrew and add to PATH if present but not in current PATH
+  if ! command -v brew &>/dev/null; then
+    if [[ -f "/opt/homebrew/bin/brew" ]]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -f "/usr/local/bin/brew" ]]; then
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
+  fi
+
   # Install Homebrew if not present
   if ! command -v brew &>/dev/null; then
     echo ""
@@ -696,35 +742,7 @@ if [ "$action" == "macos" ]; then
   echo "  Theme system installed with automatic light/dark mode switching!"
   echo "  Manual commands: 'theme-switch dark|light|toggle|auto'"
 
-  echo "# # Setting up Caps Lock / Escape swap"
-  echo "# # # # # # # # # # # # # # # # # # # # # #"
 
-  # Create LaunchAgent to swap Caps Lock and Escape keys
-  mkdir -p ~/Library/LaunchAgents
-  cat >~/Library/LaunchAgents/com.local.KeyRemapping.plist <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.local.KeyRemapping</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/usr/bin/hidutil</string>
-        <string>property</string>
-        <string>--set</string>
-        <string>{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x700000029},{"HIDKeyboardModifierMappingSrc":0x700000029,"HIDKeyboardModifierMappingDst":0x700000039}]}</string>
-    </array>
-    <key>RunAtLoad</key>
-    <true/>
-</dict>
-</plist>
-EOF
-
-  # Apply the key swap immediately
-  hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x700000029},{"HIDKeyboardModifierMappingSrc":0x700000029,"HIDKeyboardModifierMappingDst":0x700000039}]}'
-
-  echo "  Caps Lock and Escape keys swapped (persists across reboots)"
 
   echo "# # Installing config files (nvim, ranger)"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
@@ -934,8 +952,8 @@ if [ "$action" == "install" ]; then
   fi
 
   # fixes sourcing of bashrc within tmux
-  sed -i "s@.*\..*/etc/bashrc@    source /etc/bashrc@g" $dir/bashrc
-  sed -i "s@.*\..*~\.bashrc@    source ~/.bashrc@g" $dir/bash_profile
+  sed_i "s@.*\..*/etc/bashrc@    source /etc/bashrc@g" $dir/bashrc
+  sed_i "s@.*\..*~\.bashrc@    source ~/.bashrc@g" $dir/bash_profile
 
   echo "# # Building Symbolic Links"
   echo "# # # # # # # # # # # # # # # # # # # # # #"
