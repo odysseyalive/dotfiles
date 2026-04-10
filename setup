@@ -6,7 +6,7 @@
 
 # # Options
 # # # # # # # # # # # # # # #
-USEREPO=yes
+USEREPO=no
 dir=~/.yadrlite
 dotfiles_old=backup
 action="${1:-install}"
@@ -96,7 +96,7 @@ if [ "$action" == "update" ]; then
       if [[ "$(uname -s)" == "Darwin" ]] && command -v brew &>/dev/null; then
         brew install starship
       else
-        curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin >/dev/null
+        curl -sS https://starship.rs/install.sh | sh -s -- -y -b ~/.local/bin >/dev/null
       fi
     fi
     # Update Starship config
@@ -146,7 +146,7 @@ if [ "$action" == "tools" ]; then
   g install latest
   go install github.com/junegunn/fzf@latest
   go install github.com/jesseduffield/lazygit@latest
-  go install github.com/gitleaks/gitleaks/v8@latest
+  go install github.com/zricethezav/gitleaks/v8@latest
   go install github.com/charmbracelet/glow@latest
 
   # Install ripgrep and fd (pre-built binaries for Emacs consult)
@@ -251,7 +251,7 @@ if [ "$action" == "tools" ]; then
   if [[ "$(uname -s)" == "Darwin" ]] && command -v brew &>/dev/null; then
     brew install starship
   else
-    curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin >/dev/null
+    curl -sS https://starship.rs/install.sh | sh -s -- -y -b ~/.local/bin >/dev/null
   fi
   cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
 
@@ -305,7 +305,7 @@ if [ "$action" == "omarchy" ]; then
   g install latest
   go install github.com/junegunn/fzf@latest
   go install github.com/jesseduffield/lazygit@latest
-  go install github.com/gitleaks/gitleaks/v8@latest
+  go install github.com/zricethezav/gitleaks/v8@latest
   go install github.com/charmbracelet/glow@latest
 
   # Configure Kitty to use Omarchy theme system
@@ -370,7 +370,7 @@ EOF
 
   # Install Starship prompt
   echo "# # Installing Starship prompt"
-  curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin >/dev/null
+  curl -sS https://starship.rs/install.sh | sh -s -- -y -b ~/.local/bin >/dev/null
   mkdir -p ~/.config
   cp $dir/workstation/starship/starship.toml ~/.config/starship.toml
 
@@ -650,7 +650,7 @@ if [ "$action" == "macos" ]; then
   export PATH="$GOPATH/bin:$PATH"
   go install github.com/junegunn/fzf@latest
   go install github.com/jesseduffield/lazygit@latest
-  go install github.com/gitleaks/gitleaks/v8@latest
+  go install github.com/zricethezav/gitleaks/v8@latest
   go install github.com/charmbracelet/glow@latest
 
   echo "# # Configuring Ghostty"
