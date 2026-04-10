@@ -10,27 +10,41 @@ YADRLite is a streamlined dotfiles package based on YADR, optimized for speed an
 
 ### Initial Installation
 ```bash
-bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
+bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/install.sh`"
 ```
 
 ### Install Development Tools
 ```bash
-bash ~/.yadrlite/setup tools
+zsh ~/.yadrlite/setup.zsh tools
 ```
 
-This installs Node.js (via nvm), Go tools, and essential language servers including:
+This installs Go tools, and essential language servers including:
 - TypeScript/JavaScript tools (eslint, babel-eslint, js-beautify)
 - PHP tools (intelephense)
 - Go utilities (fzf, lazygit, gitleaks, glow)
 
+### Language Management (ASDF)
+```bash
+zsh ~/.yadrlite/setup.zsh --with-langs
+# Or a specific language
+zsh ~/.yadrlite/setup.zsh --with-lang-ruby-3.2.0
+```
+This manages Node.js, Python, Ruby, and Golang installations globally via the ASDF version manager.
+
+### Apply Rolling Migrations
+```bash
+zsh ~/.yadrlite/setup.zsh --migrate
+```
+Executes cumulative pre/post hooks found in `setup/migrations/v*` (e.g., migrating from legacy NVM to ASDF) automatically.
+
 ### Update Dotfiles
 ```bash
-bash ~/.yadrlite/setup update
+zsh ~/.yadrlite/setup.zsh update
 ```
 
 ### Uninstall and Restore
 ```bash
-bash ~/.yadrlite/setup remove
+zsh ~/.yadrlite/setup.zsh remove
 ```
 
 ### Arch Linux Workstation Setup
@@ -48,17 +62,25 @@ bash install
 
 ### Core Components
 
-**setup script** (`./setup`): Main installation orchestrator that:
+**install script** (`./install.sh`): Main bootstrap script that:
+- Clones the repository to `~/.yadrlite` (if run remotely)
 - Backs up existing dotfiles to `~/.yadrlite/backup/`
-- Aggregates configurations from subdirectories (vim/, tmux/, bash/, emacs.d/)
-- Creates symbolic links in home directory for: `.vim`, `.vimrc`, `.tmux.conf`, `.profile`, `.bash_profile`, `.bashrc`, `.vimrc.after`, `.emacs`, `.emacs.d`
-- Copies configurations to `~/.config/` for: nvim, ranger
-- Clones and sets up tmux plugins (tmux-resurrect, tmux-sensible)
-- Supports actions: `install`, `update`, `remove`, `tools`, `omarchy`, `macos`, `keyboard`
+- Creates symbolic links in home directory for base config files
+- Clones and sets up core tmux plugins
+
+**setup script** (`./setup.sh`): Post-installation management orchestrator. It routes to focused scripts in the `setup/` directory for actions like:
+- `tools`: Installs external binaries and development tools
+- `update`: Updates plugins and components
+- `macos`: Provisions macOS specific software (AeroSpace, Sketchybar, Ghostty)
+- `keyboard`: Opt-in action to swap Caps Lock and Escape on macOS
+- `remove`: Restores backups and uninstalls YADRLite
 
 ### Directory Layout
 
 ```
+├── setup/          # Modular post-installation management scripts
+├── install.sh      # Initial bootstrap script
+├── setup.sh        # Setup management entrypoint
 ├── bash/           # Bash configuration snippets injected into .bashrc/.bash_profile
 ├── emacs.d/        # Emacs configuration with Evil mode
 │   └── emacs.init  # Main Emacs initialization file (55k+ lines)
@@ -116,7 +138,7 @@ See the dedicated skills above for editor-specific workflows (`/lazyvim`, `/vim-
 
 3. **Tmux Shell Detection**: The setup script automatically detects the user's shell and configures tmux accordingly (line 168-170 in setup)
 
-4. Platform Support: Linux, FreeBSD, and macOS are supported. macOS workstation setup requires running `bash ~/.yadrlite/setup macos` after the basic installation.
+4. **Platform Support**: Linux, FreeBSD, and macOS are supported. macOS workstation setup requires running `zsh ~/.yadrlite/setup.zsh macos` after the basic installation.
 
 5. **Backup Strategy**: All original dotfiles are backed up to `~/.yadrlite/backup/` before installation
 
@@ -155,11 +177,23 @@ the user if they want to record the knowledge in the awareness ledger. Use
 `/awareness-ledger record [type]` to capture it. Always finish the immediate
 work first — suggest capture after, not during.
 
-## Testing
+## Testing and Code Quality
 
-The repository does not include automated tests. Manual testing involves:
-1. Installing in a clean environment
-2. Verifying symbolic links in home directory
-3. Testing plugin installations (`:PlugInstall` for Vim, Lazy sync for LazyVim)
-4. Confirming tmux plugin functionality
-5. Testing removal/restore with `bash ~/.yadrlite/setup remove`
+The repository includes a `Makefile` for automated testing, formatting, and linting. The test suite uses [ShellSpec](https://shellspec.info/) (a BDD testing framework for shell scripts).
+
+To see all available commands:
+```bash
+make help
+```
+
+To run the complete test suite and linter:
+```bash
+make check
+```
+
+Automated testing is configured via GitHub Actions (`.github/workflows/ci.yml`) and runs across both Ubuntu and macOS to ensure cross-platform compliance.
+
+**Key Tools:**
+- **ShellSpec**: Used for behavioral and unit testing of `install.sh` and the `setup/*` scripts.
+- **ShellCheck**: Statically analyzes `install.sh` for POSIX `sh` compliance and safety.
+- **Zsh Syntax**: The `make lint` target automatically runs `zsh -n` across all `.sh` files in the `setup/` directory to catch syntax errors before execution.

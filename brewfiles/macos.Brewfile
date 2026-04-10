@@ -1,0 +1,8 @@
+tap "nikitabobko/tap"
+cask "ghostty"
+cask "aerospace"
+brew "sketchybar"
+brew "borders"
+brew "duti"
+cask "font-cascadia-code"
+cask "font-caskaydia-cove-nerd-font"
