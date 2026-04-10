@@ -18,13 +18,23 @@ typeset -a FEATURES=()
 typeset -a YADR_ASDF_LANGS=()
 USE_ASDF=1
 MIGRATE=0
+UPGRADE=0
+HAS_MACOS_FLAG=0
+HAS_LINUX_FLAG=0
 
 for arg in "$@"; do
   case $arg in
-    --macos) OS_OVERRIDE="Darwin" ;;
-    --linux) OS_OVERRIDE="Linux" ;;
+    --macos) 
+      OS_OVERRIDE="Darwin"
+      HAS_MACOS_FLAG=1
+      ;;
+    --linux) 
+      OS_OVERRIDE="Linux"
+      HAS_LINUX_FLAG=1
+      ;;
     --without-asdf) USE_ASDF=0 ;;
     --migrate) MIGRATE=1 ;;
+    --upgrade) UPGRADE=1 ;;
     --with-langs)
       FEATURES+=("langs")
       YADR_ASDF_LANGS+=("all")
@@ -44,6 +54,7 @@ for arg in "$@"; do
         if [[ "$arg" == "tools" ]]; then FEATURES+=("tools"); fi
         if [[ "$arg" == "keyboard" ]]; then FEATURES+=("keyboard"); fi
         if [[ "$arg" == "gnu" || "$arg" == "linuxify" ]]; then FEATURES+=("gnu"); fi
+        if [[ "$arg" == "update" || "$arg" == "upgrade" ]]; then UPGRADE=1; fi
       else
         echo "Unknown argument: $arg"
       fi
@@ -51,24 +62,63 @@ for arg in "$@"; do
   esac
 done
 
+if [[ "$action" == "remove" || "$action" == "uninstall" ]]; then
+  shift # Remove 'remove' or 'uninstall' from args
+  exec "$SCRIPT_DIR/uninstall.sh" "$@"
+fi
+
+if [[ "$HAS_MACOS_FLAG" -eq 1 && "$HAS_LINUX_FLAG" -eq 1 ]]; then
+  echo "Error: --macos and --linux are mutually exclusive override flags. You can only specify one."
+  exit 1
+fi
+
 if [[ "$action" == "help" ]]; then
   echo "YADRLite Setup Management"
-  echo "Usage: ./setup.sh [--macos | --linux] [--with-<feature>...] [--migrate]"
+  echo "Usage: ./setup.zsh [--macos | --linux] [--with-<feature>...] [--migrate] [--upgrade]"
+  echo ""
+  echo "OS Selection:"
+  echo "  (Autodetects by default)"
+  echo "  --macos   Force setup as macOS"
+  echo "  --linux   Force setup as Linux"
   echo ""
   echo "Features dynamically load from 'brewfiles/<feature>.Brewfile' or 'setup/hooks/pre|post/<feature>.zsh'"
-  echo "Example 1: ./setup.sh --macos --with-gnu --with-keyboard"
-  echo "Example 2: ./setup.sh --with-langs                # Installs node, python, ruby, golang via asdf"
-  echo "Example 3: ./setup.sh --with-lang-ruby-3.2.0      # Installs a specific language and version via asdf"
-  echo "Example 4: ./setup.sh --with-tools --without-asdf # Installs node via nvm and go via g-install instead"
+  echo "Example 1: ./setup.zsh --macos --with-gnu --with-keyboard"
+  echo "Example 2: ./setup.zsh --with-langs                # Installs node, python, ruby, golang via asdf"
+  echo "Example 3: ./setup.zsh --with-lang-ruby-3.2.0      # Installs a specific language and version via asdf"
+  echo "Example 4: ./setup.zsh --with-tools --without-asdf # Installs node via nvm and go via g-install instead"
   echo ""
   echo "Legacy Actions:"
   echo "  tools     - Alias for standard setup + node tools"
   echo "  macos     - Alias for --macos --with-macos"
   echo "  omarchy   - Alias for --linux --with-omarchy"
   echo "  keyboard  - Alias for --with-keyboard"
-  echo "  update    - Update plugins and configurations"
-  echo "  remove    - Uninstall YADRLite and restore backups"
+  echo "  update    - Alias for --upgrade"
+  echo "  remove    - Alias for uninstall.sh"
   exit 0
+fi
+
+if [[ "$UPGRADE" == "1" ]]; then
+  echo "==> Updating YADRLite repository..."
+  cd "$YADR_DIR"
+  git pull --rebase
+
+  echo "==> Updating tmux plugins..."
+  mkdir -p "$YADR_DIR/tmux/plugin"
+  for tplug in "${YADR_TMUX_PLUGINS[@]}"; do
+    plugname=$(basename "$tplug" .git)
+    if [ ! -d "$YADR_DIR/tmux/plugin/$plugname" ]; then
+      echo "  -> Installing $plugname..."
+      git clone "$tplug" "$YADR_DIR/tmux/plugin/$plugname"
+    fi
+  done
+  for pdir in "$YADR_DIR"/tmux/plugin/*(/N); do
+    if [ -d "$pdir/.git" ]; then
+      echo "  -> Updating ${pdir:t}..."
+      (cd "$pdir" && git pull --rebase)
+    fi
+  done
+
+  echo "==> Repository updated. Resuming setup..."
 fi
 
 # Version Management

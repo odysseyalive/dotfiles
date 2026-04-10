@@ -14,15 +14,15 @@ test: ## Run ShellSpec test suite
 	fi
 
 lint: ## Run ShellCheck and basic Zsh syntax checks
-	@echo "==> Linting POSIX install.sh with ShellCheck..."
+	@echo "==> Linting POSIX install.sh and uninstall.sh with ShellCheck..."
 	@if command -v shellcheck >/dev/null; then \
-		shellcheck -s sh install.sh; \
+		shellcheck -s sh install.sh uninstall.sh; \
 	else \
-		echo "ShellCheck not found. Skipping lint for install.sh."; \
+		echo "ShellCheck not found. Skipping lint for install.sh and uninstall.sh."; \
 	fi
 	@echo "==> Checking Zsh syntax for setup scripts..."
 	@if command -v zsh >/dev/null; then \
-		zsh -n setup.sh setup/*.sh setup/hooks/*/*.zsh; \
+		zsh -n setup.sh setup/*.sh setup/hooks/*/*.zsh setup/scripts/*.zsh setup/migrations/*/*.zsh; \
 		echo "Zsh syntax OK."; \
 	else \
 		echo "Zsh not found. Skipping syntax check."; \
@@ -30,7 +30,7 @@ lint: ## Run ShellCheck and basic Zsh syntax checks
 
 fmt: ## Format shell scripts using shfmt
 	@if command -v shfmt >/dev/null; then \
-		shfmt -l -w -i 2 -ci install.sh setup.sh setup/*.sh setup/hooks/*/*.zsh; \
+		shfmt -l -w -i 2 -ci install.sh uninstall.sh setup.sh setup/*.sh setup/hooks/*/*.zsh setup/scripts/*.zsh setup/migrations/*/*.zsh; \
 	else \
 		echo "shfmt not found. Skipping format."; \
 	fi

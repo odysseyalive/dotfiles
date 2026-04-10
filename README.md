@@ -59,6 +59,11 @@ zsh ~/.yadrlite/setup.sh omarchy
 ```
 
 ### Optional Features
+- **Language Management (ASDF):** Install languages dynamically using ASDF via `--with-langs` or granular versions via `--with-lang-<name>-<version>`. If you prefer legacy installers (NVM/G-Install), use `--without-asdf`.
+  ```zsh
+  zsh ~/.yadrlite/setup.sh --with-langs
+  zsh ~/.yadrlite/setup.sh --with-lang-ruby-3.2.0
+  ```
 - **GNU Linuxify (macOS):** Standardize your macOS coreutils to use GNU versions via Homebrew.
   ```zsh
   zsh ~/.yadrlite/setup.sh --with-gnu
@@ -86,6 +91,12 @@ We've moved the massive lists of shortcuts and editor documentation into their o
 ---
 
 ## 🔄 Maintenance
+
+**Apply Rolling Migrations:**
+Safely applies any new configuration changes or updates (e.g., migrating from legacy NVM to ASDF) automatically.
+```zsh
+zsh ~/.yadrlite/setup.sh --migrate
+```
 
 **Update Plugins and Configurations:**
 ```zsh
