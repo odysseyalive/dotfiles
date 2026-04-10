@@ -10,12 +10,12 @@ YADRLite is a streamlined dotfiles package based on YADR, optimized for speed an
 
 ### Initial Installation
 ```bash
-bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
+bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/install.sh`"
 ```
 
 ### Install Development Tools
 ```bash
-bash ~/.yadrlite/setup tools
+zsh ~/.yadrlite/setup.sh tools
 ```
 
 This installs Node.js (via nvm), Go tools, and essential language servers including:
@@ -25,12 +25,12 @@ This installs Node.js (via nvm), Go tools, and essential language servers includ
 
 ### Update Dotfiles
 ```bash
-bash ~/.yadrlite/setup update
+zsh ~/.yadrlite/setup.sh update
 ```
 
 ### Uninstall and Restore
 ```bash
-bash ~/.yadrlite/setup remove
+zsh ~/.yadrlite/setup.sh remove
 ```
 
 ### Arch Linux Workstation Setup
@@ -48,17 +48,25 @@ bash install
 
 ### Core Components
 
-**setup script** (`./setup`): Main installation orchestrator that:
+**install script** (`./install.sh`): Main bootstrap script that:
+- Clones the repository to `~/.yadrlite` (if run remotely)
 - Backs up existing dotfiles to `~/.yadrlite/backup/`
-- Aggregates configurations from subdirectories (vim/, tmux/, bash/, emacs.d/)
-- Creates symbolic links in home directory for: `.vim`, `.vimrc`, `.tmux.conf`, `.profile`, `.bash_profile`, `.bashrc`, `.vimrc.after`, `.emacs`, `.emacs.d`
-- Copies configurations to `~/.config/` for: nvim, ranger
-- Clones and sets up tmux plugins (tmux-resurrect, tmux-sensible)
-- Supports actions: `install`, `update`, `remove`, `tools`, `omarchy`, `macos`, `keyboard`
+- Creates symbolic links in home directory for base config files
+- Clones and sets up core tmux plugins
+
+**setup script** (`./setup.sh`): Post-installation management orchestrator. It routes to focused scripts in the `setup/` directory for actions like:
+- `tools`: Installs external binaries and development tools
+- `update`: Updates plugins and components
+- `macos`: Provisions macOS specific software (AeroSpace, Sketchybar, Ghostty)
+- `keyboard`: Opt-in action to swap Caps Lock and Escape on macOS
+- `remove`: Restores backups and uninstalls YADRLite
 
 ### Directory Layout
 
 ```
+├── setup/          # Modular post-installation management scripts
+├── install.sh      # Initial bootstrap script
+├── setup.sh        # Setup management entrypoint
 ├── bash/           # Bash configuration snippets injected into .bashrc/.bash_profile
 ├── emacs.d/        # Emacs configuration with Evil mode
 │   └── emacs.init  # Main Emacs initialization file (55k+ lines)

@@ -27,32 +27,32 @@ index: [Tmux](#tmux), [Vim](#vim), [LazyVim](#lazyvim), [Kitty](#kitty), [Ghostt
 Requirements: [git](https://git-scm.com/downloads)
 
 ```bash
-bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
+bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/install.sh`"
 ```
 
 #### Install commonly used tools
 
 ```bash
-bash ~/.yadrlite/setup tools
+zsh ~/.yadrlite/setup.sh tools
 ```
 
 #### Update
 
 ```bash
-bash ~/.yadrlite/setup update
+zsh ~/.yadrlite/setup.sh update
 ```
 
 #### Keyboard Remapping (Opt-in)
 
 Swap Caps Lock and Escape keys (macOS only currently):
 ```bash
-bash ~/.yadrlite/setup keyboard
+zsh ~/.yadrlite/setup.sh keyboard
 ```
 
 #### Uninstall and Restore to Prior Configuration
 
 ```bash
-bash ~/.yadrlite/setup remove
+zsh ~/.yadrlite/setup.sh remove
 ```
 
 # My Workstation
@@ -77,10 +77,10 @@ Transform your Mac into a tiling window manager setup similar to Omarchy using A
 
 ```bash
 # First, install basic dotfiles
-bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/setup`"
+bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/install.sh`"
 
 # Then run the macOS workstation setup
-bash ~/.yadrlite/setup macos
+zsh ~/.yadrlite/setup.sh macos
 ```
 
 This installs:
