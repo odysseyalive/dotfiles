@@ -36,7 +36,7 @@ Requirements: [Kitty](https://sw.kovidgoyal.net/kitty/)
 
 #### Display Options
 
-- `Ctrl+Shift+Equal`: Inscrease Font Size
+- `Ctrl+Shift+Equal`: Increase Font Size
 - `Ctrl+Shift+minus`: Decrease Font Size
 - `Ctrl+Shift+backspace`: Restore Font Size
 - `Ctrl+Shift+O`: select light and dark themes

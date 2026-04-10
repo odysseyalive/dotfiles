@@ -22,7 +22,7 @@ lint: ## Run ShellCheck and basic Zsh syntax checks
 	fi
 	@echo "==> Checking Zsh syntax for setup scripts..."
 	@if command -v zsh >/dev/null; then \
-		zsh -n setup.sh setup/*.sh; \
+		zsh -n setup.sh setup/*.sh setup/hooks/*/*.zsh; \
 		echo "Zsh syntax OK."; \
 	else \
 		echo "Zsh not found. Skipping syntax check."; \
@@ -30,7 +30,7 @@ lint: ## Run ShellCheck and basic Zsh syntax checks
 
 fmt: ## Format shell scripts using shfmt
 	@if command -v shfmt >/dev/null; then \
-		shfmt -l -w -i 2 -ci install.sh setup.sh setup/*.sh; \
+		shfmt -l -w -i 2 -ci install.sh setup.sh setup/*.sh setup/hooks/*/*.zsh; \
 	else \
 		echo "shfmt not found. Skipping format."; \
 	fi

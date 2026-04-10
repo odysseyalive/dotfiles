@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 source "$(dirname "$0")/common.sh"
+setopt nullglob
 
 echo "# # Updating Dotfiles"
 echo "# # # # # # # # # # # # # # # # # # # # # #"
@@ -12,7 +13,7 @@ echo "# # Updating tmux plugins"
 mkdir -p "$YADR_DIR/tmux/plugin"
 mkdir -p ~/.tmux/plugins
 
-for tplug in $YADR_TMUX_PLUGINS; do
+for tplug in "${YADR_TMUX_PLUGINS[@]}"; do
   plugname=$(basename $tplug .git)
   if [ ! -d "$YADR_DIR/tmux/plugin/$plugname" ]; then
     echo "Installing $plugname..."
@@ -21,7 +22,7 @@ for tplug in $YADR_TMUX_PLUGINS; do
 done
 
 cd "$YADR_DIR/tmux/plugin"
-for pdir in */; do
+for pdir in */(N); do
   cd "$YADR_DIR/tmux/plugin/$pdir"
   echo "Updating $pdir..."
   if [ -d ".git" ]; then

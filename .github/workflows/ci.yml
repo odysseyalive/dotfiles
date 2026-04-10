@@ -30,7 +30,7 @@ jobs:
 
     - name: Run Zsh Syntax Checks
       run: |
-        zsh -n setup.sh setup/*.sh
+        zsh -n setup.sh setup/*.sh setup/hooks/*/*.zsh
 
     - name: Run ShellCheck on install.sh
       run: |

@@ -3,26 +3,6 @@ setopt nullglob
 
 SHELL_RC=$(get_shell_rc)
 
-# Install pnpm for secure package management
-if ! command -v pnpm &>/dev/null; then
-  npm install -g pnpm
-fi
-
-[ -s "$SHELL_RC" ] && source "$SHELL_RC"
-pnpm setup
-pnpm install -g grunt-cli gulp gulp-cli csslint typescript typescript-language-server intelephense yaml-lint eslint-plugin-toml eslint-plugin-markdown golangci-lint vscode-css-languageserver-bin js-beautify unified-language-server eslint emmet-ls babel-eslint typescript-lsp coffeescript coffeelint neovim
-
-# Go lang installs (now managed by brew, but we still need paths)
-export GOPATH="$HOME/go"
-export PATH="$GOPATH/bin:$PATH"
-
-if ! grep -q 'export GOPATH="$HOME/go"' "$SHELL_RC" 2>/dev/null; then
-  echo '' >>"$SHELL_RC"
-  echo '# Go paths' >>"$SHELL_RC"
-  echo 'export GOPATH="$HOME/go"' >>"$SHELL_RC"
-  echo 'export PATH="$GOPATH/bin:$PATH"' >>"$SHELL_RC"
-fi
-
 if ! grep -q 'export PATH="$HOME/.local/bin' "$SHELL_RC" 2>/dev/null; then
   echo '' >>"$SHELL_RC"
   echo '# Local binaries' >>"$SHELL_RC"
@@ -31,16 +11,19 @@ fi
 
 echo "# # Installing Nerd Font"
 mkdir -p ~/.local/share/fonts
-cp "$YADR_DIR/workstation/fonts/"*.ttf ~/.local/share/fonts/
-if command -v fc-cache &>/dev/null; then
-  fc-cache -fv ~/.local/share/fonts
+font_files=("$YADR_DIR"/workstation/fonts/*.ttf(N))
+if (( ${#font_files[@]} > 0 )); then
+  cp "${font_files[@]}" ~/.local/share/fonts/
+  if command -v fc-cache &>/dev/null; then
+    fc-cache -fv ~/.local/share/fonts
+  fi
 fi
 
 echo "# # Installing config files (kitty, nvim, ranger)"
 mkdir -p ~/.config
 mkdir -p "$YADR_DIR/backup/config" 2>/dev/null
 
-for cfile in $YADR_CONFIG; do
+for cfile in "${YADR_CONFIG[@]}"; do
   mv ~/.config/$cfile "$YADR_DIR/backup/config/$cfile" 2>/dev/null
   cp -r "$YADR_DIR/workstation/$cfile" ~/.config/$cfile
 done
