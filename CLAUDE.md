@@ -15,7 +15,7 @@ bash -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/mas
 
 ### Install Development Tools
 ```bash
-zsh ~/.yadrlite/setup.sh tools
+zsh ~/.yadrlite/setup.zsh tools
 ```
 
 This installs Go tools, and essential language servers including:
@@ -25,26 +25,26 @@ This installs Go tools, and essential language servers including:
 
 ### Language Management (ASDF)
 ```bash
-zsh ~/.yadrlite/setup.sh --with-langs
+zsh ~/.yadrlite/setup.zsh --with-langs
 # Or a specific language
-zsh ~/.yadrlite/setup.sh --with-lang-ruby-3.2.0
+zsh ~/.yadrlite/setup.zsh --with-lang-ruby-3.2.0
 ```
 This manages Node.js, Python, Ruby, and Golang installations globally via the ASDF version manager.
 
 ### Apply Rolling Migrations
 ```bash
-zsh ~/.yadrlite/setup.sh --migrate
+zsh ~/.yadrlite/setup.zsh --migrate
 ```
 Executes cumulative pre/post hooks found in `setup/migrations/v*` (e.g., migrating from legacy NVM to ASDF) automatically.
 
 ### Update Dotfiles
 ```bash
-zsh ~/.yadrlite/setup.sh update
+zsh ~/.yadrlite/setup.zsh update
 ```
 
 ### Uninstall and Restore
 ```bash
-zsh ~/.yadrlite/setup.sh remove
+zsh ~/.yadrlite/setup.zsh remove
 ```
 
 ### Arch Linux Workstation Setup
@@ -138,7 +138,7 @@ See the dedicated skills above for editor-specific workflows (`/lazyvim`, `/vim-
 
 3. **Tmux Shell Detection**: The setup script automatically detects the user's shell and configures tmux accordingly (line 168-170 in setup)
 
-4. **Platform Support**: Linux, FreeBSD, and macOS are supported. macOS workstation setup requires running `zsh ~/.yadrlite/setup.sh macos` after the basic installation.
+4. **Platform Support**: Linux, FreeBSD, and macOS are supported. macOS workstation setup requires running `zsh ~/.yadrlite/setup.zsh macos` after the basic installation.
 
 5. **Backup Strategy**: All original dotfiles are backed up to `~/.yadrlite/backup/` before installation
 

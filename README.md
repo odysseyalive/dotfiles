@@ -28,7 +28,7 @@ This single command installs Homebrew (if missing), updates Git and Zsh, sets yo
 2. **Install Development Tools:**
 Installs Node.js, Go tools, ripgrep, fd, starship, and essential language servers.
 ```zsh
-zsh ~/.yadrlite/setup.sh tools
+zsh ~/.yadrlite/setup.zsh tools
 ```
 
 ---
@@ -39,9 +39,9 @@ zsh ~/.yadrlite/setup.sh tools
 Transform your Mac into a tiling window manager setup (no SIP disable required).
 
 ```zsh
-zsh ~/.yadrlite/setup.sh --macos --with-macos
+zsh ~/.yadrlite/setup.zsh --macos --with-macos
 # or use the shorthand alias:
-zsh ~/.yadrlite/setup.sh macos
+zsh ~/.yadrlite/setup.zsh macos
 ```
 **This installs:**
 - **Ghostty** - Modern GPU-accelerated terminal with Kitty graphics protocol.
@@ -53,24 +53,24 @@ zsh ~/.yadrlite/setup.sh macos
 For Linux environments, specifically targeted at [Omarchy](https://omarchy.org):
 
 ```zsh
-zsh ~/.yadrlite/setup.sh --linux --with-omarchy
+zsh ~/.yadrlite/setup.zsh --linux --with-omarchy
 # or use the shorthand alias:
-zsh ~/.yadrlite/setup.sh omarchy
+zsh ~/.yadrlite/setup.zsh omarchy
 ```
 
 ### Optional Features
 - **Language Management (ASDF):** Install languages dynamically using ASDF via `--with-langs` or granular versions via `--with-lang-<name>-<version>`. If you prefer legacy installers (NVM/G-Install), use `--without-asdf`.
   ```zsh
-  zsh ~/.yadrlite/setup.sh --with-langs
-  zsh ~/.yadrlite/setup.sh --with-lang-ruby-3.2.0
+  zsh ~/.yadrlite/setup.zsh --with-langs
+  zsh ~/.yadrlite/setup.zsh --with-lang-ruby-3.2.0
   ```
 - **GNU Linuxify (macOS):** Standardize your macOS coreutils to use GNU versions via Homebrew.
   ```zsh
-  zsh ~/.yadrlite/setup.sh --with-gnu
+  zsh ~/.yadrlite/setup.zsh --with-gnu
   ```
 - **Keyboard Remap (macOS):** Swaps Caps Lock and Escape keys using `hidutil`.
   ```zsh
-  zsh ~/.yadrlite/setup.sh --with-keyboard
+  zsh ~/.yadrlite/setup.zsh --with-keyboard
   ```
 
 ---
@@ -90,24 +90,27 @@ We've moved the massive lists of shortcuts and editor documentation into their o
 
 ---
 
-## 🔄 Maintenance
+## 🔄 Maintenance & Uninstallation
 
-**Apply Rolling Migrations:**
-Safely applies any new configuration changes or updates (e.g., migrating from legacy NVM to ASDF) automatically.
+**Apply Rolling Migrations & Updates:**
+Safely updates the repository, refreshes tmux plugins, and applies any new configuration changes automatically (e.g., migrating from legacy NVM to ASDF).
 ```zsh
-zsh ~/.yadrlite/setup.sh --migrate
+zsh ~/.yadrlite/setup.zsh --upgrade --migrate
 ```
 
-**Update Plugins and Configurations:**
-```zsh
-zsh ~/.yadrlite/setup.sh update
-```
-
-**Uninstall and Restore:**
+**Uninstall and Restore (Local):**
 Restores your original `~/.bashrc`, `~/.zshrc`, and other configs to their pre-YADRLite state.
-```zsh
-zsh ~/.yadrlite/setup.sh remove
+```sh
+/bin/sh ~/.yadrlite/uninstall.sh
 ```
+
+**Uninstall and Restore (Remote):**
+If your local directory is broken or deleted, you can uninstall remotely:
+```sh
+/bin/sh -c "`curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/uninstall.sh`"
+```
+
+*Note: To violently remove all Homebrew packages managed by YADRLite as well, pass the `--all` and `--force` flags to the uninstaller.*
 
 ---
 *Maintained with [Claude Enforcer](https://github.com/odysseyalive/claude-enforcer)*
