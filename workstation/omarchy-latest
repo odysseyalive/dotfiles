@@ -373,6 +373,16 @@ ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="17ef", ATTR{idProduct}=="307f"
   log "lenovo dock usb udev rule installed"
 fi
 
+# Fix Realtek RTS522A card reader autosuspend (microSD not detected)
+# Kernel power management suspends the PCI card reader, preventing card detection
+log "configuring card reader power fix"
+if ! [ -f /etc/udev/rules.d/50-realtek-card-reader.rules ]; then
+  echo '# Disable autosuspend for Realtek RTS522A PCI-E card reader
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10ec", ATTR{device}=="0x522a", ATTR{power/control}="on"' | sudo tee /etc/udev/rules.d/50-realtek-card-reader.rules >/dev/null
+  sudo udevadm control --reload-rules
+  log "realtek card reader udev rule installed"
+fi
+
 # clean everything
 yay -Scc --noconfirm
 
