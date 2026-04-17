@@ -1,8 +1,6 @@
 # Josean-dev Powerlevel10k style prompt for Starship
 # Two-line prompt with box drawing connectors
-# Compatible with omarchy-theme-sync
 
-# Palette set by omarchy-theme-sync
 palette = 'seashells'
 
 format = """
@@ -67,8 +65,6 @@ format = "[󰥔 $time]($style)"
 style = "time"
 time_format = "%I:%M:%S %p"
 
-# Palette managed by omarchy-theme-sync
-# Run 'omarchy-theme-sync' after theme changes
 [palettes.seashells]
 bracket = '#fba02f'
 time = '#50a3b5'

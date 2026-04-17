@@ -75,9 +75,6 @@ set_theme() {
   # Update Starship palette
   update_starship "$theme_path"
 
-  # Update Tmux theme
-  update_tmux "$theme"
-
   # Save current theme
   echo "$theme" > "$CURRENT_THEME_FILE"
 
@@ -218,51 +215,6 @@ git = '$git'
 EOF
 
     echo "  Starship: Palette updated to '$palette_name'"
-  fi
-}
-
-# Update Tmux theme (tmux-power with SeaShells)
-update_tmux() {
-  local theme="$1"
-  local tmux_conf="$HOME/.tmux.conf"
-
-  # Map seashells theme to tmux-power colors
-  if [[ "$theme" == *"light"* ]]; then
-    # SeaShells Light colors
-    local tmux_tc='#50a3b5'
-    local tmux_g0='#e0d6c8'
-    local tmux_g1='#c8dde8'
-    local tmux_g2='#b8c8d0'
-    local tmux_g3='#2d6870'
-    local tmux_g4='#0f2838'
-    local theme_label="SeaShells Light"
-  else
-    # SeaShells Dark colors
-    local tmux_tc='#50a3b5'
-    local tmux_g0='#08131a'
-    local tmux_g1='#0f2838'
-    local tmux_g2='#1e4862'
-    local tmux_g3='#2d6870'
-    local tmux_g4='#deb88d'
-    local theme_label="SeaShells Dark"
-  fi
-
-  if [ -f "$tmux_conf" ]; then
-    # Update tmux-power colors in tmux.conf
-    sed -i '' "s/@tmux_power_theme '[^']*'/@tmux_power_theme '$tmux_tc'/" "$tmux_conf"
-    sed -i '' "s/@tmux_power_g0 '[^']*'/@tmux_power_g0 '$tmux_g0'/" "$tmux_conf"
-    sed -i '' "s/@tmux_power_g1 '[^']*'/@tmux_power_g1 '$tmux_g1'/" "$tmux_conf"
-    sed -i '' "s/@tmux_power_g2 '[^']*'/@tmux_power_g2 '$tmux_g2'/" "$tmux_conf"
-    sed -i '' "s/@tmux_power_g3 '[^']*'/@tmux_power_g3 '$tmux_g3'/" "$tmux_conf"
-    sed -i '' "s/@tmux_power_g4 '[^']*'/@tmux_power_g4 '$tmux_g4'/" "$tmux_conf"
-
-    # Reload tmux if running
-    if command -v tmux &> /dev/null && tmux list-sessions &> /dev/null 2>&1; then
-      tmux source-file "$tmux_conf" 2>/dev/null
-      echo "  Tmux: $theme_label (reloaded)"
-    else
-      echo "  Tmux: $theme_label"
-    fi
   fi
 }
 

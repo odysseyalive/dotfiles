@@ -7,7 +7,7 @@
 dir="$HOME/.yadrlite"
 dotfiles_old="backup"
 files="vim vimrc tmux.conf bash_profile bashrc vimrc.after"
-tmuxplugins="https://github.com/tmux-plugins/tmux-resurrect.git https://github.com/tmux-plugins/tmux-sensible https://github.com/wfxr/tmux-power.git"
+tmuxplugins="https://github.com/tmux-plugins/tmux-resurrect.git https://github.com/tmux-plugins/tmux-sensible"
 
 sed_i() {
   if [ "$(uname)" = "Darwin" ]; then

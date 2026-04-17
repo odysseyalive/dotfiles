@@ -80,10 +80,6 @@ if ! grep -q 'zoxide init zsh' "$ZSHRC" 2>/dev/null; then
   echo 'eval "$(zoxide init zsh)"' >>"$ZSHRC"
 fi
 
-if [ ! -d "$YADR_DIR/tmux/plugin/tmux-power" ]; then
-  git clone https://github.com/wfxr/tmux-power.git "$YADR_DIR/tmux/plugin/tmux-power"
-fi
-
 echo ""
 echo "IMPORTANT: The following applications will request system permissions:"
 echo "1. AeroSpace - Accessibility (required for window management)"
