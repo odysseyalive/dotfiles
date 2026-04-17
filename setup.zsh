@@ -102,6 +102,13 @@ if [[ "$UPGRADE" == "1" ]]; then
   cd "$YADR_DIR"
   git pull --rebase
 
+  # Re-generate the top-level tmux.conf that ~/.tmux.conf and
+  # ~/.config/tmux/tmux.conf symlink to. install.sh seeds this with
+  # `cat tmux/tmux.conf > tmux.conf`; without refreshing it, edits to
+  # tmux/tmux.conf in the repo never reach existing installs.
+  echo "==> Refreshing top-level tmux.conf..."
+  cat "$YADR_DIR/tmux/tmux.conf" > "$YADR_DIR/tmux.conf"
+
   echo "==> Updating tmux plugins..."
   mkdir -p "$YADR_DIR/tmux/plugin"
   for tplug in "${YADR_TMUX_PLUGINS[@]}"; do
