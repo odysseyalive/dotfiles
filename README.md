@@ -58,6 +58,16 @@ zsh ~/.yadrlite/setup.zsh --linux --with-omarchy
 zsh ~/.yadrlite/setup.zsh omarchy
 ```
 
+### Headless Servers / Linux without zsh
+For headless servers and remote Linux hosts where zsh isn't installed, use the POSIX `setup.sh` entry point instead of `setup.zsh`. It's a drop-in companion that parses the same flags:
+
+```sh
+sh ~/.yadrlite/setup.sh --upgrade
+sh ~/.yadrlite/setup.sh help
+```
+
+`--upgrade`, `help`, `remove`/`uninstall`, version detection, and `.tool-versions` generation all run natively under `/bin/sh`. Feature hooks (`--with-macos`, `--with-omarchy`, `--with-keyboard`, etc.) are still zsh files under `setup/hooks/`; `setup.sh` will dispatch them through `zsh` if available, or skip them with a warning if not — so `--upgrade` works fine on a zsh-less box, but a full feature install still needs zsh.
+
 ### Optional Features
 - **Language Management (ASDF):** Install languages dynamically using ASDF via `--with-langs` or granular versions via `--with-lang-<name>-<version>`. If you prefer legacy installers (NVM/G-Install), use `--without-asdf`.
   ```zsh
@@ -96,6 +106,11 @@ We've moved the massive lists of shortcuts and editor documentation into their o
 Safely updates the repository, refreshes tmux plugins, and applies any new configuration changes automatically (e.g., migrating from legacy NVM to ASDF).
 ```zsh
 zsh ~/.yadrlite/setup.zsh --upgrade --migrate
+```
+
+On headless servers without zsh, use the POSIX entry point — `--upgrade` runs natively under `/bin/sh`:
+```sh
+sh ~/.yadrlite/setup.sh --upgrade
 ```
 
 **Uninstall and Restore (Local):**
