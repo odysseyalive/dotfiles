@@ -20,7 +20,60 @@ tolower() {
   printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
 }
 
-action="${1:-setup}"
+print_help() {
+  cat <<'EOF'
+YADRLite Setup Management
+Usage: ./setup.sh [action] [--macos | --linux] [--with-<feature>...] [--migrate] [--upgrade]
+
+Available actions:
+  setup     - (default) Run the full setup pipeline
+  tools     - Standard setup + node tools
+  macos     - Alias for --macos --with-macos
+  omarchy   - Alias for --linux --with-omarchy
+  linux     - Force setup as Linux
+  keyboard  - Alias for --with-keyboard
+  gnu       - Alias for --with-gnu (linuxify on macOS)
+  update    - Alias for --upgrade
+  remove    - Run uninstall.sh
+  help      - Show this message
+
+OS Selection flags:
+  --macos   Force setup as macOS
+  --linux   Force setup as Linux
+
+Features dynamically load from 'brewfiles/<feature>.Brewfile' or 'setup/hooks/pre|post/<feature>.zsh'
+Example 1: ./setup.sh --macos --with-gnu --with-keyboard
+Example 2: ./setup.sh --with-langs                # Installs node, python, ruby, golang via asdf
+Example 3: ./setup.sh --with-lang-ruby-3.2.0      # Installs a specific language and version via asdf
+Example 4: ./setup.sh --with-tools --without-asdf # Installs node via nvm and go via g-install instead
+EOF
+}
+
+if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  print_help
+  exit 0
+fi
+
+# A flag-leading invocation (e.g. ./setup.sh --macos) is action-less;
+# everything else treats $1 as the action.
+if [ "${1#-}" != "$1" ]; then
+  action="setup"
+else
+  action="$1"
+fi
+
+KNOWN_ACTIONS="setup macos omarchy linux tools keyboard gnu linuxify update upgrade remove uninstall"
+_action_valid=0
+for _known in $KNOWN_ACTIONS; do
+  [ "$action" = "$_known" ] && { _action_valid=1; break; }
+done
+if [ "$_action_valid" -eq 0 ] && [ -x "$SCRIPT_DIR/setup/${action}.sh" ]; then
+  _action_valid=1
+fi
+if [ "$_action_valid" -eq 0 ]; then
+  echo "Unknown action: $action"
+  exit 1
+fi
 
 # Legacy compat: run specific files if invoked directly
 if [ -x "$SCRIPT_DIR/setup/${action}.sh" ] && [ "$action" != "setup" ]; then
@@ -84,33 +137,6 @@ fi
 if [ "$HAS_MACOS_FLAG" -eq 1 ] && [ "$HAS_LINUX_FLAG" -eq 1 ]; then
   echo "Error: --macos and --linux are mutually exclusive override flags. You can only specify one."
   exit 1
-fi
-
-if [ "$action" = "help" ]; then
-  cat <<'EOF'
-YADRLite Setup Management
-Usage: ./setup.sh [--macos | --linux] [--with-<feature>...] [--migrate] [--upgrade]
-
-OS Selection:
-  (Autodetects by default)
-  --macos   Force setup as macOS
-  --linux   Force setup as Linux
-
-Features dynamically load from 'brewfiles/<feature>.Brewfile' or 'setup/hooks/pre|post/<feature>.zsh'
-Example 1: ./setup.sh --macos --with-gnu --with-keyboard
-Example 2: ./setup.sh --with-langs                # Installs node, python, ruby, golang via asdf
-Example 3: ./setup.sh --with-lang-ruby-3.2.0      # Installs a specific language and version via asdf
-Example 4: ./setup.sh --with-tools --without-asdf # Installs node via nvm and go via g-install instead
-
-Legacy Actions:
-  tools     - Alias for standard setup + node tools
-  macos     - Alias for --macos --with-macos
-  omarchy   - Alias for --linux --with-omarchy
-  keyboard  - Alias for --with-keyboard
-  update    - Alias for --upgrade
-  remove    - Alias for uninstall.sh
-EOF
-  exit 0
 fi
 
 if [ "$UPGRADE" = "1" ]; then
