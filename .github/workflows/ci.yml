@@ -22,38 +22,38 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-    - name: Install ShellSpec
-      run: curl -fsSL https://git.io/shellspec | sh -s -- --yes
+      - name: Install ShellSpec
+        run: curl -fsSL https://git.io/shellspec | sh -s -- --yes
 
-    - name: Install Linting Tools
-      run: |
-        if [ "$RUNNER_OS" = "Linux" ]; then
-          sudo apt-get install -y shellcheck zsh
-        elif [ "$RUNNER_OS" = "macOS" ]; then
-          brew install shellcheck zsh
-        fi
+      - name: Install Linting Tools
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get install -y shellcheck zsh
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            brew install shellcheck zsh
+          fi
 
-    - name: Run Zsh Syntax Checks
-      run: |
-        zsh -n setup.sh setup/*.sh setup/hooks/*/*.zsh
+      - name: Run Zsh Syntax Checks
+        run: |
+          zsh -n setup.sh setup/*.sh setup/hooks/*/*.zsh
 
-    - name: Run ShellCheck on install.sh
-      run: |
-        shellcheck -s sh install.sh
+      - name: Run ShellCheck on install.sh
+        run: |
+          shellcheck -s sh install.sh
 
-    - name: Run Tests
-      run: ~/.local/lib/shellspec/shellspec --shell zsh
+      - name: Run Tests
+        run: ~/.local/lib/shellspec/shellspec --shell zsh
 
   auto-generate:
     name: Generate Artifacts (Demo & Changelog)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-        - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
-          
+
       - name: Install dependencies
         run: |
           sudo apt-get update
