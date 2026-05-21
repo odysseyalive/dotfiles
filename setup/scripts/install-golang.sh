@@ -1,5 +1,4 @@
-#!/usr/bin/env zsh
-setopt nullglob
+#!/usr/bin/env bash
 
 echo "==> Installing Go Version Manager (g-install)"
 curl -sSL https://git.io/g-install | bash -s -- -y

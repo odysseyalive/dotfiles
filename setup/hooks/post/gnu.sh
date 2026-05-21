@@ -1,10 +1,10 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 echo "# # Setting up GNU utilities (Linuxify) aliases"
 
 ZSHRC="$HOME/.zshrc"
 
-if [[ "$(uname)" == "Darwin" ]]; then
+if [ "$(uname)" = "Darwin" ]; then
   if ! grep -q "gnubin" "$ZSHRC" 2>/dev/null; then
     cat >>"$ZSHRC" <<'INNER_EOF'
 

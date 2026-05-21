@@ -1,7 +1,7 @@
-#!/usr/bin/env zsh
-setopt nullglob
+#!/usr/bin/env bash
 
-source "$SCRIPT_DIR/setup/scripts/install-nvm.zsh"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/setup/scripts/install-nvm.sh"
 SHELL_RC=$(get_shell_rc)
 
 if ! grep -q 'NVM_DIR' "$SHELL_RC" 2>/dev/null; then

@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 
-# Workstation Management Orchestrator
+# Workstation Management Orchestrator (zsh entry point).
+# Mirrors setup.sh; both dispatch the same setup/hooks/**/*.sh files.
 source "$(dirname "$0")/setup/common.sh"
 
 action="${1:-setup}"
@@ -24,11 +25,11 @@ HAS_LINUX_FLAG=0
 
 for arg in "$@"; do
   case $arg in
-    --macos) 
+    --macos)
       OS_OVERRIDE="Darwin"
       HAS_MACOS_FLAG=1
       ;;
-    --linux) 
+    --linux)
       OS_OVERRIDE="Linux"
       HAS_LINUX_FLAG=1
       ;;
@@ -81,7 +82,7 @@ if [[ "$action" == "help" ]]; then
   echo "  --macos   Force setup as macOS"
   echo "  --linux   Force setup as Linux"
   echo ""
-  echo "Features dynamically load from 'brewfiles/<feature>.Brewfile' or 'setup/hooks/pre|post/<feature>.zsh'"
+  echo "Features dynamically load from 'brewfiles/<feature>.Brewfile' or 'setup/hooks/pre|post/<feature>.sh'"
   echo "Example 1: ./setup.zsh --macos --with-gnu --with-keyboard"
   echo "Example 2: ./setup.zsh --with-langs                # Installs node, python, ruby, golang via asdf"
   echo "Example 3: ./setup.zsh --with-lang-ruby-3.2.0      # Installs a specific language and version via asdf"
@@ -118,11 +119,11 @@ if [[ "$UPGRADE" == "1" ]]; then
       git clone "$tplug" "$YADR_DIR/tmux/plugin/$plugname"
     fi
   done
-  for pdir in "$YADR_DIR"/tmux/plugin/*(/N); do
-    if [ -d "$pdir/.git" ]; then
-      echo "  -> Updating ${pdir:t}..."
-      (cd "$pdir" && git pull --rebase)
-    fi
+  for pdir in "$YADR_DIR"/tmux/plugin/*/; do
+    [[ -d "$pdir" ]] || continue
+    [[ -d "$pdir/.git" ]] || continue
+    echo "  -> Updating $(basename "$pdir")..."
+    (cd "$pdir" && git pull --rebase)
   done
 
   echo "==> Repository updated. Resuming setup..."
@@ -202,7 +203,7 @@ if [[ "$USE_ASDF" == "1" ]]; then
       echo "$lang latest" >> "$TOOL_VERSIONS"
     fi
   done
-  
+
   # deduplicate
   if [[ -s "$TOOL_VERSIONS" ]]; then
     sort -u "$TOOL_VERSIONS" -o "$TOOL_VERSIONS"
@@ -211,62 +212,71 @@ fi
 
 echo "==> Starting YADRLite Setup (OS: $OS_LOWER, Version: $CURRENT_VERSION)"
 
-if [[ "$MIGRATE" == "1" && "$INSTALLED_VERSION" != "$CURRENT_VERSION" ]]; then
-  echo "==> Migration requested: $INSTALLED_VERSION -> $CURRENT_VERSION"
-  for mig_dir in "$SCRIPT_DIR/setup/migrations"/v*(/N); do
-    mig_ver="${${mig_dir:t}#v}"
-    if version_gt "$mig_ver" "$INSTALLED_VERSION" || [[ "$mig_ver" == "$CURRENT_VERSION" && "$INSTALLED_VERSION" == "1.0.0" ]]; then
-      if [[ -f "$mig_dir/pre.zsh" ]]; then
-        source "$mig_dir/pre.zsh"
-      fi
-    fi
-  done
-fi
-
+# Hook runner. All hooks are .sh files (portable bash/zsh). We keep a
+# .zsh fallback so any user-supplied third-party hooks still work.
 run_hook() {
-  local hook_path="$1"
-  if [[ -f "$hook_path" ]]; then
-    echo "==> Running hook: $(basename "$hook_path")"
-    source "$hook_path"
+  local hook_base="$1"
+  if [[ -f "${hook_base}.sh" ]]; then
+    echo "==> Running hook: $(basename "${hook_base}.sh")"
+    source "${hook_base}.sh"
+  elif [[ -f "${hook_base}.zsh" ]]; then
+    echo "==> Running hook: $(basename "${hook_base}.zsh")"
+    source "${hook_base}.zsh"
   fi
 }
 
 run_brewfile() {
   local brewfile_path="$1"
   if [[ -f "$brewfile_path" ]]; then
-    echo "==> Installing packages from $(basename "$brewfile_path")"
-    brew bundle --file="$brewfile_path" --no-lock
+    if command -v brew >/dev/null 2>&1; then
+      echo "==> Installing packages from $(basename "$brewfile_path")"
+      brew bundle --file="$brewfile_path" --no-lock
+    else
+      echo "  ! Skipping $(basename "$brewfile_path") (Homebrew not installed)"
+    fi
   fi
 }
 
+if [[ "$MIGRATE" == "1" && "$INSTALLED_VERSION" != "$CURRENT_VERSION" ]]; then
+  echo "==> Migration requested: $INSTALLED_VERSION -> $CURRENT_VERSION"
+  for mig_dir in "$SCRIPT_DIR/setup/migrations"/v*/; do
+    [[ -d "$mig_dir" ]] || continue
+    mig_name="$(basename "$mig_dir")"
+    mig_ver="${mig_name#v}"
+    if version_gt "$mig_ver" "$INSTALLED_VERSION" || [[ "$mig_ver" == "$CURRENT_VERSION" && "$INSTALLED_VERSION" == "1.0.0" ]]; then
+      run_hook "${mig_dir%/}/pre"
+    fi
+  done
+fi
+
 # 1. Core global setup
-run_hook "$SCRIPT_DIR/setup/hooks/pre/core.zsh"
+run_hook "$SCRIPT_DIR/setup/hooks/pre/core"
 run_brewfile "$SCRIPT_DIR/brewfiles/global.Brewfile"
 
 # 2. OS-specific setup
-run_hook "$SCRIPT_DIR/setup/hooks/pre/${OS_LOWER}.zsh"
+run_hook "$SCRIPT_DIR/setup/hooks/pre/${OS_LOWER}"
 run_brewfile "$SCRIPT_DIR/brewfiles/${OS_LOWER}.Brewfile"
 
 # 3. Feature modules
 for feature in $FEATURES; do
   if [[ "$feature" != "$OS_LOWER" ]]; then
-    run_hook "$SCRIPT_DIR/setup/hooks/pre/${feature}.zsh"
+    run_hook "$SCRIPT_DIR/setup/hooks/pre/${feature}"
     run_brewfile "$SCRIPT_DIR/brewfiles/${feature}.Brewfile"
-    run_hook "$SCRIPT_DIR/setup/hooks/post/${feature}.zsh"
+    run_hook "$SCRIPT_DIR/setup/hooks/post/${feature}"
   fi
 done
 
 # 4. Finalize
-run_hook "$SCRIPT_DIR/setup/hooks/post/${OS_LOWER}.zsh"
-run_hook "$SCRIPT_DIR/setup/hooks/post/core.zsh"
+run_hook "$SCRIPT_DIR/setup/hooks/post/${OS_LOWER}"
+run_hook "$SCRIPT_DIR/setup/hooks/post/core"
 
 if [[ "$MIGRATE" == "1" && "$INSTALLED_VERSION" != "$CURRENT_VERSION" ]]; then
-  for mig_dir in "$SCRIPT_DIR/setup/migrations"/v*(/N); do
-    mig_ver="${${mig_dir:t}#v}"
+  for mig_dir in "$SCRIPT_DIR/setup/migrations"/v*/; do
+    [[ -d "$mig_dir" ]] || continue
+    mig_name="$(basename "$mig_dir")"
+    mig_ver="${mig_name#v}"
     if version_gt "$mig_ver" "$INSTALLED_VERSION" || [[ "$mig_ver" == "$CURRENT_VERSION" && "$INSTALLED_VERSION" == "1.0.0" ]]; then
-      if [[ -f "$mig_dir/post.zsh" ]]; then
-        source "$mig_dir/post.zsh"
-      fi
+      run_hook "${mig_dir%/}/post"
     fi
   done
   echo "$CURRENT_VERSION" > "$YADR_DIR/.installed_version"

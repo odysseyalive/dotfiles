@@ -1,7 +1,7 @@
-#!/usr/bin/env zsh
-setopt nullglob
+#!/usr/bin/env bash
 
-source "$SCRIPT_DIR/setup/scripts/install-golang.zsh"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/setup/scripts/install-golang.sh"
 SHELL_RC=$(get_shell_rc)
 
 if ! grep -q 'GOROOT' "$SHELL_RC" 2>/dev/null; then

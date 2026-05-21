@@ -1,5 +1,5 @@
-#!/usr/bin/env zsh
-setopt nullglob
+#!/usr/bin/env bash
+# macOS post-install hook.
 
 echo "# # Configuring Ghostty"
 mkdir -p ~/.config/ghostty
@@ -86,12 +86,12 @@ echo "1. AeroSpace - Accessibility (required for window management)"
 echo "2. Sketchybar - Accessibility (for menu bar integration)"
 echo ""
 
-if command -v aerospace &>/dev/null; then
+if command -v aerospace >/dev/null 2>&1; then
   open -a AeroSpace
 fi
-if command -v sketchybar &>/dev/null; then
+if command -v sketchybar >/dev/null 2>&1; then
   brew services start sketchybar
 fi
-if command -v borders &>/dev/null; then
+if command -v borders >/dev/null 2>&1; then
   brew services start borders
 fi

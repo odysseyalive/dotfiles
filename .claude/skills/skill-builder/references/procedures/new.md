@@ -20,7 +20,7 @@ Classify the skill before selecting a template:
 - User describes output as: articles, posts, drafts, descriptions, captions, newsletters, emails
 - User mentions: tone, voice, style, prose
 
-**If content-creation detected:** use content-creation template variant (includes Voice Validator agent placeholder and voice directive placeholder).
+**If content-creation detected:** use the standard template with a voice directive placeholder added to the Directives section. Do not embed Text Evaluation agent pair or temporal hooks — the agents procedure will recommend Text Eval when the skill already has voice/style directives, and the hooks procedure will recommend temporal validation when the workflow actually produces date-sensitive citations.
 
 **Otherwise:** use standard template.
 
@@ -34,42 +34,20 @@ Using templates from `references/templates.md`:
    - `## Directives` section (empty, ready for population)
    - Grounding link to reference.md
 3. Create `reference.md` (minimal placeholder)
-4. If content-creation domain: add voice directive placeholder and note about Voice Validator agent
+4. If content-creation domain: add voice directive placeholder to the Directives section
 
-### Step 3b: Embed Ledger Awareness
+### Step 3b: Note Companion Skill Availability
 
 Check if `.claude/skills/awareness-ledger/` exists. If it does:
 
-1. Add a **Grounding** section to the new skill's SKILL.md (or append to existing Grounding section):
-   ```markdown
-   ## Project Memory
-
-   Before recommending changes to files in this skill's domain, check
-   `.claude/skills/awareness-ledger/ledger/index.md` for relevant records.
-   If matching records exist, read them and incorporate their warnings,
-   decisions, and patterns into your plan. Use `/awareness-ledger consult`
-   for full agent-assisted analysis when high-risk overlap is detected.
-
-   After resolving issues that produce institutional knowledge (root causes,
-   architectural decisions, recurring patterns, user flows), ask the user
-   if they want to record it with `/awareness-ledger record [type]`.
-   ```
-2. This ensures every new skill starts with ledger integration built in, rather than relying on the post-action chain to recommend adding it after the fact.
+1. Note in the creation report: "Awareness Ledger available — audit will recommend integration if relevant to this skill's domain."
+2. Do **not** auto-embed ledger grounding into the new skill. Integration recommendations belong in the audit, scoped to skills whose domain overlaps with ledger records.
 
 If the ledger does not exist, skip this step silently.
 
-### Step 3d: Embed Self-Heal Observer
+### Step 3d: Generate Directive Checksums
 
-Check if `.claude/skills/self-heal/SKILL.md` exists. If it does:
-
-1. Append the Observer Instruction Block (from `references/self-heal-templates.md` § "Observer Instruction Block") to the new skill's SKILL.md
-2. Verify total line count stays under 150. If over, flag: "Skill is [N] lines with observer embedded. Consider optimizing before adding more content."
-3. **Compound infrastructure check:** If the skill also has a runtime eval protocol section, verify combined infrastructure (observer + eval protocol) does not exceed 50 lines. If it does, flag to the user and recommend optimizing the skill first.
-4. Add to creation report: `Self-heal observer: embedded`
-
-If self-heal is not installed:
-1. Skip silently — do not recommend installation here
-2. The audit orchestrator is responsible for surfacing the gap
+If the new SKILL.md includes directives (user-provided during creation), generate the `.directives.sha` sidecar file following the spec in [checksums.md](checksums.md) § "Execute Mode" step 2. If no directives yet, skip (no sidecar needed).
 
 ### Step 4: Report Creation
 
@@ -78,8 +56,7 @@ Created skill /[name]:
   .claude/skills/[name]/SKILL.md ([X] lines)
   .claude/skills/[name]/reference.md ([Y] lines)
   Domain: [standard / content-creation]
-  Ledger integration: [embedded / not installed]
-  Self-heal observer: [embedded / not installed]
+  Awareness Ledger: [available — audit will recommend if relevant / not installed]
 ```
 
 ### Step 5: Run Post-Action Chain

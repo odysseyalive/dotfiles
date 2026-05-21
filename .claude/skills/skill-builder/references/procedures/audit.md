@@ -4,11 +4,17 @@
 
 ### Step 1: Gather Metrics
 
+**Preflight — self-exclusion.** Detect invocation form:
+- Invoked as `/skill-builder dev audit …` → include `skill-builder` in the skill set
+- Otherwise → exclude `skill-builder` from any `.claude/skills/*/SKILL.md` glob
+
+Apply this filter to every step below that iterates skills (Steps 2.5, 3, 4, 4b, 4d, Step 5 Skills Summary, Step 5 Directives Inventory). See SKILL.md § Self-Exclusion Rule.
+
 ```
 Files to scan:
 - CLAUDE.md
 - .claude/rules/*.md (if exists)
-- .claude/skills/*/SKILL.md
+- .claude/skills/*/SKILL.md  (exclude skill-builder unless dev prefix)
 ```
 
 ### Step 2: CLAUDE.md & Rules Analysis
@@ -40,25 +46,41 @@ If no `.claude/skills/*/SKILL.md` files exist (excluding skill-builder itself):
 5. Present the CLAUDE.md optimization report with proposed skill extractions
 6. Offer execution: "Should I extract these sections into skills?"
 
-Skip Steps 3–5 (they require existing skills) and go directly to Step 6 with the CLAUDE.md-focused execution choices.
+Skip Steps 3, 4 (sub-commands), 4c–4f (they require existing skills).
+
+**Still run Step 4a** (Awareness Ledger status check). This is a companion skill installation — it doesn't depend on existing skills and the audit is the orchestrator for surfacing it.
+
+**Still run Step 4g — but only the `route index` half.** `/route` can (and should) bootstrap with an empty catalog so the dispatcher exists the moment the user's first skill is created. The `route embed` half is SKIPPED in bootstrap mode (there are no skills to embed into). See [route.md](route.md) § Mode: `index` → Step 1 "Zero-skill case is valid" and § Mode: `embed` → Step 1 "Zero-candidate case." Surface `route index --execute` as a recommended terminal action in the bootstrap report.
+
+Go to Step 6 with execution choices that include:
+- CLAUDE.md extraction candidates (from above)
+- Awareness Ledger installation (from Step 4a, if not installed)
+- `route index --execute` — bootstrap `/route` with an empty catalog (from Step 4g, always offered in bootstrap mode if `/route` is not yet installed)
+
+**Post-bootstrap chaining:** When CLAUDE.md extraction is executed and new skills are created, post-action chaining (per § Display/Execute Mode Convention rule 6) fires automatically — running optimize, agents, and hooks in display mode for each newly created skill, then offering execution choices. This ensures agents and hooks are surfaced in the same session, not deferred to a second audit. The chain also re-runs `route index` after new skills appear so the freshly-bootstrapped catalog picks them up.
 
 ### Step 3: Skills Summary Table
 
 ```markdown
 ## Skills Summary
-| Skill | Lines | Description | Directives | Reference Inline | Hooks | Teams | Status |
-|-------|-------|-------------|------------|------------------|-------|-------|--------|
-| /skill-1 | X | single/multi | Y | Z tables | yes/no | yes/no/N/A | OK/NEEDS WORK |
+| Skill | Lines | Description | Directives | Reference Inline | Hooks | Status |
+|-------|-------|-------------|------------|------------------|-------|--------|
+| /skill-1 | X | single/multi | Y | Z tables | yes/no | OK/NEEDS WORK |
 
 **Description column:** Flag `multi` if uses `|` or `>` syntax (needs optimization to single line)
 ```
 
 ### Step 4: Run Sub-Commands in Display Mode
 
+**Agent budget:** Sub-procedures running in display mode during audit skip their own agent panels. Agent panels fire only in standalone mode or `--execute` mode where decisions have real consequences. The audit's only agent panel is the priority ranking panel (Step 4f) — one per audit run, not per skill.
+
+- Quick audit (`--quick`): **0 agent panels** — pure checklist, no spawning
+- Standard audit: **1 agent panel total** (Step 4f priority ranking), plus lightweight cascade guard checks (no panel)
+
 For each skill found:
-1. Run **optimize** in display mode → collect optimization findings
-2. Run **agents** in display mode → collect agent opportunities
-3. Run **hooks** in display mode → collect hooks inventory and opportunities
+1. Run **optimize** in display mode (skip agent panels in Steps 4b and 5b) → collect optimization findings
+2. Run **agents** in display mode (skip agent panel in Step 5) → collect agent opportunities
+3. Run **hooks** in display mode (skip agent panel in Step 3b) → collect hooks inventory and opportunities
 
 ### Step 4a: Ledger Status
 
@@ -68,80 +90,62 @@ Check if `.claude/skills/awareness-ledger/SKILL.md` exists.
 1. Count records: `find .claude/skills/awareness-ledger/ledger -name "*.md" -not -name "index.md"` (excludes index)
 2. Check planning-phase integration: scan project CLAUDE.md for awareness ledger reference (grep for "awareness ledger" or "ledger/index.md")
 3. If `consult-before-edit.sh` exists in hooks/ or is wired in settings.local.json, flag as obsolete
-4. Report:
+4. Report **status only**:
    ```
    **Awareness Ledger:** Installed
    - Records: [N] (INC: [n], DEC: [n], PAT: [n], FLW: [n])
    - CLAUDE.md integration: [yes/no]
-   - Auto-activation directives: [present/missing]
    - Last updated: [date of most recent record file, or "unknown"]
-   - Issues: [missing CLAUDE.md line / missing auto-activation / obsolete hook / empty ledger / none]
+   - Issues: [missing CLAUDE.md line / obsolete hook / empty ledger / none]
    ```
 
-4. **Scan for capture integration gaps** — For each skill (excluding skill-builder and awareness-ledger themselves), check whether it produces institutional knowledge but has no capture mechanism:
-   - **Produces institutional knowledge?** Check for: investigation/diagnosis workflow steps, decision-making procedures, debugging flows, architectural evaluation, directives referencing past failures
-   - **Has capture mechanism?** Check for any one of: capture workflow step in SKILL.md, Capture Recommender agent in `agents/`, `capture-reminder.sh` hook in `hooks/`
-   - If a skill produces institutional knowledge but has no capture mechanism, add to the report:
-     ```
-     **Capture Gaps:**
-     | Skill | Knowledge Type | Recommended Mechanism | Procedure |
-     |-------|---------------|----------------------|-----------|
-     | /[skill] | [diagnostic findings / decisions / patterns] | [workflow step / agent / hook] | Run `optimize`, `agents`, or `hooks` |
-     ```
-   - Mechanism recommendation follows the hierarchy: workflow step (if capture is a natural final step) > agent (if capture-worthiness requires judgment) > hook (lightweight fallback). See `references/agents.md` § "Capture Recommender Agent" for the full hierarchy.
-   - If no gaps found, omit this subsection.
+Per-skill ledger integration recommendations (capture gaps, grounding notes) are surfaced only when a specific skill is targeted via `optimize`, `agents`, or `hooks` — not as a global scan during audit.
 
 **If the ledger does NOT exist:**
 1. Report:
    ```
    **Awareness Ledger:** Not installed
-   - Recommendation: Run `/skill-builder ledger` to create institutional memory.
-     Captures incidents, decisions, patterns, and flows so diagnostic findings
+   - Captures incidents, decisions, patterns, and flows so diagnostic findings
      and architectural decisions persist across sessions.
+   - Available in the execution menu below.
    ```
 2. This recommendation MUST appear in the report — do NOT skip silently. The audit is the orchestrator; even though optimize/agents/hooks correctly skip ledger analysis when no ledger exists, the audit is responsible for surfacing the gap.
 
-### Step 4b: Self-Heal Status
+### Step 4b: Temporal Reference Risk
 
-Check if `.claude/skills/self-heal/SKILL.md` exists.
+For each skill, assess temporal reference risk:
 
-**If self-heal is installed:**
-1. Scan all skills for the Observer Instruction Block (grep for "Self-Heal Observer")
-2. Report:
-   ```
-   **Self-Heal:** Installed
-   - Skills with observer embedded: [N]/[total]
-   - Skills missing observer: [list, or "none"]
-   - Issues: [missing observers / none]
-   ```
-3. If any skills are missing the observer, add to execution choices:
-   > `self-heal embed` — embed observer into skills missing it
+1. Check the skill's temporal risk level per `references/temporal-validation.md` § "Temporal Risk Classification"
+2. Check whether a temporal validation hook exists for the skill
+3. If HIGH or MEDIUM risk with no hook, include in the aggregate report
 
-   **When `self-heal embed` is selected for execution:**
-   For each skill missing the observer:
-   a. Read the skill's SKILL.md
-   b. Verify line count will stay under 150 after embedding (~15 lines). If it would exceed, flag the skill and recommend running `optimize --execute` on it first to free line budget. Skip embedding for that skill.
-   c. If the skill also has a runtime eval protocol section, verify combined infrastructure (observer + eval protocol) does not exceed 50 lines. If it does, flag and skip.
-   d. Append the Observer Instruction Block (from `references/self-heal-templates.md` § "Observer Instruction Block") as the last section of SKILL.md
-   e. Report: `Embedded self-heal observer into /[skill-name]`
+Skip silently for LOW-risk skills or skills with temporal hooks already in place.
 
-   After all skills are processed, report summary:
-   ```
-   Self-heal observer embedded: [N] skills
-   Skipped (line budget): [list, or "none"]
-   ```
+**Grounding:** Read [references/temporal-validation.md](../temporal-validation.md) for risk classification criteria.
 
-**If self-heal is NOT installed:**
-1. Report:
-   ```
-   **Self-Heal:** Not installed
-   - Recommendation: Run `/skill-builder self-heal` to install ambient friction
-     detection. Skills will learn from session friction and propose surgical
-     corrections automatically.
-   ```
-2. This recommendation MUST appear — do not skip silently. The audit is the orchestrator.
+### Step 4c: Per-Skill Integration Checks
 
-### Step 4c: Agent panel — priority ranking
+These checks run only for skills **explicitly targeted** by the user (e.g., `/skill-builder optimize [skill]`, `/skill-builder agents [skill]`). During a full audit, skip per-skill integration checks — companion skill status is reported in Step 4a.
+
+When running for a targeted skill:
+
+**Awareness Ledger relevance** — If `.claude/skills/awareness-ledger/` exists with records:
+- Scan `ledger/index.md` for tags overlapping the skill's domain (file paths, function names, component names)
+- Only recommend integration if matching records actually exist for this skill's domain
+- If the skill IS the awareness-ledger, verify auto-activation directives (Auto-Consultation + Auto-Capture)
+
+**Capture Integration gap** — If the awareness-ledger exists, check whether the targeted skill produces institutional knowledge but lacks a capture mechanism. If gap found, include in report with recommended mechanism per hierarchy: workflow step > agent > hook.
+
+### Step 4d: Validation Cascade Analysis
+
+For each skill with 2+ validators or evaluation agents:
+1. Run the cascade analysis per [cascade.md](cascade.md)
+2. Include findings in the aggregate report under "Validation Cascade"
+3. If cascade risk is MODERATE or HIGH, add to Priority Fixes
+
+Skip silently for skills with 0-1 validators.
+
+### Step 4e: Agent panel — priority ranking
 
 After collecting findings from all sub-commands, the audit must rank fixes by priority. This is a judgment call — which fix has the highest impact? Which is most urgent? Per directive: agents are mandatory when guessing is involved.
 
@@ -156,9 +160,24 @@ Each agent reads the aggregated findings from optimize, agents, and hooks across
 - Items ranked top-3 by only 1 agent → medium priority
 - Present the synthesized ranking with attribution to each agent's rationale
 
+### Step 4g: Route Index & Embed (final task list items)
+
+After all sub-commands and the priority ranking panel finish, the audit's execution task list MUST end with these two items, in this exact order:
+
+- **Second-to-last task:** `route index` — refresh the `/route` skill's catalog. Skills that were renamed, added, or had their description/modes changed by earlier optimize/agents/hooks tasks need to be reflected in the index immediately. Also fires in **bootstrap mode** (Step 2.5) — `/route` bootstraps with an empty catalog so the dispatcher is ready as soon as the user creates their first skill.
+- **Last task:** `route embed` — refresh consultation gates across skills. Earlier tasks may have added or removed workflow steps that change which skills should carry the route gate; this step reconciles. **Skipped in bootstrap mode** — no skills exist to embed into; the embed mode itself stops cleanly in that state ([route.md](route.md) § Mode: `embed` → Step 1 "Zero-candidate case").
+
+Both appear in Step 6's execution menu as discrete items the user can include or skip. They are appended to whatever combined task list TaskCreate produces — they do NOT replace any earlier task. Order matters: `route index` must run before `route embed` so that `embed`'s index-refresh chain (Step 6 of `route.md` § `embed` — Post-Embed Index Refresh) does not double-rebuild a stale catalog.
+
+**During audit display mode** (no `--execute` selected), surface these two as recommended terminal actions in the report's Priority Fixes section so the user knows they would run last. In bootstrap mode, surface only `route index` (embed is N/A).
+
+**Grounding:** [route.md](route.md)
+
 ### Step 5: Aggregate Report
 
 Combine all sub-command outputs into a single report:
+
+**Reporting principle — absence vs. gap:** Capability sections (Teams, Temporal Hooks, Validation Cascade) that have nothing to report should be omitted entirely rather than displayed with "none" values. A capability that doesn't apply is correctly absent, not missing. The Awareness Ledger section is always included regardless of state — it has an explicit installation recommendation and is surfaced by design as the audit is the orchestrator for companion skill adoption.
 
 ```markdown
 # Skill System Audit Report
@@ -175,26 +194,49 @@ Combine all sub-command outputs into a single report:
 ## Optimization Findings
 [aggregated from optimize display mode per skill]
 
+## Token Efficiency
+[aggregated from optimize step 4e Token Efficiency Scan per skill — see token-efficiency.md for pattern list]
+| Skill | Agent hooks flagged | Effort downgrade | SKILL.md slim-down | Precheck gates | Strictness |
+|-------|---------------------|------------------|--------------------|----------------|------------|
+| /skill-1 | [count + hook names] | [yes/no] | [lines trimmable] | [count] | [missing/present] |
+
 ## Agent Opportunities
-| Skill | Agent Type | Purpose | Routing | Priority |
-|-------|------------|---------|---------|----------|
-| /skill-1 | id-lookup | Enforce grounding for IDs | Individual/Team/Both | High |
+| Skill | Agent Type | Purpose | Priority |
+|-------|------------|---------|----------|
+| /skill-1 | id-lookup | Enforce grounding for IDs | High |
 [from agents display mode per skill]
 
 ## Hooks Status
 [aggregated from hooks display mode]
 
+### Hook Wiring Drift
+*(Include only if the hooks sub-command's Step 2.5 surfaced dead wiring — wired entries pointing at files that do not exist on disk. Omit entirely when every wired entry resolves to a real file. Non-blocking at runtime but silently drops whatever enforcement the missing hook provided; load-bearing cases warrant recovery, advisory cases warrant unwiring.)*
+
+Surface the full Dead Wiring table from the hooks sub-report (Skill | Hook | Event/Matcher | Intent | Intent source | Criticality | Recoverable). Do not summarize the table away — the intent/criticality/recoverability columns are what turn this from "broken reference" into an actionable recommendation.
+
+**Priority Fixes elevation rule:** Every **Load-bearing** dead-wiring finding MUST appear in the Priority Fixes list at or above any optimization or agent-opportunity finding. Rationale: load-bearing hooks enforce sacred directives or content-quality rules whose silent absence is a larger regression than most structural improvements. Protective findings enter Priority Fixes at medium priority; advisory findings do not unless there are enough of them (3+) that the log noise itself is the problem.
+
 ## Teams Status
-- **Env var enabled:** [yes/no]
-- **Skills using teams:** [list or "none"]
-- **Research assistant present:** [per-team status or N/A]
+*(Include this section only if agent teams are actively configured — i.e., `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set AND at least one skill uses team routing. If no skills use teams, omit this section entirely. Team routing is evaluated per-skill during Step 4 via the agents sub-command, which applies the routing decision framework from `references/agents-teams.md`. Absence of teams is not a gap — it means individual agent routing is correct for the current workloads.)*
+
+- **Skills using teams:** [list]
+- **Research assistant present:** [per-team status]
 - **Issues:** [any team-related issues or "none"]
 
 ## Awareness Ledger
 [from Step 4a — status, record counts, capture gaps, or installation recommendation]
 
-## Self-Heal
-[from Step 4b — status, observer coverage, or installation recommendation]
+## Temporal Reference Risk
+[from Step 4b — per-skill risk levels, missing hooks]
+| Skill | Risk Level | Exposure | Temporal Hook |
+|-------|-----------|----------|---------------|
+| /skill-1 | HIGH/MEDIUM | [temporal patterns found] | present/MISSING |
+
+## Validation Cascade
+[from Step 4d — per-skill cascade risk]
+| Skill | Validators | Cascade Risk | Top Finding |
+|-------|-----------|-------------|-------------|
+| /skill-1 | [count] | [NONE/LOW/MODERATE/HIGH] | [summary] |
 
 ## Directives Inventory
 [List all directives found across all skills - ensures nothing is lost]
@@ -207,14 +249,19 @@ Combine all sub-command outputs into a single report:
 
 ### Step 6: Offer Execution
 
-After presenting the report, ask:
-> "Which sub-commands should I execute?"
+After presenting the report, use **AskUserQuestion** (not plain text) to present execution choices:
+
+> "Which actions should I execute?"
 > 1. `optimize --execute` for [skill(s)]
 > 2. `agents --execute` for [skill(s)]
 > 3. `hooks --execute` for [skill(s)]
 > 4. All of the above for [skill]
 > 5. `ledger --execute` — create Awareness Ledger *(only if ledger does not exist)*
-> 6. `self-heal --execute` — install Self-Heal companion skill *(only if self-heal does not exist)*
-> 7. Skip — just review for now
+> 6. `hooks --execute` for temporal validation — generate temporal hooks for high-risk skills *(only if high-risk skills lack temporal hooks)*
+> 7. `hooks --execute` for dead wiring — auto-recover load-bearing + recoverable findings, auto-unwire advisory findings, stop on each protective / not-recoverable finding for user decision *(only if Step 2.5 surfaced dead wiring)*
+> 8. `route index --execute` + `route embed --execute` — refresh the `/route` index and reconcile consultation gates (auto-appended; final two tasks per § Step 4g)
+> 9. Skip — just review for now
 
-When the user selects execution targets, generate a **combined task list** via TaskCreate before any files are modified — one task per discrete action across all selected sub-commands. Then execute sequentially, marking progress.
+When the user selects execution targets, generate a **combined task list** via TaskCreate before any files are modified — one task per discrete action across all selected sub-commands. Then execute sequentially, marking progress. Per § Step 4g, append `route index` (second-to-last) and `route embed` (last) to the task list whenever option 8 is selected, OR by default whenever any other execute option (1–4, 6, 7) is selected so the route system stays in sync with the changes just made. Option 5 (ledger creation) does not auto-trigger route refresh.
+
+**Follow § Output Discipline** (in SKILL.md) for cascade execution and cross-skill separation.

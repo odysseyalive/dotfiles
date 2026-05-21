@@ -13,24 +13,31 @@ test: ## Run ShellSpec test suite
 		exit 1; \
 	fi
 
-lint: ## Run ShellCheck and basic Zsh syntax checks
+lint: ## Run ShellCheck and basic shell syntax checks
 	@echo "==> Linting POSIX install.sh and uninstall.sh with ShellCheck..."
 	@if command -v shellcheck >/dev/null; then \
 		shellcheck -s sh install.sh uninstall.sh; \
 	else \
 		echo "ShellCheck not found. Skipping lint for install.sh and uninstall.sh."; \
 	fi
-	@echo "==> Checking Zsh syntax for setup scripts..."
+	@echo "==> Checking bash syntax for setup scripts..."
+	@if command -v bash >/dev/null; then \
+		bash -n setup.sh setup/common.sh setup/hooks/*/*.sh setup/scripts/*.sh setup/migrations/*/*.sh; \
+		echo "Bash syntax OK."; \
+	else \
+		echo "Bash not found. Skipping bash syntax check."; \
+	fi
+	@echo "==> Checking zsh syntax for setup.zsh..."
 	@if command -v zsh >/dev/null; then \
-		zsh -n setup.sh setup/*.sh setup/hooks/*/*.zsh setup/scripts/*.zsh setup/migrations/*/*.zsh; \
+		zsh -n setup.zsh setup/common.sh; \
 		echo "Zsh syntax OK."; \
 	else \
-		echo "Zsh not found. Skipping syntax check."; \
+		echo "Zsh not found. Skipping zsh syntax check."; \
 	fi
 
 fmt: ## Format shell scripts using shfmt
 	@if command -v shfmt >/dev/null; then \
-		shfmt -l -w -i 2 -ci install.sh uninstall.sh setup.sh setup/*.sh setup/hooks/*/*.zsh setup/scripts/*.zsh setup/migrations/*/*.zsh; \
+		shfmt -l -w -i 2 -ci install.sh uninstall.sh setup.sh setup.zsh setup/common.sh setup/hooks/*/*.sh setup/scripts/*.sh setup/migrations/*/*.sh; \
 	else \
 		echo "shfmt not found. Skipping format."; \
 	fi

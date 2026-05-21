@@ -59,14 +59,28 @@ zsh ~/.yadrlite/setup.zsh omarchy
 ```
 
 ### Headless Servers / Linux without zsh
-For headless servers and remote Linux hosts where zsh isn't installed, use the POSIX `setup.sh` entry point instead of `setup.zsh`. It's a drop-in companion that parses the same flags:
+For headless servers and remote Linux hosts where zsh isn't installed (and you don't want to pull in Homebrew either), use the headless flow. Both bootstrap and management run under bash; no zsh dependency anywhere.
+
+**1. Bootstrap with the `--headless` flag** — `install.sh` skips the Homebrew install, skips the Zsh install, doesn't run `chsh`, and writes shell config to `~/.bashrc` instead of `~/.zshrc`. The only prerequisite is `git`.
 
 ```sh
-sh ~/.yadrlite/setup.sh --upgrade
-sh ~/.yadrlite/setup.sh help
+# Option A: pass --headless through curl-piping
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/install.sh)" -- --headless
+
+# Option B: set the env var (equivalent)
+YADR_HEADLESS=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/install.sh)"
 ```
 
-`--upgrade`, `help`, `remove`/`uninstall`, version detection, and `.tool-versions` generation all run natively under `/bin/sh`. Feature hooks (`--with-macos`, `--with-omarchy`, `--with-keyboard`, etc.) are still zsh files under `setup/hooks/`; `setup.sh` will dispatch them through `zsh` if available, or skip them with a warning if not — so `--upgrade` works fine on a zsh-less box, but a full feature install still needs zsh.
+**2. Manage the install with `setup.sh`** — the bash entry point. It mirrors `setup.zsh` exactly (same flags, same actions, same feature hooks). Every hook under `setup/hooks/` is a portable `.sh` file that runs in both bash and zsh, so no behavior is lost on a headless box.
+
+```sh
+bash ~/.yadrlite/setup.sh help
+bash ~/.yadrlite/setup.sh --upgrade
+bash ~/.yadrlite/setup.sh --with-langs       # ASDF-managed languages
+bash ~/.yadrlite/setup.sh tools              # node + go tooling
+```
+
+Features that depend on tools you don't have on a server (Homebrew bundles, AeroSpace, Ghostty, Sketchybar, fontconfig, etc.) are skipped automatically with a friendly warning — they don't abort the run.
 
 ### Optional Features
 - **Language Management (ASDF):** Install languages dynamically using ASDF via `--with-langs` or granular versions via `--with-lang-<name>-<version>`. If you prefer legacy installers (NVM/G-Install), use `--without-asdf`.
@@ -108,9 +122,9 @@ Safely updates the repository, refreshes tmux plugins, and applies any new confi
 zsh ~/.yadrlite/setup.zsh --upgrade --migrate
 ```
 
-On headless servers without zsh, use the POSIX entry point — `--upgrade` runs natively under `/bin/sh`:
+On headless servers without zsh, use the bash entry point — `--upgrade` and `--migrate` run natively under bash:
 ```sh
-sh ~/.yadrlite/setup.sh --upgrade
+bash ~/.yadrlite/setup.sh --upgrade --migrate
 ```
 
 **Uninstall and Restore (Local):**

@@ -1,7 +1,7 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 echo "# # Setting up Caps Lock / Escape swap for macOS..."
-if [[ "$(uname)" == "Darwin" ]]; then
+if [ "$(uname)" = "Darwin" ]; then
   mkdir -p ~/Library/LaunchAgents
   cat >~/Library/LaunchAgents/com.local.KeyRemapping.plist <<'INNER_EOF'
 <?xml version="1.0" encoding="UTF-8"?>

@@ -18,6 +18,20 @@
 name: skill-name
 description: "Brief description. Modes: mode1, mode2, mode3. Usage: /skill-name [mode] [args]"
 allowed-tools: [minimum needed]
+minimum-effort-level: high
+hooks:
+  PreToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: prompt
+          prompt: "Check if this edit alters any text between <!-- origin: user | immutable: true --> and <!-- /origin --> markers: $ARGUMENTS. If directive content was changed, DENY. Otherwise APPROVE."
+          if: "Edit(**/SKILL.md)|Write(**/SKILL.md)"
+          statusMessage: "Checking directive integrity..."
+  PostCompact:
+    - hooks:
+        - type: command
+          command: "echo '{\"additionalContext\": \"REMINDER: Directives are sacred. Never reword text between <!-- origin: user | immutable: true --> markers.\"}'"
+          statusMessage: "Re-injecting directive awareness..."
 ---
 
 # Skill Name
@@ -42,6 +56,7 @@ Default mode is `mode1` if not specified.
 
 ---
 
+<!-- origin: user | added: YYYY-MM-DD | immutable: true -->
 ## Directives
 
 > **[User's exact rule, verbatim]**
@@ -51,9 +66,11 @@ Default mode is `mode1` if not specified.
 > **[Another directive]**
 
 *— Added YYYY-MM-DD, source: [where this came from]*
+<!-- /origin -->
 
 ---
 
+<!-- origin: skill-builder | version: 1.0 | modifiable: true -->
 ## Workflow: Mode1
 
 1. Step one
@@ -66,9 +83,11 @@ Default mode is `mode1` if not specified.
 
 1. Step one
 2. Step two
+<!-- /origin -->
 
 ---
 
+<!-- origin: skill-builder | version: 1.0 | modifiable: true -->
 ## Grounding
 
 Before using any ID or value from reference.md:
@@ -76,6 +95,7 @@ Before using any ID or value from reference.md:
 2. State: "I will use [VALUE] for [PURPOSE], found under [SECTION]"
 
 See [reference.md](reference.md) for IDs and mappings.
+<!-- /origin -->
 ```
 
 **For single-purpose skills (no modes):** Omit the Usage/Modes section entirely.
@@ -97,35 +117,46 @@ Brief one-line description of what this skill does.
 
 ---
 
+<!-- origin: user | added: YYYY-MM-DD | immutable: true -->
 ## Directives
 
 > **[Voice/style directive — e.g., "Never produce overbuilt, constructed, or AI-sounding prose."]**
 > **[Tone directive — e.g., "All drafts must be conversational and natural."]**
 
 *— Added YYYY-MM-DD, source: [where this came from]*
+<!-- /origin -->
 
 ---
 
+<!-- origin: skill-builder | version: 1.0 | modifiable: true -->
 ## Workflow
 
 1. [Content creation steps]
 2. [...]
-3. **Voice validation** — Before presenting any draft to the user, spawn the voice-validator agent (see below)
-4. Fix any violations found, then present the clean draft
+3. **Text evaluation** — Before presenting any draft to the user, spawn the text evaluation agent pair (see below)
+4. Synthesize findings from both agents, fix all flagged issues, then present the clean draft
 
 ---
 
-## Voice Validation (Enforced via Agent)
+## Text Evaluation (Enforced via Agent Pair)
 
-After generating any draft content, spawn the voice-validator agent:
+After generating any draft content, spawn both agents in parallel:
 
-Task tool with subagent_type: "general-purpose"
-Prompt: "Read directives from .claude/skills/[skill]/SKILL.md § Directives.
-        Then read [content file]. Evaluate every sentence against the voice
-        directives. Report violations with line numbers and quoted text.
-        If no violations, say PASS."
+Task tool #1 with subagent_type: "general-purpose"
+Prompt: "You are The Reducer — a ruthless editor who has cut 50,000 words from
+        manuscripts without losing meaning. Read directives from
+        .claude/skills/[skill]/SKILL.md § Directives. Then read [content file].
+        Flag every overbuilt, bloated, or unnecessarily complex sentence.
+        Report with line numbers and quoted text. If no issues, say PASS."
 
-If agent reports violations, fix them before presenting to user.
+Task tool #2 with subagent_type: "general-purpose"
+Prompt: "You are The Clarifier — a technical writer who has untangled
+        contradictory specifications for 20 years. Read directives from
+        .claude/skills/[skill]/SKILL.md § Directives. Then read [content file].
+        Flag every confusing, ambiguous, or contradictory passage.
+        Report with line numbers and quoted text. If no issues, say PASS."
+
+Synthesize both agents' findings. Fix all flagged issues before presenting to user.
 
 ---
 
@@ -135,6 +166,92 @@ If agent reports violations, fix them before presenting to user.
 ```
 
 **When to use this template:** The `new` command should use this template when the user's description or skill name suggests content creation (writing, articles, posts, editorial, newsletter, social media, captions, copy).
+
+**4.7 compatibility note:** Voice and style directives in this template are high-priority candidates for enforcement annotations on Opus 4.7+. Phrases like "conversational", "natural", "not overbuilt" rely on inference that 4.6 supplied automatically and 4.7 does not. When `/skill-builder convert [skill]` or `/skill-builder optimize [skill] --execute` runs, it generates a CHECKPOINT block beneath each voice directive — the original directive stays verbatim; the annotation adds explicit numbered steps. See the Enforcement Annotation Template section below.
+
+---
+
+## Enforcement Annotation Template
+
+Soft directives (phrasing that relies on inference or subjective terms like "appropriate", "clean", "when needed", "naturally") are under-executed on Opus 4.7+, which reads literally. The fix is an **enforcement annotation**: the user's directive stays verbatim; a machine-generated CHECKPOINT block beneath it translates the intent into explicit numbered steps with STOP/CONTINUE gates.
+
+### Rules
+
+1. Annotations sit IMMEDIATELY below the directive they interpret.
+2. Annotations NEVER alter the directive text. The directive stays inside its `<!-- origin: user | immutable: true -->` block; the annotation sits OUTSIDE that block.
+3. Annotations include a `<!-- Source directive: "..." -->` comment quoting the verbatim original, so provenance is traceable.
+4. Annotations use numbered steps with explicit gates: `IF [condition] → STOP. Report: "..."` and `IF [condition] → CONTINUE to [next phase]`.
+5. Annotations are marked `auto-generated for Opus 4.7+` so the reader knows a human didn't write them.
+6. HARD directives (explicit IDs, concrete never/always rules, measurable conditions) do NOT need annotations — skip them.
+7. Annotations are generated during `/skill-builder optimize --execute` and `/skill-builder convert --execute`. They are NEVER generated by `inline`, which captures raw user wording only.
+
+### Format
+
+Placed directly below the sacred `<!-- /origin -->` close marker:
+
+    <!-- origin: user | added: YYYY-MM-DD | immutable: true -->
+    ## Directives
+
+    > **"[Original user directive verbatim]"**
+
+    *— Added YYYY-MM-DD, source: [provenance]*
+    <!-- /origin -->
+
+    <!-- ENFORCEMENT ANNOTATION — auto-generated for Opus 4.7+ literal execution -->
+    <!-- Source directive: "[verbatim copy of original]" -->
+    CHECKPOINT — [gate name]:
+    1. [explicit action]
+    2. [explicit action with measurable condition]
+    N. IF [condition] → STOP. Report: "[user-facing message]". Do not proceed.
+    N+1. IF [condition] → CONTINUE to [next phase]
+    <!-- END ENFORCEMENT ANNOTATION -->
+
+### Worked example
+
+For the directive "Do not begin drafting unless at least 3 independent, accessible, on-topic source URLs have been verified":
+
+    <!-- ENFORCEMENT ANNOTATION — auto-generated for Opus 4.7+ literal execution -->
+    <!-- Source directive: "Do not begin drafting unless at least 3 independent, accessible, on-topic source URLs have been verified." -->
+    CHECKPOINT — Source Verification Gate:
+    1. Collect all candidate source URLs.
+    2. For EACH URL: fetch the page, confirm HTTP 200, confirm content is on-topic by reading at least the first 3 paragraphs.
+    3. Count URLs that pass all three checks (loads, accessible, on-topic).
+    4. IF count < 3 → STOP. Report to user: "[N] of 3 required sources verified. Missing: [what failed]." Do not proceed.
+    5. IF count ≥ 3 → Log verified sources and continue to drafting phase.
+    <!-- END ENFORCEMENT ANNOTATION -->
+
+### Grounding
+
+- [patterns.md](patterns.md) §§ "Opus 4.7 literal execution breaks soft directives", "Enforcement annotations preserve directive sanctity"
+- [enforcement.md](enforcement.md) § "Opus 4.7 Behavioral Contract"
+
+---
+
+## Runtime Evaluation Template
+
+For skills that apply compensation based on historical evaluation results. The pre-flight reads `eval-history.md` to decide whether recent runs hit chronic failures, then adjusts behavior accordingly.
+
+### Pre-flight
+
+Before the main workflow runs, execute this step:
+
+1. Read `.claude/skills/[skill]/eval-history.md`.
+2. IF the file does not exist → state "No evaluation history found" and proceed without compensation. Do not infer that history exists elsewhere.
+3. IF the file exists → parse the last 3 runs. Identify any criterion scored 1 in 3+ consecutive runs — these are chronic issues.
+4. IF chronic issues found → apply compensation rules documented in this skill's `## Compensation` section. Otherwise → proceed without compensation.
+
+### Compensation block
+
+A skill using this template includes a `## Compensation` section that maps chronic criteria to behavioral adjustments. Each entry is explicit, not inferential:
+
+    - Criterion X scored 1 for 3+ runs → action: [specific pre-flight instruction]
+    - Criterion Y scored 1 for 3+ runs → action: [specific pre-flight instruction]
+
+### Grounding
+
+- [eval-history-format.md](eval-history-format.md) — Evaluation history file format
+- [eval-rubrics.md](eval-rubrics.md) — Rubric construction (what to score)
+- [procedures/eval.md](procedures/eval.md) — Runtime evaluation procedure
 
 ---
 
@@ -234,6 +351,84 @@ Reference files:
 | `name` | Yes | Skill identifier (matches folder name) |
 | `description` | Yes | Single-line summary shown in help output |
 | `allowed-tools` | Yes | Tools the skill can use |
+
+### Optional Frontmatter Fields
+
+| Field | Purpose | Example |
+|-------|---------|---------|
+| `paths` | Only activate when matching files touched | `"**/*.ts"` |
+| `effort` | Reasoning effort for forked skills | `low`, `medium`, `high`, `max` |
+| `minimum-effort-level` | Minimum session effort required for this skill to function correctly on Opus 4.7+. Declares the reasoning budget the skill needs to reliably make its tool calls (grounding reads, agent spawns, hook triggers). Default: `high`. Content-creation skills: `xhigh`. Distinct from `effort:` — that field sets fork effort; this one declares session requirement. | `high`, `xhigh` |
+| `context` | Execution context | `inline` (default), `fork` |
+| `memory` | Persistent cross-session memory | `project`, `local`, `user` |
+| `background` | Run without blocking parent | `true` |
+| `when_to_use` | Tells Claude when to proactively invoke | Free text |
+| `model` | Model override | `haiku`, `sonnet`, `opus` |
+| `strictness` | Governs how aggressively skill-builder procedures verify this skill. `minimal` runs command hooks only, skips agent panels, and runs precheck-gated diff auditors; token-sensitive projects default here. `standard` is the default: existing behavior after the 4.7 upgrade. `thorough` runs mandatory agent panels, always-spawns the diff auditor, and escalates marginal decisions to agent judgment. See [token-efficiency.md](token-efficiency.md) § P5 for rationale. | `minimal`, `standard`, `thorough` |
+
+### Conditional Activation (`paths:` Field)
+
+Skills with `paths:` frontmatter only activate when matching files are touched. This reduces context cost for domain-specific skills.
+
+```yaml
+---
+name: typescript-helpers
+description: "TypeScript utility patterns and type helpers"
+paths: "**/*.ts"
+allowed-tools: Read, Grep, Glob, Edit
+---
+```
+
+**Path patterns:**
+- `"**/*.ts"` — Any TypeScript file
+- `"**/components/**"` — Files under any components directory
+- `"src/api/**/*.ts"` — TypeScript files under src/api
+- `["**/*.test.ts", "**/*.spec.ts"]` — Array of patterns (match any)
+
+**When to use `paths:`:**
+- Language-specific skills (TypeScript, Python, Rust)
+- Directory-specific skills (components, API routes, tests)
+- File-type-specific skills (Markdown, JSON, YAML)
+
+**When NOT to use `paths:`:**
+- Skills invoked by slash command (user decides when to load)
+- Cross-cutting skills that apply regardless of file type
+- Skills with complex workflows that need full context
+
+### Effort Level (`effort:` Field)
+
+The `effort:` field controls reasoning depth for forked skills and agents. Lower effort = faster and cheaper. Higher effort = more thorough reasoning.
+
+| Level | Use For | Cost | Speed |
+|-------|---------|------|-------|
+| `low` | Simple lookups, ID validation, format checks | Lowest | Fastest |
+| `medium` | Standard tasks, most skills | Default | Normal |
+| `high` | Complex analysis, evaluation agents | Higher | Slower |
+| `xhigh` | Deep reasoning, architectural decisions | High | Slow |
+| `max` | Most thorough reasoning, critical decisions | Highest | Slowest |
+
+**Recommendations by agent type:**
+
+| Agent Type | Recommended Effort |
+|-----------|-------------------|
+| ID Lookup Agent | `low` — simple pattern matching |
+| Matcher Agent | `low` to `medium` — category matching |
+| Pre-flight Validator | `medium` — rule checking |
+| Text Evaluation Pair | `high` — quality judgment |
+| Capture Recommender | `medium` — pattern matching |
+| Architectural analysis | `high` to `xhigh` — complex reasoning |
+
+```yaml
+---
+name: id-lookup
+description: "Look up IDs from reference files"
+effort: low
+context: fork
+allowed-tools: Read, Grep
+---
+```
+
+**Audit check:** Skills and agents without `effort:` default to `medium`. Flag forked skills without explicit effort settings.
 
 ### Description Field Pattern
 
@@ -349,3 +544,60 @@ description: Brief description without special characters
               Long multi-line text...
    Fix to:  description: "Condensed single line. Modes: x, y, z"
 ```
+
+---
+
+## Shell Preprocessing (`!` Code Blocks)
+
+Skills can execute shell commands at load time using `!` code blocks. The output replaces the block in the injected content.
+
+**Use cases:**
+- Dynamically load procedure content at invocation
+- Inject system information or timestamps
+- Load content that changes frequently
+
+### Example: Dynamic Procedure Loading
+
+Instead of duplicating procedure content in SKILL.md, load it dynamically:
+
+```markdown
+---
+name: my-skill
+description: "Skill with dynamic procedure loading"
+shell: bash
+---
+
+# My Skill
+
+## Procedure
+
+!`cat ${CLAUDE_SKILL_DIR}/procedures/main.md`
+```
+
+The `${CLAUDE_SKILL_DIR}` variable resolves to the skill's directory, making paths portable.
+
+### Example: Injecting Build Info
+
+```markdown
+## Current State
+
+!`echo "Last commit: $(git log -1 --format='%h %s' 2>/dev/null || echo 'not a git repo')"`
+!`echo "Branch: $(git branch --show-current 2>/dev/null || echo 'unknown')"`
+```
+
+### Example: Conditional Content
+
+```markdown
+## Environment
+
+!`if [ -f .env ]; then echo "Environment: $(grep -c '^[A-Z]' .env) variables configured"; else echo "No .env file found"; fi`
+```
+
+### Shell Preprocessing Rules
+
+1. **Runs at load time** — before Claude sees the skill content
+2. **Output replaces the block** — whatever the command prints becomes skill content
+3. **MCP skills cannot use this** — security boundary prevents shell execution
+4. **Use `shell: powershell`** for Windows compatibility
+5. **Errors are visible** — stderr output appears in the skill content
+6. **Keep commands fast** — slow commands delay skill loading

@@ -1,20 +1,17 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# YADRLite Workstation Management Orchestrator (POSIX sh)
+# YADRLite Workstation Management Orchestrator
 #
-# Companion to setup.zsh for servers without zsh installed. Argument
-# parsing, help, --upgrade, version management, and .tool-versions
-# generation all run natively under sh. Hook files under
-# setup/hooks/*/*.zsh are still zsh; they are dispatched via `zsh -c`
-# when zsh is available and skipped with a warning otherwise.
+# Bash-native entry point. Companion to setup.zsh for hosts where zsh is
+# not installed (headless servers, fresh Linux installs, etc.). Both
+# orchestrators source the same setup/common.sh and dispatch the same
+# setup/hooks/**/*.sh files, so behavior is identical regardless of which
+# shell drives setup.
 
 SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 
-# Inline the sh-compatible subset of setup/common.sh. We cannot `.` that
-# file because it uses zsh-only constructs (typeset -a, etc.).
-YADR_DIR="${YADR_DIR:-$HOME/.yadrlite}"
-export YADR_DIR
-YADR_TMUX_PLUGINS="https://github.com/tmux-plugins/tmux-resurrect.git https://github.com/tmux-plugins/tmux-sensible"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/setup/common.sh"
 
 tolower() {
   printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
@@ -41,7 +38,7 @@ OS Selection flags:
   --macos   Force setup as macOS
   --linux   Force setup as Linux
 
-Features dynamically load from 'brewfiles/<feature>.Brewfile' or 'setup/hooks/pre|post/<feature>.zsh'
+Features dynamically load from 'brewfiles/<feature>.Brewfile' or 'setup/hooks/pre|post/<feature>.sh'
 Example 1: ./setup.sh --macos --with-gnu --with-keyboard
 Example 2: ./setup.sh --with-langs                # Installs node, python, ruby, golang via asdf
 Example 3: ./setup.sh --with-lang-ruby-3.2.0      # Installs a specific language and version via asdf
@@ -153,7 +150,7 @@ if [ "$UPGRADE" = "1" ]; then
 
   echo "==> Updating tmux plugins..."
   mkdir -p "$YADR_DIR/tmux/plugin"
-  for tplug in $YADR_TMUX_PLUGINS; do
+  for tplug in "${YADR_TMUX_PLUGINS[@]}"; do
     plugname=$(basename "$tplug" .git)
     if [ ! -d "$YADR_DIR/tmux/plugin/$plugname" ]; then
       echo "  -> Installing $plugname..."
@@ -269,9 +266,9 @@ fi
 
 echo "==> Starting YADRLite Setup (OS: $OS_LOWER, Version: $CURRENT_VERSION)"
 
-# Hook runner: prefers .sh sibling; otherwise dispatches .zsh through
-# zsh with setup/common.sh pre-sourced. Skips with a warning when the
-# hook is .zsh-only and zsh is not installed.
+# Hook runner. All hooks are .sh files that work in both bash and zsh
+# (sourced into the orchestrator's shell). We retain a .zsh fallback for
+# any user-supplied third-party hooks.
 run_hook() {
   _hook_base="$1"
   if [ -f "${_hook_base}.sh" ]; then
@@ -283,7 +280,7 @@ run_hook() {
       echo "==> Running hook: $(basename "${_hook_base}.zsh")"
       zsh -c ". \"$SCRIPT_DIR/setup/common.sh\" && . \"${_hook_base}.zsh\""
     else
-      echo "  ! Skipping hook $(basename "${_hook_base}.zsh") (zsh not installed)"
+      echo "  ! Skipping hook $(basename "${_hook_base}.zsh") (zsh not installed and no .sh sibling found)"
     fi
   fi
 }
@@ -291,8 +288,12 @@ run_hook() {
 run_brewfile() {
   _bf="$1"
   if [ -f "$_bf" ]; then
-    echo "==> Installing packages from $(basename "$_bf")"
-    brew bundle --file="$_bf" --no-lock
+    if command -v brew >/dev/null 2>&1; then
+      echo "==> Installing packages from $(basename "$_bf")"
+      brew bundle --file="$_bf" --no-lock
+    else
+      echo "  ! Skipping $(basename "$_bf") (Homebrew not installed)"
+    fi
   fi
 }
 

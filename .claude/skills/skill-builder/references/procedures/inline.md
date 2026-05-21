@@ -4,6 +4,8 @@
 
 When invoked with `/skill-builder inline [skill] [directive text]`:
 
+**Preflight — self-exclusion.** If the target skill is literally `skill-builder` AND the command was NOT invoked as `/skill-builder dev inline skill-builder …`, REFUSE. Say: "skill-builder is excluded from its own actions. Use `dev` prefix: `/skill-builder dev inline skill-builder …`". Do not proceed. See SKILL.md § Self-Exclusion Rule.
+
 ### Step 1: Validate Target Skill
 
 ```bash
@@ -21,18 +23,25 @@ Read the skill's SKILL.md. Find the `## Directives` section.
 
 ### Step 3: Add Directive
 
-Insert the directive verbatim:
+Insert the directive verbatim, wrapped in provenance markers:
 
 ```markdown
+<!-- origin: user | added: [today's date] | immutable: true -->
 > **[exact text from user, verbatim]**
 
 *— Added [today's date], source: user instruction (inline)*
+<!-- /origin -->
 ```
 
 **Rules:**
 - Quote the user's exact words — never reword
 - Place in the `## Directives` section
 - If the section is new, create it with the `## Directives` heading
+- Always wrap with `origin: user` provenance markers
+
+### Step 3b: Update Directive Checksums
+
+After adding the directive, regenerate the `.directives.sha` sidecar file for the target skill. Follow the sidecar generation spec in [checksums.md](checksums.md) § "Execute Mode" step 2 — read SKILL.md, strip frontmatter, extract immutable blocks, normalize, hash, write sidecar. This ensures the new directive is immediately protected by the checksum hook.
 
 ### Step 4: Report
 
