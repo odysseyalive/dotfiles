@@ -76,7 +76,6 @@ install package extra/gdb extra/ltrace
 install package extra/htop extra/tree
 install package extra/bind extra/openbsd-netcat extra/traceroute
 install package extra/pdfarranger
-install package aur/dosbox-staging
 install package extra/nvidia extra/nvidia-settings extra/cuda
 install package multilib/lib32-mesa multilib/lib32-vulkan-intel multilib/lib32-vulkan-radeon multilib/lib32-nvidia-utils
 install package extra/gst-plugins-good extra/gst-plugins-bad extra/gst-plugins-ugly extra/gst-libav

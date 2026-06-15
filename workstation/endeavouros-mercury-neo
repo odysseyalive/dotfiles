@@ -107,9 +107,6 @@ install package extra/glow
 install package extra/shellcheck
 install package extra/python-lsp-server
 
-# Xtra
-install package aur/openxcom-extended
-
 # Jarvis JR
 install package extra/telegram-desktop
 
