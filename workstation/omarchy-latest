@@ -182,77 +182,106 @@ style = "bold cyan"
 time_format = "%T"
 EOF
 
-# Configure Hyprland keyboard options
+# Configure Hyprland keyboard options.
+# Omarchy 4 migrated Hyprland config from input.conf to Lua (input.lua); older
+# releases used input.conf. Swap Caps Lock/Escape and enable the Chinuk Wawa
+# layout toggle (Alt+Shift). The custom layout FILE itself is installed by the
+# chinuk-wawa-custom-keyboard repo into ~/.config/xkb/symbols/custom.
 log "configuring hyprland keyboard settings"
-if [ -f ~/.config/hypr/input.conf ]; then
-  sed -i 's/^[[:space:]]*kb_options[[:space:]]*=.*/  kb_options = caps:swapescape/' ~/.config/hypr/input.conf
-  # Reload Hyprland configuration if running
-  if pgrep -x "Hyprland" >/dev/null; then
-    hyprctl reload
-    log "hyprland configuration reloaded"
-  fi
-fi
+if [ -f ~/.config/hypr/input.lua ]; then
+  if ! grep -qF "yadrlite: keyboard overrides" ~/.config/hypr/input.lua; then
+    cat >>~/.config/hypr/input.lua <<'LUA'
 
-# Configure Hyprland Nvidia environment variables
-log "configuring hyprland nvidia environment variables"
-if [ -f ~/.config/hypr/hyprland.conf ]; then
-  # Check if env variables are already set
-  if ! grep -q "LIBVA_DRIVER_NAME,nvidia" ~/.config/hypr/hyprland.conf; then
-    # Add Nvidia env variables at the beginning of the file
-    sed -i '1i\# Nvidia environment variables\nenv = LIBVA_DRIVER_NAME,nvidia\nenv = GBM_BACKEND,nvidia-drm\nenv = __GLX_VENDOR_LIBRARY_NAME,nvidia\nenv = NVD_BACKEND,direct\n' ~/.config/hypr/hyprland.conf
-    log "nvidia environment variables added to hyprland.conf"
-    # Reload Hyprland configuration if running
-    if pgrep -x "Hyprland" >/dev/null; then
-      hyprctl reload
-      log "hyprland configuration reloaded for nvidia settings"
-    fi
-  else
-    log "nvidia environment variables already present in hyprland.conf"
-  fi
-fi
-
-# improve sound
-mkdir -p ~/.config/pipewire/pipewire.conf.d
-printf "context.properties = {\n\
-  default.clock.rate = 192000\n\
-  default.clock.allowed-rates = [ 44100 48000 88200 96000 192000 352800 384000]\n\
-}\n\
-stream.properties = {\n\
-  resample.quality = 10\n\
-  channelmix.max-volume = 2.0\n\
-}\n\
-" >>~/.config/pipewire/pipewire.conf.d/10-rates.conf
-
-# disables audio suspend for pipewire bug
-mkdir -p ~/.config/wireplumber/main.lua.d/
-cat >~/.config/wireplumber/main.lua.d/50-alsa-config.lua <<'EOF'
--- Disable suspend-on-idle for all audio devices
-alsa_monitor.rules = {
-  {
-    matches = {
-      {
-        { "node.name", "matches", "alsa_output.*" },
-      },
-      {
-        { "node.name", "matches", "alsa_input.*" },
-      },
-    },
-    apply_properties = {
-      ["session.suspend-timeout-seconds"] = 0,
-    },
+-- yadrlite: keyboard overrides
+-- Swap Caps Lock/Escape and toggle the Chinuk Wawa layout with Alt+Shift.
+-- Only kb_layout/kb_options are set, so Omarchy's other input defaults remain.
+hl.config({
+  input = {
+    kb_layout = "us,custom",
+    kb_options = "caps:swapescape,grp:alt_shift_toggle",
   },
+})
+LUA
+    log "keyboard overrides added to input.lua"
+  else
+    log "keyboard overrides already present in input.lua"
+  fi
+elif [ -f ~/.config/hypr/input.conf ]; then
+  # Legacy pre-Omarchy-4 config.
+  sed -i 's/^[[:space:]]*kb_options[[:space:]]*=.*/  kb_options = caps:swapescape,grp:alt_shift_toggle/' ~/.config/hypr/input.conf
+fi
+if pgrep -x "Hyprland" >/dev/null; then
+  hyprctl reload
+  log "hyprland configuration reloaded"
+fi
+
+# Nvidia environment variables.
+# Omarchy 4 detects the GPU and sets NVD_BACKEND, LIBVA_DRIVER_NAME, and
+# __GLX_VENDOR_LIBRARY_NAME automatically via its default/hypr/nvidia.lua, so
+# the old manual injection into hyprland.conf is no longer needed (and that file
+# is inert under the Lua config anyway). If you need an extra variable Omarchy
+# does not set (e.g. GBM_BACKEND), add it with hl.env() in ~/.config/hypr, e.g.
+# a line `hl.env("GBM_BACKEND", "nvidia-drm")` in monitors.lua or a required
+# personal Lua file.
+log "nvidia environment variables handled by Omarchy 4 (nvidia.lua)"
+
+# improve sound: high sample-rate support + best-quality resampling + headroom
+# for the >100% software mixer. 48kHz default with adaptive switching up to
+# 192kHz; resample.quality 14 is the SoX resampler's top setting. Written with a
+# heredoc (not >>) so re-running the installer replaces rather than duplicates.
+mkdir -p ~/.config/pipewire/pipewire.conf.d
+cat >~/.config/pipewire/pipewire.conf.d/10-rates.conf <<'EOF'
+context.properties = {
+  default.clock.rate = 48000
+  default.clock.allowed-rates = [ 44100 48000 88200 96000 176400 192000 ]
+}
+stream.properties = {
+  resample.quality = 14
+  channelmix.max-volume = 2.0
 }
 EOF
-sudo systemctl --user restart wireplumber
 
-# configure swayosd max volume
-mkdir -p ~/.config/swayosd
-cat >~/.config/swayosd/config.toml <<'EOF'
-[server]
-show_percentage = true
-max_volume = 200
-style = "./style.css"
+# Disable audio suspend-on-idle (works around a PipeWire bug where the card
+# returns from suspend with wrong/no audio). WirePlumber 0.5 removed the Lua
+# config API, so this uses the SPA-JSON rules format under wireplumber.conf.d
+# (the old main.lua.d/*.lua is silently ignored on 0.5+).
+mkdir -p ~/.config/wireplumber/wireplumber.conf.d
+cat >~/.config/wireplumber/wireplumber.conf.d/50-disable-suspend.conf <<'EOF'
+monitor.alsa.rules = [
+  {
+    matches = [
+      { node.name = "~alsa_output.*" }
+      { node.name = "~alsa_input.*" }
+    ]
+    actions = {
+      update-props = {
+        session.suspend-timeout-seconds = 0
+      }
+    }
+  }
+]
 EOF
+# Also enable the ALSA software mixer so volume can exceed 100% (over-amp).
+cat >~/.config/wireplumber/wireplumber.conf.d/50-volume-limit.conf <<'EOF'
+# Enable software volume mixing on ALSA sinks for over-amplification (>100%)
+monitor.alsa.rules = [
+  {
+    matches = [
+      { node.name = "~alsa_output.*" }
+    ]
+    actions = {
+      update-props = {
+        api.alsa.soft-mixer = true
+      }
+    }
+  }
+]
+EOF
+systemctl --user restart wireplumber
+
+# Note: Omarchy 4 replaced swayosd with its own Quickshell OSD, so no swayosd
+# config is written. The volume keys below drive Omarchy's native OSD via
+# omarchy-osd (see the omarchy-volume-osd wrapper further down).
 
 # install global volume control script (affects ALL sinks and apps)
 log "installing global volume control script"
@@ -346,8 +375,52 @@ fi
 chmod +x ~/.local/bin/omarchy-volume
 log "global volume control script installed"
 
-# configure hyprland volume keys to allow 200% max volume and control ALL sinks/apps
-if [ -f ~/.config/hypr/bindings.conf ]; then
+# Volume keys: 200% max across ALL sinks/apps. Omarchy 4's native
+# omarchy-audio-output-volume clamps at 100% and only touches the resolved sink,
+# so we keep the custom all-sink script and override the volume keys. A tiny
+# wrapper pairs the volume change with Omarchy's native OSD (omarchy-osd), which
+# also keeps the Hyprland binding free of nested shell quoting under Lua.
+log "installing 200% volume OSD wrapper"
+cat >~/.local/bin/omarchy-volume-osd <<'OSD'
+#!/bin/bash
+# Adjust volume across ALL sinks/apps (200% max) and show the Omarchy native OSD.
+# Usage: omarchy-volume-osd <raise|lower> [step]
+dir="$1"
+step="${2:-3}"
+
+vol="$(~/.local/bin/omarchy-volume "$dir" "$step" 200 2>/dev/null | tail -1)"
+[[ "$vol" =~ ^[0-9]+$ ]] || vol="$(~/.local/bin/omarchy-volume get 2>/dev/null | tail -1)"
+vol="${vol:-0}"
+
+if ((vol == 0)); then
+  icon="volume-muted"
+else
+  icon="volume-high"
+fi
+
+omarchy-osd -i "$icon" -p "$vol"
+OSD
+chmod +x ~/.local/bin/omarchy-volume-osd
+
+# Bind the volume keys in the Lua config (Omarchy 4), falling back to
+# bindings.conf on older setups.
+if [ -f ~/.config/hypr/bindings.lua ]; then
+  if ! grep -qF "yadrlite: 200% volume" ~/.config/hypr/bindings.lua; then
+    cat >>~/.config/hypr/bindings.lua <<'LUA'
+
+-- yadrlite: 200% volume — all sinks/apps, overriding Omarchy's 100%-capped keys.
+hl.unbind("XF86AudioRaiseVolume")
+hl.unbind("XF86AudioLowerVolume")
+hl.unbind("ALT + XF86AudioRaiseVolume")
+hl.unbind("ALT + XF86AudioLowerVolume")
+o.bind("XF86AudioRaiseVolume", "Volume up", "omarchy-volume-osd raise 3", { locked = true, repeating = true })
+o.bind("XF86AudioLowerVolume", "Volume down", "omarchy-volume-osd lower 3", { locked = true, repeating = true })
+o.bind("ALT + XF86AudioRaiseVolume", "Volume up precise", "omarchy-volume-osd raise 1", { locked = true, repeating = true })
+o.bind("ALT + XF86AudioLowerVolume", "Volume down precise", "omarchy-volume-osd lower 1", { locked = true, repeating = true })
+LUA
+    log "200% volume key bindings added to bindings.lua"
+  fi
+elif [ -f ~/.config/hypr/bindings.conf ]; then
   if ! grep -q "omarchy-volume" ~/.config/hypr/bindings.conf; then
     cat >>~/.config/hypr/bindings.conf <<'EOF'
 
