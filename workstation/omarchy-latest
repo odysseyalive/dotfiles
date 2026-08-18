@@ -277,7 +277,142 @@ monitor.alsa.rules = [
   }
 ]
 EOF
+
+# Bluetooth headphones (AirPods etc.): prefer AAC -- their native codec -- at VBR
+# quality 5. PipeWire otherwise defaults AAC to CBR ~128kbit/s ("AAC-LQ"), which
+# sounds muffled/deadpan, and a bare SBC fallback is worse. Needs libfdk-aac
+# (present via pipewire's Bluetooth codec support on Arch).
+cat >~/.config/wireplumber/wireplumber.conf.d/51-bluetooth-aac.conf <<'EOF'
+monitor.bluez.properties = {
+  bluez5.codecs = [ aac sbc_xq sbc ]
+  bluez5.enable-sbc-xq = true
+}
+monitor.bluez.rules = [
+  {
+    matches = [ { device.name = "~bluez_card.*" } ]
+    actions = {
+      update-props = {
+        # 0 = CBR (default, thin). 1-5 = VBR quality; 5 = highest.
+        bluez5.a2dp.aac.bitratemode = 5
+      }
+    }
+  }
+]
+EOF
+
+# Keep Bluetooth headphones on high-quality A2DP even when an app opens the mic,
+# instead of dropping to mono HFP/HSP "telephone" audio. Trade-off: the BT mic is
+# unavailable while set (calls use the laptop/webcam mic). Remove this file to
+# restore automatic headset switching.
+cat >~/.config/wireplumber/wireplumber.conf.d/50-no-autoswitch.conf <<'EOF'
+wireplumber.settings = {
+  bluetooth.autoswitch-to-headset-profile = false
+}
+EOF
 systemctl --user restart wireplumber
+
+# Speaker voicing for the ThinkPad T490 built-in speakers. Linux plays them flat
+# ("tiny and deadpan") because it lacks the Dolby convolution Windows applies. We
+# reproduce it natively with PipeWire's builtin convolver (no EasyEffects / third-
+# party app) using the ThinkPad T495 "DolbyMusicBalanced" impulse response -- the
+# T495 is the identical chassis and speaker hardware (only the CPU differs). The
+# IR is normalized to unity peak (-14.8 dB) so no band clips; make up the level
+# with the volume keys. Source: github.com/shuhaowu/linux-thinkpad-speaker-
+# improvements, embedded below so the installer stays self-contained. Gated on DMI
+# (the target sink path below is this machine's Intel HDA) so it never applies
+# elsewhere.
+if grep -qi 'ThinkPad T490' /sys/class/dmi/id/product_version 2>/dev/null; then
+  log "installing ThinkPad T490 speaker tuning (native PipeWire convolver)"
+  mkdir -p ~/.config/pipewire/irs
+  base64 -d >~/.config/pipewire/irs/t495-dolby-music.wav <<'EOF'
+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
+EOF
+  cat >~/.config/pipewire/pipewire.conf.d/60-t490-speaker-tuning.conf <<EOF
+# Native PipeWire speaker tuning for the ThinkPad T490 built-in speakers (T495
+# Dolby correction IR; identical speaker hardware). Builtin convolver, no third-
+# party program. Disable by removing this file and: systemctl --user restart pipewire
+context.modules = [
+  { name = libpipewire-module-filter-chain
+    args = {
+      node.description = "T490 Tuned Speakers"
+      media.name       = "T490 Tuned Speakers"
+      filter.graph = {
+        nodes = [
+          { type = builtin  label = convolver  name = convFL
+            config = { filename = "$HOME/.config/pipewire/irs/t495-dolby-music.wav"  channel = 0 } }
+          { type = builtin  label = convolver  name = convFR
+            config = { filename = "$HOME/.config/pipewire/irs/t495-dolby-music.wav"  channel = 1 } }
+        ]
+        inputs  = [ "convFL:In" "convFR:In" ]
+        outputs = [ "convFL:Out" "convFR:Out" ]
+      }
+      audio.channels = 2
+      audio.position = [ FL FR ]
+      capture.props = {
+        node.name   = "effect_input.t490-tuned-speakers"
+        media.class = Audio/Sink
+        audio.channels = 2
+        audio.position = [ FL FR ]
+        # Sit above the raw analog speakers so "internal speakers" auto-selects
+        # the tuned sink; below bluetooth/dock so those still win when present.
+        priority.session = 1010
+      }
+      playback.props = {
+        node.name    = "effect_output.t490-tuned-speakers"
+        node.passive = true
+        audio.channels = 2
+        audio.position = [ FL FR ]
+        target.object = "alsa_output.pci-0000_00_1f.3.analog-stereo"
+      }
+    }
+  }
+]
+EOF
+  cat >~/.config/wireplumber/wireplumber.conf.d/70-t490-raw-speaker-priority.conf <<'EOF'
+# Demote the raw built-in speaker sink so the tuned filter-chain sink is the
+# auto-selected default on internal speakers. The raw sink must still exist --
+# the filter-chain targets it.
+monitor.alsa.rules = [
+  {
+    matches = [ { node.name = "alsa_output.pci-0000_00_1f.3.analog-stereo" } ]
+    actions = {
+      update-props = {
+        priority.session = 100
+        node.description = "Built-in Speakers (raw, untuned)"
+      }
+    }
+  }
+]
+EOF
+  systemctl --user restart pipewire pipewire-pulse wireplumber
+fi
 
 # Note: Omarchy 4 replaced swayosd with its own Quickshell OSD, so no swayosd
 # config is written. The volume keys below drive Omarchy's native OSD via
