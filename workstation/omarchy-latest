@@ -537,6 +537,42 @@ omarchy-osd -i "$icon" -p "$vol"
 OSD
 chmod +x ~/.local/bin/omarchy-volume-osd
 
+# Push-to-talk voice dictation (Voxtype): hold SUPER+ALT+V to speak, release to
+# transcribe. Hyprland only fires a release bind when the held-modifier mask still
+# matches at the instant the key goes up, so if SUPER lifts a hair before V the
+# SUPER+ALT+V release misses and dictation stays engaged; the ALT+V release bind
+# catches that ordering. No SUPER+V release bind — that combo is Omarchy's
+# Universal paste. `voxtype record stop` is idempotent (a no-op when idle), so the
+# fallback is safe. Lua config (Omarchy 4), falling back to bindings.conf.
+if [ -f ~/.config/hypr/bindings.lua ]; then
+  if ! grep -qF "yadrlite: voxtype push-to-talk" ~/.config/hypr/bindings.lua; then
+    cat >>~/.config/hypr/bindings.lua <<'LUA'
+
+-- yadrlite: voxtype push-to-talk — hold SUPER+ALT+V to speak, release to transcribe.
+-- The ALT+V release bind is a fallback for releasing SUPER a hair before V, so
+-- dictation still disengages. No SUPER+V release bind (that's Universal paste).
+if o.cmd_present("voxtype") then
+  o.bind("SUPER + ALT + V", "Start dictation (push-to-talk)", "voxtype record start")
+  o.bind("SUPER + ALT + V", "Stop dictation (push-to-talk)", "voxtype record stop", { release = true })
+  o.bind("ALT + V", "Stop dictation (SUPER released first)", "voxtype record stop", { release = true })
+end
+LUA
+    log "voxtype push-to-talk bindings added to bindings.lua"
+  fi
+elif [ -f ~/.config/hypr/bindings.conf ]; then
+  if ! grep -q "voxtype record start" ~/.config/hypr/bindings.conf; then
+    cat >>~/.config/hypr/bindings.conf <<'EOF'
+
+# Push-to-talk dictation (Voxtype) — hold SUPER+ALT+V to speak, release to transcribe.
+# ALT+V release is a fallback for releasing SUPER before V. No SUPER+V (Universal paste).
+bind = SUPER ALT, V, exec, voxtype record start
+bindr = SUPER ALT, V, exec, voxtype record stop
+bindr = ALT, V, exec, voxtype record stop
+EOF
+    log "voxtype push-to-talk bindings added to bindings.conf"
+  fi
+fi
+
 # Bind the volume keys in the Lua config (Omarchy 4), falling back to
 # bindings.conf on older setups.
 if [ -f ~/.config/hypr/bindings.lua ]; then
