@@ -414,6 +414,93 @@ EOF
   systemctl --user restart pipewire pipewire-pulse wireplumber
 fi
 
+# Voicing for the ThinkPad Thunderbolt 3 Dock line-out. The dock is plain USB Audio
+# Class with no per-device tuning, so it plays flat -- and being a raw hardware sink
+# it is capped at its 0 dB base volume, so it was quieter than the tuned internal
+# path (which rides the 2.0 channelmix headroom) on the same volume keybind. Route
+# it through a filter-chain sink: the sink inherits channelmix.max-volume=2.0 (fixes
+# the loudness gap) and applies a gentle hi-fi "smiley" EQ (fixes the flat sound).
+# This is NOT the speaker-cabinet convolver above -- that IR corrects the T490's own
+# drivers and would be wrong on a line-out feeding external powered speakers; here
+# it is a mild broadband EQ. Clipping-safe: each shelf boosts +1.5 dB and a linear
+# stage attenuates -1.5 dB, so no band exceeds unity. Same DMI gate (this is the
+# dock used with this machine); selection is by priority, like the internal block.
+if grep -qi 'ThinkPad T490' /sys/class/dmi/id/product_version 2>/dev/null; then
+  log "installing ThinkPad TB3 Dock line-out tuning (native PipeWire biquad EQ)"
+  cat >~/.config/pipewire/pipewire.conf.d/61-dock-speaker-tuning.conf <<'EOF'
+# Native PipeWire tuning for the ThinkPad Thunderbolt 3 Dock line-out: a gentle
+# hi-fi biquad EQ + the 2.0 channelmix loudness headroom a filter-chain sink gets.
+# Builtin biquads, no third-party program. Clipping-safe (shelves +1.5 dB, makeup
+# -1.5 dB). Disable by removing this file and: systemctl --user restart pipewire
+context.modules = [
+  { name = libpipewire-module-filter-chain
+    args = {
+      node.description = "Dock Tuned Output"
+      media.name       = "Dock Tuned Output"
+      filter.graph = {
+        nodes = [
+          { type = builtin  label = bq_lowshelf   name = lowFL
+            control = { "Freq" = 110   "Q" = 0.707  "Gain" = 1.5 } }
+          { type = builtin  label = bq_highshelf  name = highFL
+            control = { "Freq" = 9000  "Q" = 0.707  "Gain" = 1.5 } }
+          { type = builtin  label = linear        name = gainFL
+            control = { "mult" = 0.841  "add" = 0.0 } }
+          { type = builtin  label = bq_lowshelf   name = lowFR
+            control = { "Freq" = 110   "Q" = 0.707  "Gain" = 1.5 } }
+          { type = builtin  label = bq_highshelf  name = highFR
+            control = { "Freq" = 9000  "Q" = 0.707  "Gain" = 1.5 } }
+          { type = builtin  label = linear        name = gainFR
+            control = { "mult" = 0.841  "add" = 0.0 } }
+        ]
+        links = [
+          { output = "lowFL:Out"   input = "highFL:In" }
+          { output = "highFL:Out"  input = "gainFL:In" }
+          { output = "lowFR:Out"   input = "highFR:In" }
+          { output = "highFR:Out"  input = "gainFR:In" }
+        ]
+        inputs  = [ "lowFL:In"   "lowFR:In" ]
+        outputs = [ "gainFL:Out" "gainFR:Out" ]
+      }
+      audio.channels = 2
+      audio.position = [ FL FR ]
+      capture.props = {
+        node.name   = "effect_input.dock-tuned-output"
+        media.class = Audio/Sink
+        audio.channels = 2
+        audio.position = [ FL FR ]
+        # Above the raw dock sink (demoted below) so the dock auto-selects tuned.
+        priority.session = 2000
+      }
+      playback.props = {
+        node.name    = "effect_output.dock-tuned-output"
+        node.passive = true
+        audio.channels = 2
+        audio.position = [ FL FR ]
+        target.object = "alsa_output.usb-Lenovo_ThinkPad_Thunderbolt_3_Dock_USB_Audio_000000000000-00.analog-stereo"
+      }
+    }
+  }
+]
+EOF
+  cat >~/.config/wireplumber/wireplumber.conf.d/71-dock-raw-speaker-priority.conf <<'EOF'
+# Demote the raw ThinkPad TB3 Dock sink so the tuned filter-chain sink is the
+# auto-selected default on the dock. The raw sink must still exist -- the
+# filter-chain targets it.
+monitor.alsa.rules = [
+  {
+    matches = [ { node.name = "alsa_output.usb-Lenovo_ThinkPad_Thunderbolt_3_Dock_USB_Audio_000000000000-00.analog-stereo" } ]
+    actions = {
+      update-props = {
+        priority.session = 100
+        node.description = "ThinkPad TB3 Dock (raw, untuned)"
+      }
+    }
+  }
+]
+EOF
+  systemctl --user restart pipewire pipewire-pulse wireplumber
+fi
+
 # Note: Omarchy 4 replaced swayosd with its own Quickshell OSD, so no swayosd
 # config is written. The volume keys below drive Omarchy's native OSD via
 # omarchy-osd (see the omarchy-volume-osd wrapper further down).
