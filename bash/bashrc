@@ -29,6 +29,28 @@ export NNN_COLORS='#0a1b2c3d;1234'
 export NNN_FCOLORS='c1e2272e006033f7c6d6abc4'
 export PATH="$HOME/.local/bin:$PATH"
 
+# Revive a wedged USB/Thunderbolt-dock audio DAC without sudo.
+# The ThinkPad TB3 dock's USB-audio card stays enumerated after a link
+# renegotiation (monitor sleep, hotplug, PD blip) but its analog output goes
+# dead -- every software indicator stays green (unmuted, RUNNING, hw_ptr moving)
+# while the jack is silent, and the device has no jack detection to signal the
+# fault or auto-recover. Cycling the card profile off->on forces PipeWire to
+# re-open the ALSA device and revives the DAC.
+# See awareness-ledger INC-2026-08-20-dock-audio-dac-wedge.
+dock-audio-reset() {
+  local card
+  card=$(pactl list short cards 2>/dev/null | awk '/Thunderbolt_3_Dock/ {print $2; exit}')
+  if [ -z "$card" ]; then
+    echo "dock-audio-reset: ThinkPad Thunderbolt 3 Dock audio card not found" >&2
+    return 1
+  fi
+  echo "dock-audio-reset: cycling profile on $card ..."
+  pactl set-card-profile "$card" off || return 1
+  sleep 1
+  pactl set-card-profile "$card" output:analog-stereo+input:mono-fallback || return 1
+  echo "dock-audio-reset: dock audio re-opened."
+}
+
 # Default Prompt (only if Starship is not installed)
 if ! command -v starship &>/dev/null; then
   export PS1="\n\[\033[0;33m\][\[\033[0;36m\]\t\[\033[0;33m\]] \[\033[0;35m\]\u\[\033[0;32m\]@\H \[\033[0;34m\]\w\n\[\033[0;33m\]~\\$ \[\033[0;0m\]"
