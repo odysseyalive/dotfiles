@@ -51,6 +51,32 @@ dock-audio-reset() {
   echo "dock-audio-reset: dock audio re-opened."
 }
 
+# A/B the T490 internal-speaker correction against raw output, instantly (no
+# restart). The default sink is the Dolby-convolver filter-chain sink
+# (60-t490-speaker-tuning.conf); this flips it to the flat/untuned hardware sink
+# and back so you can hear exactly what the correction does. Corrected is the
+# right long-term default -- this is just an ear check.
+#   speaker-ab            toggle corrected <-> raw
+#   speaker-ab on|off     force corrected | raw
+#   speaker-ab status     show current default sink
+speaker-ab() {
+  local tuned="effect_input.t490-tuned-speakers"
+  local raw="alsa_output.pci-0000_00_1f.3.analog-stereo"
+  local cur; cur=$(pactl get-default-sink 2>/dev/null)
+  case "${1:-toggle}" in
+    on|tuned)     pactl set-default-sink "$tuned" && echo "speaker-ab: CORRECTED (Dolby convolver)";;
+    off|raw|flat) pactl set-default-sink "$raw"   && echo "speaker-ab: RAW (flat, untuned)";;
+    status)       echo "speaker-ab: default sink = $cur";;
+    toggle)
+      if [ "$cur" = "$tuned" ]; then
+        pactl set-default-sink "$raw"   && echo "speaker-ab: RAW (flat, untuned)"
+      else
+        pactl set-default-sink "$tuned" && echo "speaker-ab: CORRECTED (Dolby convolver)"
+      fi;;
+    *) echo "usage: speaker-ab [on|off|status|toggle]" >&2; return 1;;
+  esac
+}
+
 # Default Prompt (only if Starship is not installed)
 if ! command -v starship &>/dev/null; then
   export PS1="\n\[\033[0;33m\][\[\033[0;36m\]\t\[\033[0;33m\]] \[\033[0;35m\]\u\[\033[0;32m\]@\H \[\033[0;34m\]\w\n\[\033[0;33m\]~\\$ \[\033[0;0m\]"

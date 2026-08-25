@@ -414,52 +414,37 @@ EOF
   systemctl --user restart pipewire pipewire-pulse wireplumber
 fi
 
-# Voicing for the ThinkPad Thunderbolt 3 Dock line-out. The dock is plain USB Audio
-# Class with no per-device tuning, so it plays flat -- and being a raw hardware sink
-# it is capped at its 0 dB base volume, so it was quieter than the tuned internal
-# path (which rides the 2.0 channelmix headroom) on the same volume keybind. Route
-# it through a filter-chain sink: the sink inherits channelmix.max-volume=2.0 (fixes
-# the loudness gap) and applies a gentle hi-fi "smiley" EQ (fixes the flat sound).
-# This is NOT the speaker-cabinet convolver above -- that IR corrects the T490's own
-# drivers and would be wrong on a line-out feeding external powered speakers; here
-# it is a mild broadband EQ. Clipping-safe: each shelf boosts +1.5 dB and a linear
-# stage attenuates -1.5 dB, so no band exceeds unity. Same DMI gate (this is the
-# dock used with this machine); selection is by priority, like the internal block.
+# Accurate/flat path for the ThinkPad Thunderbolt 3 Dock line-out. The dock feeds
+# EXTERNAL powered speakers whose response we have not measured, so there is no
+# correct per-device correction to apply -- the faithful thing is a bit-transparent
+# passthrough that lets the speakers reproduce what is on the recording. (An earlier
+# "hi-fi smiley" EQ here was a pleasing coloration, not fidelity, and was removed.)
+# A filter-chain sink is still used, for two non-tonal reasons: it inherits
+# channelmix.max-volume=2.0 (loudness parity with the internal tuned path, so the
+# dock is not quieter on the same volume keybind), and it keeps the auto-select +
+# dock-audio-reset re-link behavior. This is NOT the speaker-cabinet convolver above
+# -- that IR corrects the T490's own drivers and would be wrong on a line-out. Same
+# DMI gate (this is the dock used with this machine); selection is by priority.
 if grep -qi 'ThinkPad T490' /sys/class/dmi/id/product_version 2>/dev/null; then
-  log "installing ThinkPad TB3 Dock line-out tuning (native PipeWire biquad EQ)"
+  log "installing ThinkPad TB3 Dock line-out path (native PipeWire flat/loudness-matched)"
   cat >~/.config/pipewire/pipewire.conf.d/61-dock-speaker-tuning.conf <<'EOF'
-# Native PipeWire tuning for the ThinkPad Thunderbolt 3 Dock line-out: a gentle
-# hi-fi biquad EQ + the 2.0 channelmix loudness headroom a filter-chain sink gets.
-# Builtin biquads, no third-party program. Clipping-safe (shelves +1.5 dB, makeup
-# -1.5 dB). Disable by removing this file and: systemctl --user restart pipewire
+# Native PipeWire path for the ThinkPad Thunderbolt 3 Dock line-out: bit-transparent
+# passthrough (two `copy` nodes, no EQ, no gain change) that keeps the 2.0 channelmix
+# loudness headroom a filter-chain sink gets. Flat/accurate by design -- the dock
+# feeds external powered speakers with no measured correction. Builtin filters, no
+# third-party program. Disable by removing this file and: systemctl --user restart pipewire
 context.modules = [
   { name = libpipewire-module-filter-chain
     args = {
-      node.description = "Dock Tuned Output"
-      media.name       = "Dock Tuned Output"
+      node.description = "Dock Output (flat, loudness-matched)"
+      media.name       = "Dock Output (flat, loudness-matched)"
       filter.graph = {
         nodes = [
-          { type = builtin  label = bq_lowshelf   name = lowFL
-            control = { "Freq" = 110   "Q" = 0.707  "Gain" = 1.5 } }
-          { type = builtin  label = bq_highshelf  name = highFL
-            control = { "Freq" = 9000  "Q" = 0.707  "Gain" = 1.5 } }
-          { type = builtin  label = linear        name = gainFL
-            control = { "mult" = 0.841  "add" = 0.0 } }
-          { type = builtin  label = bq_lowshelf   name = lowFR
-            control = { "Freq" = 110   "Q" = 0.707  "Gain" = 1.5 } }
-          { type = builtin  label = bq_highshelf  name = highFR
-            control = { "Freq" = 9000  "Q" = 0.707  "Gain" = 1.5 } }
-          { type = builtin  label = linear        name = gainFR
-            control = { "mult" = 0.841  "add" = 0.0 } }
+          { type = builtin  label = copy  name = passFL }
+          { type = builtin  label = copy  name = passFR }
         ]
-        links = [
-          { output = "lowFL:Out"   input = "highFL:In" }
-          { output = "highFL:Out"  input = "gainFL:In" }
-          { output = "lowFR:Out"   input = "highFR:In" }
-          { output = "highFR:Out"  input = "gainFR:In" }
-        ]
-        inputs  = [ "lowFL:In"   "lowFR:In" ]
-        outputs = [ "gainFL:Out" "gainFR:Out" ]
+        inputs  = [ "passFL:In" "passFR:In" ]
+        outputs = [ "passFL:Out" "passFR:Out" ]
       }
       audio.channels = 2
       audio.position = [ FL FR ]
@@ -468,7 +453,7 @@ context.modules = [
         media.class = Audio/Sink
         audio.channels = 2
         audio.position = [ FL FR ]
-        # Above the raw dock sink (demoted below) so the dock auto-selects tuned.
+        # Above the raw dock sink (demoted below) so the dock auto-selects this.
         priority.session = 2000
       }
       playback.props = {
