@@ -13,12 +13,13 @@
 | `workstation/nvim/lua/plugins/nvim-dap.lua` | Debug adapter config |
 | `workstation/nvim/lua/plugins/mason.lua` | LSP/formatter/linter installer |
 | `workstation/nvim/lua/plugins/conform.lua` | Code formatting |
-| `workstation/nvim/lua/plugins/copilot-chat.lua` | GitHub Copilot |
-| `workstation/nvim/lua/plugins/nvim-treesitter.lua` | Syntax highlighting |
+| `workstation/nvim/lua/plugins/codecompanion.lua` | AI chat/inline via OpenRouter (replaces CopilotChat) |
 | `workstation/nvim/lua/plugins/org-mode.lua` | Org-mode support |
 | `workstation/nvim/lua/plugins/vim-table-mode.lua` | Table editing |
 | `workstation/nvim/lua/plugins/coffeescript.lua` | CoffeeScript support |
-| `workstation/nvim/lua/plugins/kitty-themes.lua` | Kitty theme switching |
+| `workstation/nvim/lua/plugins/theme.lua` | Base colorscheme SeaShells (Omarchy-managed symlink on Omarchy machines) |
+| `workstation/nvim/lua/plugins/all-themes.lua` | Preloads alternate colorschemes for hot-reload |
+| `workstation/nvim/lua/config/remote_clipboard.lua` | OSC52 + Wayland clipboard bridge |
 
 ## Key Mappings
 

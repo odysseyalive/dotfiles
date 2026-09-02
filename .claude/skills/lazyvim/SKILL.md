@@ -28,12 +28,12 @@ The modern Neovim setup uses LazyVim with modular plugin configuration:
 - `nvim-dap.lua`: PHP debugging adapter configuration (uses Mason's php-debug-adapter)
 - `mason.lua`: LSP server/formatter/linter installer
 - `conform.lua`: Code formatting configuration
-- `copilot-chat.lua`: GitHub Copilot integration
-- `nvim-treesitter.lua`: Syntax highlighting
+- `codecompanion.lua`: AI chat/inline/agentic via OpenRouter (replaces CopilotChat; inline completion is still Copilot via the `ai.copilot` extra)
 - `org-mode.lua`: Org-mode support
 - `vim-table-mode.lua`: Table editing for Markdown/Org
 - `coffeescript.lua`: CoffeeScript support
-- `kitty-themes.lua`: Kitty terminal theme switching
+- `theme.lua`: base colorscheme (SeaShells, from `odysseyalive/kitty-themes.nvim`). On Omarchy machines this file is a symlink to the current Omarchy theme's `neovim.lua`; `all-themes.lua` preloads alternates and `omarchy-theme-hotreload.lua` reloads on theme switch
+- `remote_clipboard.lua` (in `lua/config/`): OSC52 + Wayland clipboard bridge for tmux/ssh/herdr sessions
 
 **Key Architectural Decisions**:
 1. Intelephense is the preferred PHP LSP (requires license key in `options.lua`)
@@ -47,7 +47,7 @@ The modern Neovim setup uses LazyVim with modular plugin configuration:
 
 To use the LazyVim configuration:
 ```bash
-mkdir -p ~/.config/nvim && rsync -azhLP ~/.yadrlite/workstation/lazyvim/ ~/.config/nvim
+mkdir -p ~/.config/nvim && rsync -azhLP ~/.yadrlite/workstation/nvim/ ~/.config/nvim
 ```
 
 **Plugin management**:
