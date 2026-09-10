@@ -610,36 +610,132 @@ OSD
 chmod +x ~/.local/bin/omarchy-volume-osd
 
 # Push-to-talk voice dictation (Voxtype): hold SUPER+ALT+V to speak, release to
-# transcribe. Hyprland only fires a release bind when the held-modifier mask still
-# matches at the instant the key goes up, so if SUPER lifts a hair before V the
-# SUPER+ALT+V release misses and dictation stays engaged; the ALT+V release bind
-# catches that ordering. No SUPER+V release bind — that combo is Omarchy's
-# Universal paste. `voxtype record stop` is idempotent (a no-op when idle), so the
-# fallback is safe. Lua config (Omarchy 4), falling back to bindings.conf.
+# transcribe.
+#
+# Hyprland drops a plain "SUPER + ALT + V" release bind in two separate ways
+# unless V happens to be the first key you lift:
+#   1. modmask matching -- a release bind only fires if the mods held at release
+#      still equal the bind's own mods AND the mods held at press time.
+#   2. shadowing -- releasing any key re-scans the binds and marks every bind
+#      whose key is still held as "shadowed", which skips it. Lifting SUPER or
+#      ALT while V is down shadows the V release bind outright.
+# ignore_mods defeats (1), transparent defeats (2), and non_consuming keeps
+# these binds from swallowing an ordinary keypress, since with ignore_mods they
+# now match every release of that key. The release of SUPER and ALT is bound
+# too, so whichever key you lift first ends the recording.
+#
+# The stop bind runs through a wrapper rather than calling `voxtype record stop`
+# directly, because with ignore_mods it fires on every V/SUPER/ALT key-up. The
+# wrapper reads voxtype's state file and does nothing unless a recording is
+# actually in progress. NOTE: voxtype writes that file with no trailing newline,
+# so `read` returns 1 even though it read the value -- never gate on its exit
+# status. No SUPER+V release bind -- that combo is Omarchy's Universal paste.
+log "installing voxtype push-to-talk helpers"
+mkdir -p ~/.local/bin
+cat >~/.local/bin/voxtype-ptt-start <<'PTT'
+#!/bin/sh
+# Start voxtype push-to-talk dictation, logging the trigger.
+printf '%s  start on %-8s press\n' "$(date +%H:%M:%S.%3N)" "${1:-?}" >>"$HOME/.cache/voxtype-ptt.log"
+exec voxtype record start
+PTT
+cat >~/.local/bin/voxtype-ptt-stop <<'PTT'
+#!/bin/sh
+# Stop voxtype push-to-talk dictation, but only when it is actually recording.
+#
+# Bound to the release of V, SUPER and ALT with ignore_mods, so this runs on
+# every key-up of any of those, not just SUPER+ALT+V. The state check below
+# keeps it a cheap no-op the rest of the time (no signal sent to the daemon,
+# nothing logged).
+#
+# NOTE: voxtype writes the state file with NO trailing newline, so `read`
+# returns 1 even though it did read the value. Never gate on its exit status.
+#
+# $1 is the key that triggered it, used only for the log.
+runtime="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+log="$HOME/.cache/voxtype-ptt.log"
+
+s=""
+read -r s < "$runtime/voxtype/state" 2>/dev/null
+[ "$s" = "recording" ] || exit 0
+
+voxtype record stop
+rc=$?
+printf '%s  stop on %-8s release (exit %d)\n' "$(date +%H:%M:%S.%3N)" "${1:-?}" "$rc" >>"$log"
+
+# keep the log from growing without bound
+if [ "$(wc -l < "$log")" -gt 400 ]; then
+  tail -n 200 "$log" >"$log.tmp" && mv "$log.tmp" "$log"
+fi
+PTT
+chmod +x ~/.local/bin/voxtype-ptt-start ~/.local/bin/voxtype-ptt-stop
+mkdir -p ~/.cache
+
+# Drop the superseded v1 block on machines that ran an earlier install. It bound
+# SUPER+ALT+V release plus an ALT+V fallback; shadowing meant the fallback could
+# never fire, so dictation stayed engaged until the 60s timeout.
+if [ -f ~/.config/hypr/bindings.lua ] &&
+  grep -qF "yadrlite: voxtype push-to-talk" ~/.config/hypr/bindings.lua &&
+  ! grep -qF "yadrlite: voxtype push-to-talk v2" ~/.config/hypr/bindings.lua; then
+  awk '
+    /^-- yadrlite: voxtype push-to-talk/ { skip = 1 }
+    skip && /^end$/ { skip = 0; next }
+    !skip { print }
+  ' ~/.config/hypr/bindings.lua >~/.config/hypr/bindings.lua.tmp &&
+    mv ~/.config/hypr/bindings.lua.tmp ~/.config/hypr/bindings.lua
+  log "removed superseded voxtype push-to-talk bindings from bindings.lua"
+fi
+
+# Lua config (Omarchy 4), falling back to bindings.conf.
 if [ -f ~/.config/hypr/bindings.lua ]; then
-  if ! grep -qF "yadrlite: voxtype push-to-talk" ~/.config/hypr/bindings.lua; then
+  if ! grep -qF "yadrlite: voxtype push-to-talk v2" ~/.config/hypr/bindings.lua; then
     cat >>~/.config/hypr/bindings.lua <<'LUA'
 
--- yadrlite: voxtype push-to-talk — hold SUPER+ALT+V to speak, release to transcribe.
--- The ALT+V release bind is a fallback for releasing SUPER a hair before V, so
--- dictation still disengages. No SUPER+V release bind (that's Universal paste).
+-- yadrlite: voxtype push-to-talk v2 — hold SUPER+ALT+V to speak, release to
+-- transcribe. Releasing any one of V, SUPER or ALT ends the recording:
+-- ignore_mods beats Hyprland's modmask matching, transparent beats its
+-- shadowing of binds whose key is still held, and non_consuming keeps these
+-- binds from swallowing ordinary keypresses. voxtype-ptt-stop is a no-op
+-- unless a recording is in progress. No SUPER+V bind (that's Universal paste).
 if o.cmd_present("voxtype") then
-  o.bind("SUPER + ALT + V", "Start dictation (push-to-talk)", "voxtype record start")
-  o.bind("SUPER + ALT + V", "Stop dictation (push-to-talk)", "voxtype record stop", { release = true })
-  o.bind("ALT + V", "Stop dictation (SUPER released first)", "voxtype record stop", { release = true })
+  o.bind("SUPER + ALT + V", "Start dictation (push-to-talk)", "$HOME/.local/bin/voxtype-ptt-start V")
+
+  local ptt_release = {
+    release = true,
+    ignore_mods = true,
+    transparent = true,
+    non_consuming = true,
+  }
+
+  o.bind("SUPER + ALT + V", "Stop dictation (push-to-talk)", "$HOME/.local/bin/voxtype-ptt-stop V", ptt_release)
+  for _, key in ipairs({ "Super_L", "Super_R", "Alt_L", "Alt_R" }) do
+    o.bind(key, nil, "$HOME/.local/bin/voxtype-ptt-stop " .. key, {
+      release = true,
+      ignore_mods = true,
+      transparent = true,
+      non_consuming = true,
+    })
+  end
 end
 LUA
     log "voxtype push-to-talk bindings added to bindings.lua"
   fi
 elif [ -f ~/.config/hypr/bindings.conf ]; then
-  if ! grep -q "voxtype record start" ~/.config/hypr/bindings.conf; then
+  # Legacy pre-Omarchy-4 config. Same flags in legacy letter form: r=release,
+  # n=non-consuming, i=ignore mods, t=transparent. Untested on this machine,
+  # which runs Omarchy 4 -- the Lua branch above is the one in daily use.
+  sed -i '/^bindr = ALT, V, exec, voxtype record stop$/d' ~/.config/hypr/bindings.conf
+  sed -i '/^bindr = SUPER ALT, V, exec, voxtype record stop$/d' ~/.config/hypr/bindings.conf
+  if ! grep -q "voxtype-ptt-stop" ~/.config/hypr/bindings.conf; then
     cat >>~/.config/hypr/bindings.conf <<'EOF'
 
 # Push-to-talk dictation (Voxtype) — hold SUPER+ALT+V to speak, release to transcribe.
-# ALT+V release is a fallback for releasing SUPER before V. No SUPER+V (Universal paste).
-bind = SUPER ALT, V, exec, voxtype record start
-bindr = SUPER ALT, V, exec, voxtype record stop
-bindr = ALT, V, exec, voxtype record stop
+# Releasing any of V, SUPER or ALT stops it. No SUPER+V (Universal paste).
+bind = SUPER ALT, V, exec, $HOME/.local/bin/voxtype-ptt-start V
+bindrnit = SUPER ALT, V, exec, $HOME/.local/bin/voxtype-ptt-stop V
+bindrnit = , Super_L, exec, $HOME/.local/bin/voxtype-ptt-stop Super_L
+bindrnit = , Super_R, exec, $HOME/.local/bin/voxtype-ptt-stop Super_R
+bindrnit = , Alt_L, exec, $HOME/.local/bin/voxtype-ptt-stop Alt_L
+bindrnit = , Alt_R, exec, $HOME/.local/bin/voxtype-ptt-stop Alt_R
 EOF
     log "voxtype push-to-talk bindings added to bindings.conf"
   fi
