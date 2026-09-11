@@ -45,3 +45,9 @@ get_shell_rc() {
     echo "$HOME/.zshrc"
   fi
 }
+
+# Returns 0 when this install was flagged headless (server / no-root box).
+# Hooks use it to skip anything that needs sudo or a workstation-only tool.
+is_headless() {
+  [ -f "${YADR_DIR:-$HOME/.yadrlite}/.headless" ]
+}

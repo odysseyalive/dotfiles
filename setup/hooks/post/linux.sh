@@ -3,9 +3,12 @@
 # btrfs/font/Ghostty steps are skipped silently on headless servers without
 # the required tools.
 
-if command -v sudo >/dev/null 2>&1 && command -v btrfs >/dev/null 2>&1; then
+# btrfs quota disable is a workstation tweak that needs root. Skip it on
+# headless servers, and never block on a sudo password prompt (only run it
+# when sudo is already non-interactive), so an unattended run can't hang.
+if ! is_headless && command -v sudo >/dev/null 2>&1 && command -v btrfs >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
   echo "# # Disabling btrfs quota"
-  sudo btrfs quota disable / 2>/dev/null || true
+  sudo -n btrfs quota disable / 2>/dev/null || true
 fi
 
 echo "# # Installing Fira Code Nerd Font"
