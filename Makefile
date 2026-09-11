@@ -27,6 +27,30 @@ lint: ## Run ShellCheck and basic shell syntax checks
 	else \
 		echo "Bash not found. Skipping bash syntax check."; \
 	fi
+	@echo "==> Checking bash syntax for workstation helpers..."
+	@if command -v bash >/dev/null; then \
+		bash -n workstation/scripts/*; \
+		echo "Workstation script syntax OK."; \
+	else \
+		echo "Bash not found. Skipping workstation script check."; \
+	fi
+	@echo "==> Validating ssh/resilience.conf parses..."
+	@if command -v ssh >/dev/null; then \
+		f=/tmp/yadrlite-ssh-check.$$$$; \
+		printf 'Host *\nInclude $(CURDIR)/ssh/resilience.conf\n' > $$f; \
+		ssh -T -F $$f -G lint-probe >/dev/null 2>&1; rc=$$?; \
+		rm -f $$f; \
+		if [ $$rc -ne 0 ]; then \
+			echo "ssh/resilience.conf has invalid directives:"; \
+			printf 'Host *\nInclude $(CURDIR)/ssh/resilience.conf\n' > $$f; \
+			ssh -T -F $$f -G lint-probe 2>&1 >/dev/null | sed 's/^/  /'; \
+			rm -f $$f; \
+			exit 1; \
+		fi; \
+		echo "ssh config OK."; \
+	else \
+		echo "ssh not found. Skipping ssh config check."; \
+	fi
 	@echo "==> Checking zsh syntax for setup.zsh..."
 	@if command -v zsh >/dev/null; then \
 		zsh -n setup.zsh setup/common.sh; \

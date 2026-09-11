@@ -111,6 +111,7 @@ We've moved the massive lists of shortcuts and editor documentation into their o
 - [Ghostty (Terminal)](docs/ghostty.md)
 - [Kitty (Terminal)](docs/kitty.md)
 - [Hyprland (Linux Window Manager)](docs/hyprland.md)
+- [Network (Wi-Fi diagnostics & SSH resilience)](docs/network.md)
 
 ---
 

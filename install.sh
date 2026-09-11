@@ -184,6 +184,40 @@ done
 mkdir -p ~/.config/tmux
 ln -sf "$dir/tmux.conf" ~/.config/tmux/tmux.conf
 
+# SSH resilience defaults for links that jitter (congested Wi-Fi, tethering).
+# ~/.ssh/config itself is deliberately NOT tracked -- it holds private hosts,
+# users, and key paths -- so we only append an Include pointing at the generic
+# Host * block in the repo.
+#
+# The Include goes at the END of the file on purpose: ssh_config uses the first
+# value it obtains for each parameter, so appending keeps every existing Host
+# block authoritative and supplies these only as fallbacks.
+echo "# # SSH connection resilience"
+echo "# # # # # # # # # # # # # # # # # # # # # #"
+mkdir -p ~/.ssh/sockets                 # ControlPath target; ssh will not create it
+chmod 700 ~/.ssh/sockets 2>/dev/null
+touch ~/.ssh/config 2>/dev/null
+chmod 600 ~/.ssh/config 2>/dev/null
+# Match on the repo-relative tail, not on "$dir": the guard must still hold when
+# the repo lives somewhere other than ~/.yadrlite, or the Include is duplicated
+# on every re-run.
+if grep -q "ssh/resilience.conf" ~/.ssh/config 2>/dev/null; then
+  echo "SSH resilience defaults already included; leaving ~/.ssh/config alone."
+else
+  # The bare "Host *" line before the Include is required, not cosmetic. An
+  # Include inherits the block it sits in, so appending it after the last
+  # "Host foo" block would apply it to that host alone. "Host *" resets the
+  # match to everything; because it is still last in the file, per-host
+  # settings above continue to win (ssh takes the first value it obtains).
+  {
+    echo ""
+    echo "# Added by YADRLite -- generic fallbacks. Keep this last."
+    echo "Host *"
+    echo "Include $dir/ssh/resilience.conf"
+  } >>~/.ssh/config
+  echo "Included SSH resilience defaults at the end of ~/.ssh/config."
+fi
+
 # Ensure Homebrew environment variables land in the right shell rc.
 # Workstation default: ~/.zshrc. Headless: ~/.bashrc.
 if [ "$HEADLESS" = "1" ]; then

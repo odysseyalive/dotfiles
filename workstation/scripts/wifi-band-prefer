@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+# wifi-band-prefer - prefer 5 GHz on a dual-band SSID, without losing 2.4 GHz.
+#
+# Most home routers publish 2.4 GHz and 5 GHz under one SSID and let the client
+# choose. Clients often stick to 2.4 GHz because it is louder, even when that
+# channel is saturated and 5 GHz is idle -- louder is not the same as faster.
+#
+# NetworkManager has no "prefer 5 GHz" switch. What it does have is per-profile
+# band locking plus autoconnect priority, so this script builds the preference
+# out of two profiles for the same SSID:
+#
+#   "<SSID> (5GHz)"  band=a   priority=10   <- tried first
+#   "<SSID>"         unlocked priority=0    <- fallback, unchanged
+#
+# If the 5 GHz BSSID is out of range the first profile simply cannot activate
+# and NetworkManager falls through to the original. That fallback is the whole
+# reason for the two-profile approach: locking the *existing* profile to band=a
+# would leave the machine with no connection at all wherever 5 GHz is absent.
+#
+# 5 GHz carries less far than 2.4 GHz. If the 5 GHz signal at your usual desk is
+# weaker than about -75 dBm, prefer fixing the AP channel instead -- run
+# `net-doctor` to see both numbers before deciding.
+
+set -euo pipefail
+
+PRIORITY=10
+SUFFIX="(5GHz)"
+
+die()  { printf '\033[31merror:\033[0m %s\n' "$1" >&2; exit 1; }
+info() { printf '\033[1m%s\033[0m\n' "$1"; }
+
+command -v nmcli >/dev/null 2>&1 || die "nmcli not found; this script requires NetworkManager."
+
+usage() {
+  cat <<'EOF'
+Usage: wifi-band-prefer <5|auto|status> [ssid]
+
+  5       Prefer the 5 GHz radio of the SSID, keeping 2.4 GHz as fallback.
+  auto    Undo the preference; let the driver choose again.
+  status  Show the current band, signal, and whether a preference is active.
+
+With no [ssid], the currently active Wi-Fi connection is used.
+EOF
+}
+
+# Resolve the SSID to act on: explicit argument, else whatever is active now.
+active_ssid() {
+  nmcli -t -f ACTIVE,SSID dev wifi list 2>/dev/null |
+    awk -F: '/^yes:/{print substr($0,5); exit}'
+}
+
+cmd_status() {
+  local ssid dev freq sig band
+  dev=$(nmcli -t -f DEVICE,TYPE,STATE dev status | awk -F: '$2=="wifi" && $3=="connected"{print $1; exit}')
+  [ -n "$dev" ] || die "no connected Wi-Fi device."
+  ssid=$(active_ssid)
+
+  freq=$(iw dev "$dev" link 2>/dev/null | awk '/freq:/{print int($2); exit}')
+  sig=$(iw dev "$dev" link 2>/dev/null | awk '/signal:/{print $2; exit}')
+  if [ -n "$freq" ] && [ "$freq" -lt 3000 ]; then band="2.4 GHz"; else band="5 GHz"; fi
+
+  info "Current association"
+  printf '  ssid    %s\n  band    %s (%s MHz)\n  signal  %s dBm\n' \
+    "${ssid:-?}" "$band" "${freq:-?}" "${sig:-?}"
+
+  info "Bands advertised by this SSID"
+  nmcli -t -f SSID,FREQ,SIGNAL,CHAN dev wifi list 2>/dev/null |
+    awk -F: -v s="$ssid" '$1==s {
+      b = (int($2) < 3000) ? "2.4 GHz" : "5 GHz"
+      # nmcli already renders FREQ as "5785 MHz"; do not append the unit again.
+      printf "  %-8s ch %-4s %-9s signal %s\n", b, $4, $2, $3
+    }'
+
+  info "Preference"
+  if nmcli -t -f NAME connection show | grep -qF "$ssid $SUFFIX"; then
+    printf '  active -- "%s %s" is tried before the 2.4 GHz fallback.\n' "$ssid" "$SUFFIX"
+  else
+    printf '  none -- the driver picks whichever band it likes.\n'
+  fi
+}
+
+cmd_prefer5() {
+  local ssid="$1" base pref
+  [ -n "$ssid" ] || die "could not determine the SSID; pass it explicitly."
+  pref="$ssid $SUFFIX"
+
+  # Confirm the SSID really has a 5 GHz BSSID before building a profile that
+  # could never activate.
+  if ! nmcli -t -f SSID,FREQ dev wifi list 2>/dev/null |
+       awk -F: -v s="$ssid" '$1==s && int($2)>3000{found=1} END{exit !found}'; then
+    die "'$ssid' does not advertise a 5 GHz radio (or it is out of range right now)."
+  fi
+
+  if nmcli -t -f NAME connection show | grep -qxF "$pref"; then
+    info "Preference already present; refreshing its settings."
+  else
+    # Find the saved profile for this SSID so the PSK is inherited by the clone
+    # rather than re-entered here.
+    base=$(nmcli -t -f NAME,TYPE connection show |
+      awk -F: -v s="$ssid" '$2=="802-11-wireless" && $1==s {print $1; exit}')
+    [ -n "$base" ] || die "no saved profile named '$ssid' to clone credentials from."
+    info "Cloning '$base' -> '$pref'"
+    nmcli connection clone "$base" "$pref" >/dev/null
+  fi
+
+  # band=a locks this profile to 5 GHz; the higher priority makes NetworkManager
+  # attempt it before the untouched 2.4 GHz-capable original.
+  nmcli connection modify "$pref" \
+    802-11-wireless.band a \
+    connection.autoconnect yes \
+    connection.autoconnect-priority "$PRIORITY"
+
+  # Keep the original reachable as the fallback, explicitly at lower priority.
+  nmcli connection modify "$ssid" connection.autoconnect-priority 0 2>/dev/null || true
+
+  info "Done."
+  cat <<EOF
+
+  "$pref" will be tried first; "$ssid" remains as the 2.4 GHz fallback.
+
+  Apply it now with:
+      nmcli connection up "$pref"
+
+  Then confirm the result with:
+      net-doctor
+
+  If 5 GHz turns out to be too weak where you work, undo it with:
+      wifi-band-prefer auto "$ssid"
+EOF
+}
+
+cmd_auto() {
+  local ssid="$1" pref
+  [ -n "$ssid" ] || die "could not determine the SSID; pass it explicitly."
+  pref="$ssid $SUFFIX"
+
+  if nmcli -t -f NAME connection show | grep -qxF "$pref"; then
+    info "Removing '$pref'"
+    nmcli connection delete "$pref" >/dev/null
+  else
+    info "No band preference was set for '$ssid'."
+  fi
+  nmcli connection modify "$ssid" connection.autoconnect-priority 0 2>/dev/null || true
+  info "Band selection is back to automatic."
+}
+
+action="${1:-status}"
+ssid_arg="${2:-$(active_ssid)}"
+
+case "$action" in
+  5|5g|5ghz)     cmd_prefer5 "$ssid_arg" ;;
+  auto|reset|off) cmd_auto "$ssid_arg" ;;
+  status)        cmd_status ;;
+  -h|--help|help) usage ;;
+  *) usage; exit 1 ;;
+esac

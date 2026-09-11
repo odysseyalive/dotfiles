@@ -794,6 +794,76 @@ ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10ec", ATTR{device}=="0x522a",
   log "realtek card reader udev rule installed"
 fi
 
+# Network diagnostics + Wi-Fi band helper.
+#
+# Background: on this laptop, streaming audio clipped and interactive SSH stalled
+# while ping reported 0% packet loss. The link was associated to the 2.4 GHz
+# radio of a dual-band SSID, sharing that channel with several neighbouring APs,
+# while AirPods streamed A2DP over the same band -- and the AX201 is a CNVi part
+# whose Wi-Fi and Bluetooth sit behind one shared RF front-end. The result was a
+# ~23% frame retry rate and latency spiking from 2ms to 66ms. Nothing was
+# "down"; the airtime was simply gone.
+#
+# These two helpers exist so that failure is measurable next time instead of
+# being rediscovered from scratch. `net-doctor` reports band, retry rate,
+# co-channel neighbours, Bluetooth coexistence, and jitter; `wifi-band-prefer`
+# moves a dual-band SSID to 5 GHz while keeping 2.4 GHz as fallback.
+#
+# Deliberately NOT done here: setting iwlwifi bt_coex_active=0. Disabling
+# coexistence is widely suggested online and is actively harmful on a shared
+# front-end -- it stops Wi-Fi and Bluetooth from scheduling around each other,
+# so they transmit over one another instead. The band change is the real fix.
+log "installing network diagnostics helpers"
+mkdir -p ~/.local/bin
+for _netscript in net-doctor wifi-band-prefer; do
+  if [ -f "$SCRIPT_DIR/workstation/scripts/$_netscript" ]; then
+    cp "$SCRIPT_DIR/workstation/scripts/$_netscript" ~/.local/bin/"$_netscript"
+    chmod +x ~/.local/bin/"$_netscript"
+    log "installed $_netscript"
+  elif [ -f ~/.yadrlite/workstation/scripts/"$_netscript" ]; then
+    cp ~/.yadrlite/workstation/scripts/"$_netscript" ~/.local/bin/"$_netscript"
+    chmod +x ~/.local/bin/"$_netscript"
+    log "installed $_netscript"
+  else
+    log "WARNING: $_netscript not found in the repo; skipped."
+  fi
+done
+
+# Wi-Fi power saving parks the radio between beacons to save battery, which adds
+# tens of milliseconds to every exchange and is a common cause of choppy audio
+# and laggy SSH. Omarchy already ships this as
+# /etc/NetworkManager/conf.d/omarchy-wifi-powersave.conf; assert it only if that
+# file is absent, so we never fight the distro over ownership of the same knob.
+if [ ! -f /etc/NetworkManager/conf.d/omarchy-wifi-powersave.conf ] &&
+   [ ! -f /etc/NetworkManager/conf.d/wifi-powersave.conf ]; then
+  log "disabling wifi power saving (no distro-managed file present)"
+  # 2 = disable. 3 would enable it; 0/1 defer to the driver default.
+  echo '[connection]
+wifi.powersave = 2' | sudo tee /etc/NetworkManager/conf.d/wifi-powersave.conf >/dev/null
+  sudo systemctl reload NetworkManager 2>/dev/null || true
+else
+  log "wifi powersave already managed by an existing NetworkManager conf.d file"
+fi
+
+# SSH resilience defaults (see ssh/resilience.conf for the reasoning). Appended
+# rather than symlinked because ~/.ssh/config holds private hosts and keys, and
+# placed last because ssh_config takes the first value it obtains per parameter.
+log "configuring ssh connection resilience"
+mkdir -p ~/.ssh/sockets && chmod 700 ~/.ssh/sockets
+touch ~/.ssh/config && chmod 600 ~/.ssh/config
+if ! grep -q "ssh/resilience.conf" ~/.ssh/config 2>/dev/null; then
+  _sshinc="$SCRIPT_DIR/ssh/resilience.conf"
+  [ -f "$_sshinc" ] || _sshinc="$HOME/.yadrlite/ssh/resilience.conf"
+  if [ -f "$_sshinc" ]; then
+    # "Host *" before the Include is required: an Include inherits the block it
+    # sits in, so without it the settings would apply only to the last host
+    # defined above. See install.sh for the full explanation.
+    printf '\n# Added by YADRLite -- generic fallbacks. Keep this last.\nHost *\nInclude %s\n' \
+      "$_sshinc" >>~/.ssh/config
+    log "ssh resilience include added"
+  fi
+fi
+
 # clean everything
 yay -Scc --noconfirm
 

@@ -1,0 +1,276 @@
+#!/usr/bin/env bash
+# net-doctor - explain *why* the network feels choppy, not just whether it's up.
+#
+# Written after a session where streaming audio clipped and interactive SSH
+# inside tmux stalled, while ping showed 0% packet loss. Loss was never the
+# problem: the link was on a saturated 2.4 GHz channel while Bluetooth audio
+# shared the same radio front-end, so airtime -- not bandwidth -- was gone.
+# That shape of failure is invisible to `ping -c 4` and to speedtest sites,
+# both of which report "fine". The signals that actually matter are the Wi-Fi
+# retry rate, co-channel neighbours, and latency *jitter*.
+#
+# Read-only: this script diagnoses and never changes configuration.
+# To act on a 2.4 GHz verdict, see the sibling `wifi-band-prefer` script.
+
+set -uo pipefail
+
+RED=$'\033[31m'; YEL=$'\033[33m'; GRN=$'\033[32m'; DIM=$'\033[2m'; BLD=$'\033[1m'; RST=$'\033[0m'
+[ -t 1 ] || { RED=; YEL=; GRN=; DIM=; BLD=; RST=; }
+
+SAMPLE="${NET_DOCTOR_SAMPLE:-10}"   # seconds to sample retry rate
+PINGS="${NET_DOCTOR_PINGS:-50}"     # probes per latency test
+
+findings=0
+note_ok()   { printf '  %s✓%s %s\n' "$GRN" "$RST" "$1"; }
+note_warn() { printf '  %s!%s %s\n' "$YEL" "$RST" "$1"; findings=$((findings + 1)); }
+note_bad()  { printf '  %s✗%s %s\n' "$RED" "$RST" "$1"; findings=$((findings + 1)); }
+section()   { printf '\n%s%s%s\n' "$BLD" "$1" "$RST"; }
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+# ---------------------------------------------------------------- interface --
+# The default route decides which interface actually carries traffic; a laptop
+# with docker bridges and a downed NIC has plenty of interfaces that don't.
+DEV=$(ip route show default 2>/dev/null | awk '/^default/{print $5; exit}')
+GW=$(ip route show default 2>/dev/null | awk '/^default/{print $3; exit}')
+
+if [ -z "$DEV" ]; then
+  printf '%sNo default route -- this machine has no path to the internet.%s\n' "$RED" "$RST"
+  exit 1
+fi
+
+section "Link"
+if [ -d "/sys/class/net/$DEV/wireless" ] || [ -e "/sys/class/net/$DEV/phy80211" ]; then
+  LINKTYPE=wifi
+else
+  LINKTYPE=wired
+fi
+printf '  interface   %s (%s)\n' "$DEV" "$LINKTYPE"
+printf '  gateway     %s\n' "${GW:-none}"
+
+if [ "$LINKTYPE" = wired ]; then
+  note_ok "Wired link -- none of the radio contention below applies."
+fi
+
+# --------------------------------------------------------------------- wifi --
+FREQ=""; SIGNAL=""; SSID=""
+if [ "$LINKTYPE" = wifi ] && have iw; then
+  section "Wi-Fi"
+  LINK=$(iw dev "$DEV" link 2>/dev/null)
+  SSID=$(printf '%s\n' "$LINK"  | awk -F': ' '/SSID:/{print $2; exit}')
+  FREQ=$(printf '%s\n' "$LINK"  | awk '/freq:/{print int($2); exit}')
+  SIGNAL=$(printf '%s\n' "$LINK" | awk '/signal:/{print $2; exit}')
+  RXR=$(printf '%s\n' "$LINK"   | awk -F': ' '/rx bitrate:/{print $2; exit}')
+  TXR=$(printf '%s\n' "$LINK"   | awk -F': ' '/tx bitrate:/{print $2; exit}')
+
+  if [ -z "$FREQ" ]; then
+    note_warn "Wi-Fi interface is not associated to an access point."
+  else
+    if [ "$FREQ" -lt 3000 ]; then BAND="2.4 GHz"; else BAND="5/6 GHz"; fi
+    printf '  ssid        %s\n' "${SSID:-?}"
+    printf '  band        %s (%s MHz)\n' "$BAND" "$FREQ"
+    printf '  signal      %s dBm\n' "${SIGNAL:-?}"
+    printf '  phy rate    rx %s / tx %s\n' "${RXR:-?}" "${TXR:-?}"
+
+    # Signal quality. -70 dBm is the usual "still fine" floor for streaming;
+    # below -75 dBm rate adaptation starts thrashing and retries climb.
+    if [ -n "$SIGNAL" ]; then
+      SIG_INT=${SIGNAL%%.*}
+      if [ "$SIG_INT" -lt -75 ] 2>/dev/null; then
+        note_bad "Signal ${SIGNAL} dBm is weak -- expect rate thrashing and stalls."
+      elif [ "$SIG_INT" -lt -70 ] 2>/dev/null; then
+        note_warn "Signal ${SIGNAL} dBm is marginal."
+      else
+        note_ok "Signal ${SIGNAL} dBm is healthy."
+      fi
+    fi
+
+    # --- retry rate ---------------------------------------------------------
+    # The single most diagnostic number for "fast link, choppy feel". Every
+    # retry is airtime spent re-sending a frame that already failed, which
+    # shows up to applications as a latency spike rather than as packet loss.
+    # Optional load generator. Retry rate is only meaningful with real frames in
+    # flight, so NET_DOCTOR_LOAD=1 pulls a throwaway download during the sample.
+    LOADPID=""
+    if [ "${NET_DOCTOR_LOAD:-0}" = "1" ] && have curl; then
+      curl -s -o /dev/null --max-time "$SAMPLE" \
+        "${NET_DOCTOR_LOAD_URL:-https://speed.cloudflare.com/__down?bytes=50000000}" &
+      LOADPID=$!
+    fi
+
+    read -r r0 p0 < <(iw dev "$DEV" station dump 2>/dev/null |
+      awk '/tx retries:/{r=$3} /tx packets:/{p=$3} END{print r+0, p+0}')
+    if [ -n "$LOADPID" ]; then
+      printf '  %ssampling retry rate for %ss under load...%s\n' "$DIM" "$SAMPLE" "$RST"
+    else
+      printf '  %ssampling retry rate for %ss...%s\n' "$DIM" "$SAMPLE" "$RST"
+    fi
+    sleep "$SAMPLE"
+    [ -n "$LOADPID" ] && { kill "$LOADPID" 2>/dev/null; wait "$LOADPID" 2>/dev/null; }
+    read -r r1 p1 < <(iw dev "$DEV" station dump 2>/dev/null |
+      awk '/tx retries:/{r=$3} /tx packets:/{p=$3} END{print r+0, p+0}')
+
+    dr=$((r1 - r0)); dp=$((p1 - p0))
+    # Sample size matters more than it looks. On a near-idle link the few frames
+    # sent are mostly low-rate management and probe traffic, which retries at a
+    # naturally high rate -- the same link measured 19.5% over 195 frames and
+    # 8.2% over 851 frames minutes apart. Below MIN_FRAMES the percentage is
+    # reported but NOT used to reach a verdict, or the tool cries saturation at
+    # an idle radio.
+    MIN_FRAMES=500
+    if [ "$dp" -ge "$MIN_FRAMES" ]; then
+      RATE=$(awk -v r="$dr" -v p="$dp" 'BEGIN{printf "%.1f", (r/p)*100}')
+      printf '  retry rate  %s%% (%d retries / %d frames in %ss)\n' "$RATE" "$dr" "$dp" "$SAMPLE"
+      # <5% is a clean channel; >15% means the channel is effectively full.
+      if awk -v x="$RATE" 'BEGIN{exit !(x>15)}'; then
+        note_bad "Retry rate ${RATE}% -- the channel is saturated. This is what clips audio and stalls SSH."
+      elif awk -v x="$RATE" 'BEGIN{exit !(x>5)}'; then
+        note_warn "Retry rate ${RATE}% is elevated (healthy is under 5%)."
+      else
+        note_ok "Retry rate ${RATE}% is healthy."
+      fi
+    elif [ "$dp" -gt 20 ]; then
+      RATE=$(awk -v r="$dr" -v p="$dp" 'BEGIN{printf "%.1f", (r/p)*100}')
+      printf '  retry rate  %s%% (%d retries / %d frames -- sample too small to judge)\n' \
+        "$RATE" "$dr" "$dp"
+      printf '              %sidle links retry at a high rate on management frames;%s\n' "$DIM" "$RST"
+      printf '              %srerun under load for a verdict: NET_DOCTOR_LOAD=1 net-doctor%s\n' "$DIM" "$RST"
+    else
+      printf '  retry rate  %sn/a -- no traffic during the sample%s\n' "$DIM" "$RST"
+      printf '              %srerun under load: NET_DOCTOR_LOAD=1 net-doctor%s\n' "$DIM" "$RST"
+    fi
+
+    # --- co-channel congestion ---------------------------------------------
+    # Wi-Fi is one shared medium per channel: every AP on your channel, even
+    # ones you'll never connect to, takes airtime from you. A neighbour that
+    # is *louder* than your own AP is especially damaging.
+    if have nmcli; then
+      section "Channel neighbourhood"
+      MYSIG=$(nmcli -t -f IN-USE,SIGNAL,FREQ dev wifi list 2>/dev/null |
+        awk -F: '/^\*/{print $2; exit}')
+      NEIGH=$(nmcli -t -f SIGNAL,FREQ,SSID dev wifi list 2>/dev/null |
+        awk -F: -v f="$FREQ" '{ if (int($2)==f) print $1":"$3 }' | sort -t: -k1 -rn)
+      COUNT=$(printf '%s\n' "$NEIGH" | grep -c . )
+      printf '  %d access point(s) share %s MHz:\n' "$COUNT" "$FREQ"
+      printf '%s\n' "$NEIGH" | grep . | while IFS=: read -r sig name; do
+        printf '    %3s  %s\n' "$sig" "${name:-<hidden>}"
+      done
+
+      if [ "${COUNT:-0}" -gt 3 ]; then
+        note_bad "$COUNT APs on your channel -- they consume the airtime you need."
+      elif [ "${COUNT:-0}" -gt 1 ]; then
+        note_warn "$COUNT APs on your channel."
+      else
+        note_ok "Channel is otherwise clear."
+      fi
+
+      # A louder neighbour wins arbitration more often than you do.
+      LOUDEST=$(printf '%s\n' "$NEIGH" | grep . | head -1)
+      LSIG=${LOUDEST%%:*}; LNAME=${LOUDEST#*:}
+      if [ -n "${MYSIG:-}" ] && [ -n "$LSIG" ] && [ "$LSIG" -gt "$MYSIG" ] 2>/dev/null &&
+         [ "$LNAME" != "${SSID:-}" ]; then
+        note_bad "'${LNAME:-<hidden>}' is louder ($LSIG) than your own AP ($MYSIG) on this channel."
+      fi
+
+      # Printers and TVs stand up permanent Wi-Fi Direct SoftAPs that most
+      # people never realise are broadcasting.
+      if printf '%s\n' "$NEIGH" | grep -qiE 'DIRECT-|_Ext|MicrowaveOven'; then
+        note_warn "A Wi-Fi Direct / repeater SoftAP is on your channel (printer, TV, or extender)."
+        printf '        %sturning that device'\''s Wi-Fi Direct off reclaims airtime%s\n' "$DIM" "$RST"
+      fi
+    fi
+
+    # --- Bluetooth coexistence ---------------------------------------------
+    # Intel CNVi parts (AX200/AX201/AX211...) put Wi-Fi and Bluetooth on one
+    # shared RF front-end. With Wi-Fi on 2.4 GHz, streaming A2DP audio forces
+    # the radio to time-share, and both the audio and the Wi-Fi suffer.
+    if [ "$FREQ" -lt 3000 ]; then
+      section "Bluetooth coexistence"
+      BTACTIVE=""
+      if have pactl; then
+        BTACTIVE=$(pactl list short sinks 2>/dev/null | awk '/bluez_output/ && /RUNNING/{print $2}')
+      fi
+      COEX=$(cat /sys/module/iwlwifi/parameters/bt_coex_active 2>/dev/null || echo "?")
+      printf '  bt_coex_active  %s\n' "$COEX"
+      if [ -n "$BTACTIVE" ]; then
+        printf '  active BT audio %s\n' "$BTACTIVE"
+        note_bad "Bluetooth audio is streaming while Wi-Fi is on 2.4 GHz -- they share one radio."
+        printf '        %suse a wired/USB output at the desk, or move Wi-Fi to 5 GHz%s\n' "$DIM" "$RST"
+      elif have bluetoothctl && bluetoothctl devices Connected 2>/dev/null | grep -q .; then
+        note_warn "A Bluetooth device is connected and Wi-Fi is on 2.4 GHz -- same band."
+      else
+        note_ok "No Bluetooth audio competing for the band right now."
+      fi
+    fi
+
+    # --- band advice --------------------------------------------------------
+    if [ "$FREQ" -lt 3000 ] && have nmcli && [ -n "${SSID:-}" ]; then
+      ALT=$(nmcli -t -f SSID,FREQ,SIGNAL dev wifi list 2>/dev/null |
+        awk -F: -v s="$SSID" '$1==s && int($2)>3000 {printf "%d MHz, signal %s", $2, $3; exit}')
+      if [ -n "$ALT" ]; then
+        note_warn "Your SSID also broadcasts on 5 GHz ($ALT) but you are associated to 2.4 GHz."
+        printf '        %s5 GHz is far less crowded and does not fight Bluetooth%s\n' "$DIM" "$RST"
+        printf '        %stry: wifi-band-prefer 5%s\n' "$DIM" "$RST"
+      fi
+    fi
+  fi
+fi
+
+# ------------------------------------------------------------------ latency --
+# Jitter, not average latency, is what breaks streaming and interactive typing.
+# Split the local hop from the internet hop so a bad Wi-Fi link is never
+# mistaken for a bad ISP.
+probe() {
+  local target="$1" label="$2"
+  local out
+  out=$(ping -c "$PINGS" -i 0.2 -q -W 2 "$target" 2>/dev/null | tail -3)
+  local loss rtt
+  loss=$(printf '%s\n' "$out" | awk -F', ' '/packet loss/{print $3}' | awk '{print $1}')
+  rtt=$(printf '%s\n' "$out" | awk -F'= ' '/rtt|round-trip/{print $2}')
+  if [ -z "$rtt" ]; then
+    note_warn "$label ($target): no reply."
+    return
+  fi
+  local min avg max mdev
+  IFS=/ read -r min avg max mdev <<<"${rtt% ms}"
+  printf '  %-10s min %sms  avg %sms  max %sms  jitter %sms  loss %s\n' \
+    "$label" "$min" "$avg" "$max" "$mdev" "${loss:-?}"
+  # A max far above the median means traffic is being parked behind retries.
+  if awk -v mx="$max" -v mn="$min" 'BEGIN{exit !(mn>0 && mx > mn*8 && mx > 40)}'; then
+    note_bad "$label latency spikes to ${max}ms from a ${min}ms floor -- that gap is the stutter you hear."
+  elif awk -v d="$mdev" 'BEGIN{exit !(d>10)}'; then
+    note_warn "$label jitter ${mdev}ms is high (want under 10ms)."
+  else
+    note_ok "$label latency is stable."
+  fi
+}
+
+section "Latency"
+[ -n "$GW" ] && probe "$GW" "gateway"
+probe "${NET_DOCTOR_TARGET:-9.9.9.9}" "internet"
+
+# ---------------------------------------------------------------------- DNS --
+section "DNS"
+if have resolvectl; then
+  CURDNS=$(resolvectl status 2>/dev/null | awk -F': ' '/Current DNS Server/{print $2; exit}')
+  printf '  resolver    %s\n' "${CURDNS:-unknown}"
+fi
+if have dig; then
+  T=$( { TIMEFORMAT=%R; time dig +short +time=2 +tries=1 example.com >/dev/null 2>&1; } 2>&1 )
+  printf '  lookup      %ss\n' "$T"
+  if awk -v t="$T" 'BEGIN{exit !(t>1.0)}'; then
+    note_warn "DNS lookups are slow (${T}s) -- pages will feel stalled before any data moves."
+  else
+    note_ok "DNS resolution is prompt."
+  fi
+fi
+
+# ------------------------------------------------------------------ verdict --
+section "Verdict"
+if [ "$findings" -eq 0 ]; then
+  printf '  %sNothing anomalous found.%s\n\n' "$GRN" "$RST"
+else
+  printf '  %d issue(s) flagged above.\n' "$findings"
+  printf '  %sOrder of impact: a wired link beats any radio fix; moving to 5 GHz\n' "$DIM"
+  printf '  beats changing channels; changing the AP channel beats tuning the client.%s\n\n' "$RST"
+fi
