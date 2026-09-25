@@ -106,14 +106,81 @@ if [ "$(uname)" = "Linux" ]; then
   fi
 fi
 
-# tree-sitter CLI. nvim-treesitter (main) compiles parsers with it, and when
-# it's missing LazyVim fetches the upstream binary through Mason. Upstream
-# links that binary against glibc 2.39, so on older servers it fails with
-# "GLIBC_2.39 not found". Use the prebuilt binary where it runs; otherwise
-# compile it here with cargo, which links against the local glibc.
+# C compiler + tree-sitter CLI. nvim-treesitter (main) and orgmode compile
+# every parser with `tree-sitter build`, which calls `cc`. Neither may be
+# usable on a server: the upstream CLI binary (also what Mason fetches) needs
+# glibc 2.39, and shared hosts (cPanel/CloudLinux "compiler access") leave gcc
+# on PATH as root:compiler 0750. Everything below installs into ~/.local
+# without root, a compiler, or admin help.
 TREE_SITTER_MIN_VERSION="0.26.1"
+ZIG_VERSION="0.16.0"
 _mason_ts="$HOME/.local/share/nvim/mason"
 if [ "$(uname)" = "Linux" ]; then
+  mkdir -p "$HOME/.local/bin" "$HOME/.local/opt"
+  export PATH="$HOME/.local/bin:$PATH"
+  case "$(uname -m)" in
+  x86_64 | amd64) _arch="x86_64" _ts_arch="x64" _conda_arch="64" ;;
+  aarch64 | arm64) _arch="aarch64" _ts_arch="arm64" _conda_arch="aarch64" ;;
+  *) _arch="" ;;
+  esac
+
+  # A compile test, not `command -v cc`: a locked-down gcc is still on PATH.
+  # Takes an optional compiler path; defaults to whatever `cc` is on PATH.
+  _cc_works() {
+    _cc_out="$(mktemp "$HOME/.cache/yadrlite-cc-test.XXXXXX" 2>/dev/null)" || return 1
+    printf 'int main(void){return 0;}\n' | "${1:-cc}" -x c - -o "$_cc_out" >/dev/null 2>&1
+    _cc_rc=$?
+    rm -f "$_cc_out"
+    return $_cc_rc
+  }
+  mkdir -p "$HOME/.cache"
+
+  # Drop our Zig wrapper once a system cc works (e.g. compiler access was
+  # granted later), so it stops shadowing gcc for pip, node-gyp and the rest.
+  if grep -q 'yadrlite: Zig-backed cc' "$HOME/.local/bin/cc" 2>/dev/null; then
+    _sys_cc="$(PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$HOME/.local/bin" | paste -sd: -)" command -v cc 2>/dev/null)"
+    if [ -n "$_sys_cc" ] && _cc_works "$_sys_cc"; then
+      rm -f "$HOME/.local/bin/cc"
+      hash -r 2>/dev/null || true
+      echo "  -> System cc works now ($_sys_cc); removed the Zig cc wrapper"
+    fi
+  fi
+
+  if _cc_works; then
+    echo "  -> C compiler OK ($(command -v cc))"
+  elif [ -z "$_arch" ] || ! command -v curl >/dev/null 2>&1; then
+    echo "  !! No usable C compiler and no way to fetch Zig; nvim can't compile parsers"
+  else
+    # No usable system compiler: use Zig's bundled clang as `cc`. The wrapper
+    # drops the Rust-style --target triple tree-sitter passes, which zig rejects.
+    echo "==> No usable C compiler; installing Zig $ZIG_VERSION as ~/.local/bin/cc"
+    _zig_dir="$HOME/.local/opt/zig-$_arch-linux-$ZIG_VERSION"
+    if [ ! -x "$_zig_dir/zig" ]; then
+      # find, not a glob: setup.zsh sources this hook too, and an unmatched
+      # glob aborts under zsh's nomatch.
+      find "$HOME/.local/opt" -maxdepth 1 -name 'zig-*' -exec rm -rf {} +
+      curl -fsSL --max-time 600 "https://ziglang.org/download/$ZIG_VERSION/zig-$_arch-linux-$ZIG_VERSION.tar.xz" |
+        tar -xJ -C "$HOME/.local/opt"
+    fi
+    ln -sf "$_zig_dir/zig" "$HOME/.local/bin/zig"
+    cat >"$HOME/.local/bin/cc" <<'CC_EOF'
+#!/bin/sh
+# yadrlite: Zig-backed cc for hosts without a usable system compiler.
+for _a; do
+  shift
+  case $_a in --target=*) ;; *) set -- "$@" "$_a" ;; esac
+done
+exec zig cc "$@"
+CC_EOF
+    chmod +x "$HOME/.local/bin/cc"
+    hash -r 2>/dev/null || true
+    if _cc_works; then
+      echo "  -> Installed $(zig version 2>/dev/null | sed 's/^/Zig /') as cc"
+    else
+      echo "  !! Zig install failed; nvim can't compile parsers"
+    fi
+  fi
+
   # Mason's bin dir is prepended to PATH inside nvim, so a broken Mason copy
   # would shadow a working ~/.local/bin/tree-sitter. Drop it if it can't run.
   if [ -e "$_mason_ts/bin/tree-sitter" ] && ! "$_mason_ts/bin/tree-sitter" --version >/dev/null 2>&1; then
@@ -125,53 +192,45 @@ if [ "$(uname)" = "Linux" ]; then
   if [ -n "$_ts_have" ] &&
     [ "$(printf '%s\n%s\n' "$TREE_SITTER_MIN_VERSION" "$_ts_have" | sort -V | head -n 1)" = "$TREE_SITTER_MIN_VERSION" ]; then
     echo "  -> tree-sitter $_ts_have is current (>= $TREE_SITTER_MIN_VERSION)"
+  elif [ -z "$_arch" ] || ! command -v curl >/dev/null 2>&1; then
+    echo "  -> Skipping tree-sitter CLI install (unsupported arch $(uname -m) or no curl)"
   else
     echo "==> Installing tree-sitter CLI (found: ${_ts_have:-none}, need >= $TREE_SITTER_MIN_VERSION)"
-    mkdir -p "$HOME/.local/bin"
-    export PATH="$HOME/.local/bin:$PATH"
     _ts_bin="$HOME/.local/bin/tree-sitter"
-    case "$(uname -m)" in
-    x86_64 | amd64) _ts_arch="x64" ;;
-    aarch64 | arm64) _ts_arch="arm64" ;;
-    *) _ts_arch="" ;;
-    esac
-
-    if [ -n "$_ts_arch" ] && command -v curl >/dev/null 2>&1 &&
-      curl -fsSL --max-time 300 "https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-linux-$_ts_arch.gz" | gunzip >"$_ts_bin.tmp" &&
+    _ts_env="$HOME/.local/opt/tree-sitter"
+    rm -f "$_ts_bin"
+    if curl -fsSL --max-time 300 "https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-linux-$_ts_arch.gz" | gunzip >"$_ts_bin.tmp" &&
       chmod +x "$_ts_bin.tmp" && "$_ts_bin.tmp" --version >/dev/null 2>&1; then
       mv -f "$_ts_bin.tmp" "$_ts_bin"
-      echo "  -> Installed $("$_ts_bin" --version) (prebuilt)"
+      rm -rf "$_ts_env"
+      echo "  -> Installed $("$_ts_bin" --version) (upstream prebuilt)"
     else
+      # Upstream needs glibc 2.39. conda-forge builds the same CLI against
+      # glibc 2.17; a throwaway static micromamba fetches it (seconds, ~14 MB).
       rm -f "$_ts_bin.tmp"
-      if ! command -v cc >/dev/null 2>&1; then
-        echo "  -> Skipping tree-sitter build (no C compiler; install gcc, which nvim-treesitter also needs)"
+      echo "  -> Upstream binary won't run on this glibc; using the conda-forge build"
+      _mm_tmp="$HOME/.cache/yadrlite-micromamba"
+      rm -rf "$_mm_tmp" "$_ts_env"
+      mkdir -p "$_mm_tmp"
+      if curl -fsSL --max-time 300 -o "$_mm_tmp/micromamba" "https://github.com/mamba-org/micromamba-releases/releases/latest/download/micromamba-linux-$_conda_arch" &&
+        chmod +x "$_mm_tmp/micromamba" &&
+        "$_mm_tmp/micromamba" create -y -q -r "$_mm_tmp/root" -p "$_ts_env" \
+          -c conda-forge --override-channels tree-sitter-cli >/dev/null &&
+        ln -sf "$_ts_env/bin/tree-sitter" "$_ts_bin" && "$_ts_bin" --version >/dev/null 2>&1; then
+        echo "  -> Installed $("$_ts_bin" --version) (conda-forge)"
       else
-        echo "  -> Prebuilt binary won't run here; building from source with cargo (takes a few minutes)"
-        _ts_built=""
-        # A distro cargo may be too old for current tree-sitter; try it first,
-        # then fall back to a throwaway rustup toolchain that is removed after.
-        if command -v cargo >/dev/null 2>&1 &&
-          cargo install tree-sitter-cli --locked --root "$HOME/.local" &&
-          "$_ts_bin" --version >/dev/null 2>&1; then
-          _ts_built=1
-        elif command -v curl >/dev/null 2>&1; then
-          _ts_tmp="$(mktemp -d)"
-          if RUSTUP_HOME="$_ts_tmp/rustup" CARGO_HOME="$_ts_tmp/cargo" sh -c '
-            curl -fsSL --proto "=https" --tlsv1.2 https://sh.rustup.rs |
-              sh -s -- -y --no-modify-path --profile minimal >/dev/null &&
-              "$CARGO_HOME/bin/cargo" install tree-sitter-cli --locked --root "$HOME/.local"
-          ' && "$_ts_bin" --version >/dev/null 2>&1; then
-            _ts_built=1
-          fi
-          rm -rf "$_ts_tmp"
-        fi
-        if [ -n "$_ts_built" ]; then
-          echo "  -> Installed $("$_ts_bin" --version) (built from source)"
-        else
-          echo "  -> tree-sitter build failed; nvim-treesitter won't be able to compile parsers"
-        fi
+        rm -f "$_ts_bin"
+        echo "  !! tree-sitter CLI install failed; nvim-treesitter won't be able to compile parsers"
       fi
+      rm -rf "$_mm_tmp"
     fi
+  fi
+
+  # Parsers compile with whichever tree-sitter comes first on PATH, so a broken
+  # copy earlier on PATH (e.g. an npm tree-sitter-cli) still breaks nvim.
+  _ts_first="$(command -v tree-sitter 2>/dev/null)"
+  if [ -n "$_ts_first" ] && ! "$_ts_first" --version >/dev/null 2>&1; then
+    echo "  !! $_ts_first comes first on PATH and won't run on this glibc; remove it"
   fi
 fi
 

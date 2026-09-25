@@ -1,6 +1,10 @@
 return {
   -- mason work-around
   { "mason-org/mason-lspconfig.nvim", dependencies = { "mason-org/mason.nvim" } },
+  -- Append Mason's bin dir instead of prepending it, so a working
+  -- ~/.local/bin/tree-sitter (built for this glibc by `setup.sh tools`) wins
+  -- over Mason's upstream copy, which needs glibc 2.39 on older servers.
+  { "mason-org/mason.nvim", opts = { PATH = "append" } },
   --
   "WhoIsSethDaniel/mason-tool-installer.nvim",
   config = function()
