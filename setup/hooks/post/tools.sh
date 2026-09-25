@@ -106,6 +106,75 @@ if [ "$(uname)" = "Linux" ]; then
   fi
 fi
 
+# tree-sitter CLI. nvim-treesitter (main) compiles parsers with it, and when
+# it's missing LazyVim fetches the upstream binary through Mason. Upstream
+# links that binary against glibc 2.39, so on older servers it fails with
+# "GLIBC_2.39 not found". Use the prebuilt binary where it runs; otherwise
+# compile it here with cargo, which links against the local glibc.
+TREE_SITTER_MIN_VERSION="0.26.1"
+_mason_ts="$HOME/.local/share/nvim/mason"
+if [ "$(uname)" = "Linux" ]; then
+  # Mason's bin dir is prepended to PATH inside nvim, so a broken Mason copy
+  # would shadow a working ~/.local/bin/tree-sitter. Drop it if it can't run.
+  if [ -e "$_mason_ts/bin/tree-sitter" ] && ! "$_mason_ts/bin/tree-sitter" --version >/dev/null 2>&1; then
+    echo "  -> Removing Mason's tree-sitter-cli (won't run on this glibc)"
+    rm -rf "$_mason_ts/bin/tree-sitter" "$_mason_ts/packages/tree-sitter-cli"
+  fi
+
+  _ts_have="$(tree-sitter --version 2>/dev/null | head -n 1 | awk '{print $2}')"
+  if [ -n "$_ts_have" ] &&
+    [ "$(printf '%s\n%s\n' "$TREE_SITTER_MIN_VERSION" "$_ts_have" | sort -V | head -n 1)" = "$TREE_SITTER_MIN_VERSION" ]; then
+    echo "  -> tree-sitter $_ts_have is current (>= $TREE_SITTER_MIN_VERSION)"
+  else
+    echo "==> Installing tree-sitter CLI (found: ${_ts_have:-none}, need >= $TREE_SITTER_MIN_VERSION)"
+    mkdir -p "$HOME/.local/bin"
+    export PATH="$HOME/.local/bin:$PATH"
+    _ts_bin="$HOME/.local/bin/tree-sitter"
+    case "$(uname -m)" in
+    x86_64 | amd64) _ts_arch="x64" ;;
+    aarch64 | arm64) _ts_arch="arm64" ;;
+    *) _ts_arch="" ;;
+    esac
+
+    if [ -n "$_ts_arch" ] && command -v curl >/dev/null 2>&1 &&
+      curl -fsSL --max-time 300 "https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-linux-$_ts_arch.gz" | gunzip >"$_ts_bin.tmp" &&
+      chmod +x "$_ts_bin.tmp" && "$_ts_bin.tmp" --version >/dev/null 2>&1; then
+      mv -f "$_ts_bin.tmp" "$_ts_bin"
+      echo "  -> Installed $("$_ts_bin" --version) (prebuilt)"
+    else
+      rm -f "$_ts_bin.tmp"
+      if ! command -v cc >/dev/null 2>&1; then
+        echo "  -> Skipping tree-sitter build (no C compiler; install gcc, which nvim-treesitter also needs)"
+      else
+        echo "  -> Prebuilt binary won't run here; building from source with cargo (takes a few minutes)"
+        _ts_built=""
+        # A distro cargo may be too old for current tree-sitter; try it first,
+        # then fall back to a throwaway rustup toolchain that is removed after.
+        if command -v cargo >/dev/null 2>&1 &&
+          cargo install tree-sitter-cli --locked --root "$HOME/.local" &&
+          "$_ts_bin" --version >/dev/null 2>&1; then
+          _ts_built=1
+        elif command -v curl >/dev/null 2>&1; then
+          _ts_tmp="$(mktemp -d)"
+          if RUSTUP_HOME="$_ts_tmp/rustup" CARGO_HOME="$_ts_tmp/cargo" sh -c '
+            curl -fsSL --proto "=https" --tlsv1.2 https://sh.rustup.rs |
+              sh -s -- -y --no-modify-path --profile minimal >/dev/null &&
+              "$CARGO_HOME/bin/cargo" install tree-sitter-cli --locked --root "$HOME/.local"
+          ' && "$_ts_bin" --version >/dev/null 2>&1; then
+            _ts_built=1
+          fi
+          rm -rf "$_ts_tmp"
+        fi
+        if [ -n "$_ts_built" ]; then
+          echo "  -> Installed $("$_ts_bin" --version) (built from source)"
+        else
+          echo "  -> tree-sitter build failed; nvim-treesitter won't be able to compile parsers"
+        fi
+      fi
+    fi
+  fi
+fi
+
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 
