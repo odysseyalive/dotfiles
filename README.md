@@ -26,7 +26,7 @@ This single command installs Homebrew (if missing), updates Git and Zsh, sets yo
 ```
 
 2. **Install Development Tools:**
-Installs Node.js, Go tools, ripgrep, fd, starship, and essential language servers. On Linux it also installs the latest Neovim release into `~/.local/bin` (no root needed) when the system `nvim` is missing or too old for LazyVim, plus the `tree-sitter` CLI that nvim-treesitter needs. On servers whose glibc is too old for the upstream `tree-sitter` binary, it builds one from source with cargo instead (a few minutes).
+Installs Node.js, Go tools, ripgrep, fd, starship, and essential language servers. On Linux it also installs the latest Neovim release into `~/.local/bin` (no root needed) when the system `nvim` is missing or too old for LazyVim, plus the `tree-sitter` CLI that nvim-treesitter needs and Starship when it isn't already installed. On servers whose glibc is too old for the upstream `tree-sitter` binary, it builds one from source with cargo instead (a few minutes).
 ```zsh
 zsh ~/.yadrlite/setup.zsh tools
 ```

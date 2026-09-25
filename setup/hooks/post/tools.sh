@@ -175,6 +175,38 @@ if [ "$(uname)" = "Linux" ]; then
   fi
 fi
 
+# Starship. core.sh wires `starship init` into the shell rc, but headless
+# installs skip Homebrew, so the binary is missing there. Upstream's musl
+# build is statically linked and runs regardless of the server's glibc.
+if [ "$(uname)" = "Linux" ]; then
+  if command -v starship >/dev/null 2>&1; then
+    echo "  -> $(starship --version | head -n 1) already installed"
+  else
+    case "$(uname -m)" in
+    x86_64 | amd64) _starship_arch="x86_64" ;;
+    aarch64 | arm64) _starship_arch="aarch64" ;;
+    *) _starship_arch="" ;;
+    esac
+    if [ -z "$_starship_arch" ]; then
+      echo "  -> Skipping Starship install (no prebuilt release for $(uname -m))"
+    elif ! command -v curl >/dev/null 2>&1; then
+      echo "  -> Skipping Starship install (curl not found)"
+    else
+      echo "==> Installing Starship"
+      mkdir -p "$HOME/.local/bin"
+      _starship_url="https://github.com/starship/starship/releases/latest/download/starship-$_starship_arch-unknown-linux-musl.tar.gz"
+      if curl -fsSL --max-time 300 "$_starship_url" | tar -xz -C "$HOME/.local/bin" starship &&
+        "$HOME/.local/bin/starship" --version >/dev/null 2>&1; then
+        export PATH="$HOME/.local/bin:$PATH"
+        echo "  -> Installed $("$HOME/.local/bin/starship" --version | head -n 1)"
+      else
+        rm -f "$HOME/.local/bin/starship"
+        echo "  -> Starship install failed; `starship init` in the shell rc will error until it is installed"
+      fi
+    fi
+  fi
+fi
+
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 
