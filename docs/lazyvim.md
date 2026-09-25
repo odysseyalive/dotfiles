@@ -6,7 +6,7 @@ LazyVim is a modern Neovim distribution that provides a blazing fast IDE experie
 mkdir -p ~/.config/nvim && rsync -azhLP ~/.yadrlite/workstation/lazyvim/ ~/.config/nvim
 ```
 
-Requirements: [Neovim 0.9+](https://neovim.io/), [Git](https://git-scm.com/), [Node.js](https://nodejs.org/)
+Requirements: [Neovim 0.11.2+](https://neovim.io/), [Git](https://git-scm.com/), [Node.js](https://nodejs.org/)
 
 Plugin Requirements: [Ripgrep](https://github.com/BurntSushi/ripgrep), [fd](https://github.com/sharkdp/fd), [PHP CS Fixer](https://cs.symfony.com/), [Intelephense](https://intelephense.com/)
 

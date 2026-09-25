@@ -63,6 +63,49 @@ else
   echo "  -> Skipping Node.js tooling setup (npm not found)"
 fi
 
+# Neovim. Distro repos on servers often ship an nvim too old for LazyVim,
+# and npm/pnpm have no package carrying the nvim binary, so pull the official
+# prebuilt release into ~/.local (no root). macOS gets nvim from Homebrew.
+NVIM_MIN_VERSION="0.11.2"
+if [ "$(uname)" = "Linux" ]; then
+  _nvim_have="$(nvim --version 2>/dev/null | head -n 1 | sed 's/^NVIM v//; s/-.*//')"
+  if [ -n "$_nvim_have" ] &&
+    [ "$(printf '%s\n%s\n' "$NVIM_MIN_VERSION" "$_nvim_have" | sort -V | head -n 1)" = "$NVIM_MIN_VERSION" ]; then
+    echo "  -> Neovim $_nvim_have is current (>= $NVIM_MIN_VERSION)"
+  else
+    case "$(uname -m)" in
+    x86_64 | amd64) _nvim_arch="x86_64" ;;
+    aarch64 | arm64) _nvim_arch="arm64" ;;
+    *) _nvim_arch="" ;;
+    esac
+    if [ -z "$_nvim_arch" ]; then
+      echo "  -> Skipping Neovim install (no prebuilt release for $(uname -m))"
+    elif ! command -v curl >/dev/null 2>&1; then
+      echo "  -> Skipping Neovim install (curl not found)"
+    else
+      echo "==> Installing Neovim (found: ${_nvim_have:-none}, need >= $NVIM_MIN_VERSION)"
+      _nvim_opt="$HOME/.local/opt"
+      mkdir -p "$_nvim_opt" "$HOME/.local/bin"
+      # The main release needs a recent glibc; neovim-releases is the same
+      # version built against glibc 2.17 for older enterprise distros.
+      for _nvim_repo in neovim/neovim neovim/neovim-releases; do
+        _nvim_url="https://github.com/$_nvim_repo/releases/latest/download/nvim-linux-$_nvim_arch.tar.gz"
+        rm -rf "$_nvim_opt/nvim-linux-$_nvim_arch"
+        if curl -fsSL --max-time 300 "$_nvim_url" | tar -xz -C "$_nvim_opt" &&
+          "$_nvim_opt/nvim-linux-$_nvim_arch/bin/nvim" --version >/dev/null 2>&1; then
+          ln -sf "$_nvim_opt/nvim-linux-$_nvim_arch/bin/nvim" "$HOME/.local/bin/nvim"
+          export PATH="$HOME/.local/bin:$PATH"
+          hash -r 2>/dev/null || true
+          echo "  -> Installed $("$HOME/.local/bin/nvim" --version | head -n 1) from $_nvim_repo"
+          break
+        fi
+        echo "  -> $_nvim_repo build unusable here; trying next"
+        rm -rf "$_nvim_opt/nvim-linux-$_nvim_arch"
+      done
+    fi
+  fi
+fi
+
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 

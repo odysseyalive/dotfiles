@@ -73,7 +73,7 @@ See dedicated skills for detailed architecture and workflows:
 
 ## Key Dependencies
 
-**Required**: git, Vim with Lua support, Emacs 27.2+ (29 recommended, avoid 28), Tmux, Neovim 0.9+ (for LazyVim), Node.js (for language servers).
+**Required**: git, Vim with Lua support, Emacs 27.2+ (29 recommended, avoid 28), Tmux, Neovim 0.11.2+ (for LazyVim; `setup.sh tools` installs it on Linux if missing), Node.js (for language servers).
 
 **Recommended**: Silver Searcher (`ag`) or Ripgrep (`rg`), `fd`, `fzf`, `lazygit`, Composer, PHP CS Fixer.
 

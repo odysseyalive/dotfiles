@@ -26,7 +26,7 @@ This single command installs Homebrew (if missing), updates Git and Zsh, sets yo
 ```
 
 2. **Install Development Tools:**
-Installs Node.js, Go tools, ripgrep, fd, starship, and essential language servers.
+Installs Node.js, Go tools, ripgrep, fd, starship, and essential language servers. On Linux it also installs the latest Neovim release into `~/.local/bin` (no root needed) when the system `nvim` is missing or too old for LazyVim.
 ```zsh
 zsh ~/.yadrlite/setup.zsh tools
 ```
@@ -40,7 +40,9 @@ Transform your Mac into a tiling window manager setup (no SIP disable required).
 
 ```zsh
 zsh ~/.yadrlite/setup.zsh --macos --with-macos
-# or use the shorthand alias:
+```
+Or use the shorthand alias:
+```zsh
 zsh ~/.yadrlite/setup.zsh macos
 ```
 **This installs:**
@@ -54,7 +56,9 @@ For Linux environments, specifically targeted at [Omarchy](https://omarchy.org):
 
 ```zsh
 zsh ~/.yadrlite/setup.zsh --linux --with-omarchy
-# or use the shorthand alias:
+```
+Or use the shorthand alias:
+```zsh
 zsh ~/.yadrlite/setup.zsh omarchy
 ```
 
@@ -63,21 +67,32 @@ For headless servers and remote Linux hosts where zsh isn't installed (and you d
 
 **1. Bootstrap with the `--headless` flag** — `install.sh` skips the Homebrew install, skips the Zsh install, doesn't run `chsh`, and writes shell config to `~/.bashrc` instead of `~/.zshrc`. The only prerequisite is `git`.
 
+Option A: pass `--headless` through curl-piping.
 ```sh
-# Option A: pass --headless through curl-piping
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/install.sh)" -- --headless
-
-# Option B: set the env var (equivalent)
+```
+Option B: set the env var (equivalent).
+```sh
 YADR_HEADLESS=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/odysseyalive/dotfiles/master/install.sh)"
 ```
 
 **2. Manage the install with `setup.sh`** — the bash entry point. It mirrors `setup.zsh` exactly (same flags, same actions, same feature hooks). Every hook under `setup/hooks/` is a portable `.sh` file that runs in both bash and zsh, so no behavior is lost on a headless box.
 
+Show available actions and flags:
 ```sh
 bash ~/.yadrlite/setup.sh help
+```
+Update the install:
+```sh
 bash ~/.yadrlite/setup.sh --upgrade
-bash ~/.yadrlite/setup.sh --with-langs       # ASDF-managed languages
-bash ~/.yadrlite/setup.sh tools              # node + go tooling
+```
+Install ASDF-managed languages:
+```sh
+bash ~/.yadrlite/setup.sh --with-langs
+```
+Install node + go tooling, plus the latest Neovim when the server's is missing or too old:
+```sh
+bash ~/.yadrlite/setup.sh tools
 ```
 
 Features that depend on tools you don't have on a server (Homebrew bundles, AeroSpace, Ghostty, Sketchybar, fontconfig, etc.) are skipped automatically with a friendly warning — they don't abort the run.
@@ -86,6 +101,8 @@ Features that depend on tools you don't have on a server (Homebrew bundles, Aero
 - **Language Management (ASDF):** Install languages dynamically using ASDF via `--with-langs` or granular versions via `--with-lang-<name>-<version>`. If you prefer legacy installers (NVM/G-Install), use `--without-asdf`.
   ```zsh
   zsh ~/.yadrlite/setup.zsh --with-langs
+  ```
+  ```zsh
   zsh ~/.yadrlite/setup.zsh --with-lang-ruby-3.2.0
   ```
 - **GNU Linuxify (macOS):** Standardize your macOS coreutils to use GNU versions via Homebrew.
