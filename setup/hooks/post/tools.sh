@@ -266,6 +266,44 @@ if [ "$(uname)" = "Linux" ]; then
   fi
 fi
 
+# Ranger. core.sh links ~/.config/ranger, but headless installs skip Homebrew
+# and distro packages need root. Ranger is pure Python and runs from its
+# source tree, so unpack the release into ~/.local (no pip, which PEP 668
+# blocks on newer distros) and only require python3 with curses.
+RANGER_VERSION="1.9.4"
+if [ "$(uname)" = "Linux" ]; then
+  if command -v ranger >/dev/null 2>&1; then
+    echo "  -> $(TERM=dumb ranger --version 2>/dev/null | head -n 1 | sed "s/^ranger version: //") already installed"
+  elif ! command -v python3 >/dev/null 2>&1 || ! python3 -c 'import curses' >/dev/null 2>&1; then
+    echo "  -> Skipping Ranger install (python3 with curses not found)"
+  elif ! command -v curl >/dev/null 2>&1; then
+    echo "  -> Skipping Ranger install (curl not found)"
+  else
+    echo "==> Installing Ranger $RANGER_VERSION"
+    _ranger_dir="$HOME/.local/opt/ranger-$RANGER_VERSION"
+    mkdir -p "$HOME/.local/opt" "$HOME/.local/bin"
+    rm -rf "$_ranger_dir"
+    if curl -fsSL --max-time 300 "https://github.com/ranger/ranger/archive/refs/tags/v$RANGER_VERSION.tar.gz" |
+      tar -xz -C "$HOME/.local/opt" &&
+      TERM=dumb python3 "$_ranger_dir/ranger.py" --version >/dev/null 2>&1; then
+      # Precompile so the first launch doesn't print newer Pythons' SyntaxWarnings.
+      python3 -W ignore -m compileall -q "$_ranger_dir/ranger" >/dev/null 2>&1 || true
+      # A wrapper, not a symlink: ranger.py's shebang is /usr/bin/python,
+      # which servers often lack.
+      rm -f "$HOME/.local/bin/ranger"
+      printf '#!/bin/sh\n# yadrlite: Ranger %s from source\nexec python3 -O "%s/ranger.py" "$@"\n' \
+        "$RANGER_VERSION" "$_ranger_dir" >"$HOME/.local/bin/ranger"
+      chmod +x "$HOME/.local/bin/ranger"
+      export PATH="$HOME/.local/bin:$PATH"
+      hash -r 2>/dev/null || true
+      echo "  -> Installed $(TERM=dumb "$HOME/.local/bin/ranger" --version 2>/dev/null | head -n 1 | sed "s/^ranger version: //")"
+    else
+      rm -rf "$_ranger_dir"
+      echo "  -> Ranger install failed"
+    fi
+  fi
+fi
+
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 
