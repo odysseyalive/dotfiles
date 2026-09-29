@@ -74,3 +74,16 @@ host = '#027b9b'
 path = '#2d6870'
 prompt = '#fba02f'
 git = '#50a3b5'
+
+# Nearest xterm-256 match for each seashells color. tmux < 2.2 has no
+# truecolor and misreads hex (38;2;R;G;B) as stray background codes, so
+# the shell rc points STARSHIP_CONFIG at a copy that uses this palette.
+[palettes.seashells256]
+bracket = '214'
+time = '73'
+user = '81'
+at = '30'
+host = '30'
+path = '23'
+prompt = '214'
+git = '73'

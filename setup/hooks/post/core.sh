@@ -37,6 +37,8 @@ find ~/.config -type f -exec chmod 0644 {} \;
 find ~/.config -name "*.sh" -execdir chmod u+x {} +
 
 cp "$YADR_DIR/workstation/starship/starship.toml" ~/.config/starship.toml
+sed "s/^palette = 'seashells'$/palette = 'seashells256'/" \
+  "$YADR_DIR/workstation/starship/starship.toml" >~/.config/starship-256color.toml
 
 # Starship init: pick the right initializer for the shell rc we're targeting.
 _starship_shell="zsh"
@@ -47,4 +49,12 @@ if ! grep -q "starship init ${_starship_shell}" "$SHELL_RC" 2>/dev/null; then
   echo '' >>"$SHELL_RC"
   echo '# Starship prompt' >>"$SHELL_RC"
   echo "eval \"\$(starship init ${_starship_shell})\"" >>"$SHELL_RC"
+fi
+if ! grep -q "starship-256color.toml" "$SHELL_RC" 2>/dev/null; then
+  cat >>"$SHELL_RC" <<'EOF'
+# tmux < 2.2 has no truecolor; use the 256-color starship palette there
+if [ -n "$TMUX" ] && [ "$(printf '%s\n%s\n' 2.2 "$(tmux -V | cut -d' ' -f2)" | sort -V | head -n1)" != 2.2 ]; then
+  export STARSHIP_CONFIG="$HOME/.config/starship-256color.toml"
+fi
+EOF
 fi
