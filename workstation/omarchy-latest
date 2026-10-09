@@ -801,15 +801,22 @@ fi
 # driver refuses it. pci=realloc lets the kernel resize bridge windows, and the
 # hpmmio* sizes reserve room for a GPU behind hot-plug bridges (32M covers the
 # register BAR; 1G of prefetchable, 64-bit space covers VRAM/BAR1 apertures).
+# pci=nocrs is what makes the reservation fit: this ThinkPad's ACPI _CRS offers the
+# kernel only a 32-bit window (0x8f800000-0xdfffffff, already holding the iGPU's 512M
+# aperture), so the 1G prefetchable window "can't assign; no space" at boot and
+# the Quadro's 256M BAR1 maps at 0M on hot-plug. With nocrs the kernel may place
+# 64-bit windows above 4G, which the host bridge decodes but _CRS never lists.
+# If a boot ever hangs, press E in the Limine menu and delete pci=nocrs.
 # Uses Omarchy's own limine-entry-tool.d drop-in mechanism, so /etc/default/limine
 # is never edited. Takes effect after one reboot; compute (CUDA, nvidia-smi) works
 # on hot-plug, while Hyprland only drives monitors on it after a re-login.
 if ls -d /sys/bus/thunderbolt/devices/domain* >/dev/null 2>&1; then
   log "configuring thunderbolt egpu hot-plug kernel parameters"
-  if ! [ -f /etc/limine-entry-tool.d/egpu-hotplug.conf ]; then
+  egpu_dropin='# Reserve PCI address space so a Thunderbolt eGPU can be hot-plugged.
+KERNEL_CMDLINE[default]+=" pci=realloc,nocrs,hpmmiosize=32M,hpmmioprefsize=1G"'
+  if [ "$(cat /etc/limine-entry-tool.d/egpu-hotplug.conf 2>/dev/null)" != "$egpu_dropin" ]; then
     sudo mkdir -p /etc/limine-entry-tool.d
-    echo '# Reserve PCI address space so a Thunderbolt eGPU can be hot-plugged.
-KERNEL_CMDLINE[default]+=" pci=realloc,hpmmiosize=32M,hpmmioprefsize=1G"' | sudo tee /etc/limine-entry-tool.d/egpu-hotplug.conf >/dev/null
+    echo "$egpu_dropin" | sudo tee /etc/limine-entry-tool.d/egpu-hotplug.conf >/dev/null
     sudo limine-update
     log "egpu hot-plug kernel parameters installed (reboot required)"
   fi
