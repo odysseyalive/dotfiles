@@ -636,6 +636,13 @@ cat >~/.local/bin/voxtype-ptt-start <<'PTT'
 #!/bin/sh
 # Start voxtype push-to-talk dictation, logging the trigger.
 printf '%s  start on %-8s press\n' "$(date +%H:%M:%S.%3N)" "${1:-?}" >>"$HOME/.cache/voxtype-ptt.log"
+# Pick the model by GPU: large-v3-turbo when the Thunderbolt eGPU's nvidia
+# driver is bound (the transcription worker runs there via DRI_PRIME=1), the
+# daemon's default (small.en) on the iGPU. Checked on every press, so powering
+# the eGPU on or off needs no restart.
+if ls -d /sys/bus/pci/drivers/nvidia/0000:* >/dev/null 2>&1; then
+  exec voxtype record start --model large-v3-turbo
+fi
 exec voxtype record start
 PTT
 cat >~/.local/bin/voxtype-ptt-stop <<'PTT'
@@ -685,6 +692,15 @@ cat >~/.config/systemd/user/voxtype.service.d/egpu.conf <<'EOF'
 [Service]
 Environment=DRI_PRIME=1 GSK_RENDERER=cairo GDK_DISABLE=gl,vulkan
 EOF
+# voxtype-ptt-start asks for large-v3-turbo while the eGPU is up. The daemon
+# silently falls back to the default model unless the override is both
+# downloaded and listed in available_models (not settable via `config set`).
+if ls -d /sys/bus/thunderbolt/devices/domain* >/dev/null 2>&1; then
+  [ -f ~/.local/share/voxtype/models/ggml-large-v3-turbo.bin ] ||
+    voxtype setup --download --model large-v3-turbo >/dev/null 2>&1 || true
+  sed -i 's/^# available_models = \["large-v3-turbo", "medium.en"\]$/available_models = ["large-v3-turbo"]/' \
+    ~/.config/voxtype/config.toml 2>/dev/null || true
+fi
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user try-restart voxtype.service 2>/dev/null || true
 
