@@ -670,6 +670,24 @@ PTT
 chmod +x ~/.local/bin/voxtype-ptt-start ~/.local/bin/voxtype-ptt-stop
 mkdir -p ~/.cache
 
+# Transcribe on the Thunderbolt eGPU when it is on, the iGPU when it is off.
+# whisper.cpp takes the first Vulkan device, and the Intel iGPU enumerates
+# first, so the Quadro sat idle (34s of audio took 15s; on the Quadro 4s takes
+# 0.5s). DRI_PRIME=1 makes Mesa's device-select layer list the eGPU first and
+# changes nothing when it is absent. gpu_isolation runs each transcription in a
+# child that exits, so the eGPU is free between dictations and can be powered
+# off without restarting voxtype. The OSD inherits the environment and would
+# otherwise hold the eGPU open forever, so GTK is kept on software rendering.
+voxtype config set whisper.gpu_isolation true >/dev/null 2>&1 || true
+mkdir -p ~/.config/systemd/user/voxtype.service.d
+cat >~/.config/systemd/user/voxtype.service.d/egpu.conf <<'EOF'
+# yadrlite: prefer the Thunderbolt eGPU for transcription when it is present.
+[Service]
+Environment=DRI_PRIME=1 GSK_RENDERER=cairo GDK_DISABLE=gl,vulkan
+EOF
+systemctl --user daemon-reload 2>/dev/null || true
+systemctl --user try-restart voxtype.service 2>/dev/null || true
+
 # Drop the superseded v1 block on machines that ran an earlier install. It bound
 # SUPER+ALT+V release plus an ALT+V fallback; shadowing meant the fallback could
 # never fire, so dictation stayed engaged until the 60s timeout.
