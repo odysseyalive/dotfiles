@@ -640,7 +640,27 @@ printf '%s  start on %-8s press\n' "$(date +%H:%M:%S.%3N)" "${1:-?}" >>"$HOME/.c
 # driver is bound (the transcription worker runs there via DRI_PRIME=1), the
 # daemon's default (small.en) on the iGPU. Checked on every press, so powering
 # the eGPU on or off needs no restart.
+#
+# The eGPU also counts as unavailable when another job has its VRAM: with too
+# little free, large-v3-turbo aborts in ggml (ErrorOutOfDeviceMemory) and the
+# recording is lost. The worker re-reads whisper.gpu_device from config.toml on
+# every spawn (gpu_isolation), so steering it here needs no daemon restart.
+# Vulkan device order with the eGPU bound: 0 = NVIDIA, 1 = Intel iGPU.
+min_free_mib=2500
+gpu_device=0
 if ls -d /sys/bus/pci/drivers/nvidia/0000:* >/dev/null 2>&1; then
+  free_mib=$(timeout 2 nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits 2>/dev/null | head -n1)
+  if [ "${free_mib:-0}" -ge "$min_free_mib" ] 2>/dev/null; then
+    use_egpu=1
+  else
+    gpu_device=1
+    printf '%s  eGPU busy (%s MiB free), using iGPU\n' "$(date +%H:%M:%S.%3N)" "${free_mib:-?}" >>"$HOME/.cache/voxtype-ptt.log"
+  fi
+fi
+grep -q "^gpu_device = $gpu_device\$" "$HOME/.config/voxtype/config.toml" ||
+  voxtype config set whisper.gpu_device "$gpu_device" >/dev/null 2>&1
+
+if [ -n "$use_egpu" ]; then
   exec voxtype record start --model large-v3-turbo
 fi
 exec voxtype record start
