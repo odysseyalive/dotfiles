@@ -1,19 +1,20 @@
 # Awareness Ledger Index
 
-*Auto-generated. Last updated: 2026-10-09*
+*Auto-generated. Last updated: 2026-10-15*
 
 ## By Tag
 
 - **workstation/nvim / lazyvim / codecompanion / openrouter / copilot / theme.lua** → [DEC-2026-09-01-nvim-openrouter-ai-and-theme-reconcile](DEC/DEC-2026-09-01-nvim-openrouter-ai-and-theme-reconcile.md)
 
 - **omarchy / omarchy4 / hyprland** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md)
-- **workstation/omarchy-latest / install-scripts** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
+- **workstation/omarchy-latest / install-scripts** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md), [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **wireplumber / pipewire** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **thunderbolt-dock / usb-audio / dac-wedge / jack-detection** → [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **fidelity / bitrate / bit-depth (s32) / accurate-vs-coloration** → [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **xkb / chinuk-wawa** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md)
 - **bluetooth / airpods / aac / codec** → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md)
 - **speaker-tuning / filter-chain / convolver / thinkpad-t490** → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
+- **xvfb / egl / libglvnd / egl-gbm / nvidia / mesa / bwrap / sandbox** → [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md)
 - **voxtype / whisper / vulkan / egpu / vram / gpu_device / node-titan / pci-bar / limine / kernel-cmdline** → [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md)
 - **line-out / biquad-eq / channelmix-headroom / clipping-safe** → [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 
@@ -22,6 +23,8 @@
 ### Active
 
 - [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md) — Voxtype transcribed on the Intel iGPU (ggml takes Vulkan device 0) and eGPU hot-plug failed (T490 `_CRS` has no window above 4G, so BAR1 mapped 0M). Fixed with a `DRI_PRIME=1` voxtype.service drop-in (OSD kept on software rendering), `gpu_isolation`, and `pci=nocrs`. 2026-10-15: eGPU out of VRAM aborted ggml; `voxtype-ptt-start` now falls back to small.en on the iGPU (`gpu_device = 1`) when under 2500 MiB is free. Open until hot-plug is verified after a reboot.
+
+- [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md) — Xvfb aborted when `/dev/dri` was hidden (sandbox): libglvnd sent its default GBM EGL display to NVIDIA's egl-gbm (`10_nvidia.json` sorts first), whose `OpenDefaultDrmDevice()` dereferences NULL when `drmGetDevices2()` fails. Fixed with a `/usr/local/bin/Xvfb` wrapper that pins Mesa's EGL vendor, installed by `workstation/omarchy-latest`. Open until installed on the host.
 
 ### Resolved
 
@@ -53,7 +56,7 @@
 
 | Type | Total | Active | Resolved | Deprecated |
 |------|-------|--------|----------|------------|
-| Incidents | 4 | 1 | 3 | 0 |
+| Incidents | 5 | 2 | 3 | 0 |
 | Decisions | 3 | 3 | 0 | 0 |
 | Patterns | 0 | 0 | 0 | 0 |
 | Flows | 0 | 0 | 0 | 0 |
