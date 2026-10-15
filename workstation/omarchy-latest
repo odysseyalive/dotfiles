@@ -493,7 +493,9 @@ fi
 # install global volume control script (affects ALL sinks and apps)
 log "installing global volume control script"
 mkdir -p ~/.local/bin
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The repo root (this script lives in workstation/), so files are installed from
+# the checkout being run rather than whatever commit ~/.yadrlite is on.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if [ -f "$SCRIPT_DIR/workstation/scripts/omarchy-volume" ]; then
   cp "$SCRIPT_DIR/workstation/scripts/omarchy-volume" ~/.local/bin/omarchy-volume
 elif [ -f ~/.yadrlite/workstation/scripts/omarchy-volume ]; then
