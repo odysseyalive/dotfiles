@@ -1,7 +1,7 @@
 # INC-2026-10-09-voxtype-egpu-and-hotplug
 
 **Status:** active (Voxtype on eGPU verified; hot-plug with `pci=nocrs` awaits its first reboot-then-power-on test)
-**Tags:** voxtype, whisper, vulkan, egpu, node-titan, quadro-rtx-5000, thunderbolt, pci-bar, limine, kernel-cmdline, thinkpad-t490, workstation/omarchy-latest, voxtype.service.d/egpu.conf, /etc/limine-entry-tool.d/egpu-hotplug.conf
+**Tags:** voxtype, whisper, vulkan, egpu, vram, oom, gpu_device, voxtype-ptt-start, node-titan, quadro-rtx-5000, thunderbolt, pci-bar, limine, kernel-cmdline, thinkpad-t490, workstation/omarchy-latest, voxtype.service.d/egpu.conf, /etc/limine-entry-tool.d/egpu-hotplug.conf
 **Related:** INC-2026-08-20-dock-audio-dac-wedge (same T490 Thunderbolt port)
 
 ## What Happened
@@ -23,6 +23,8 @@ The user asked whether Voxtype dictation could use the AKiTiO Node Titan eGPU (Q
 | 2026-10-09 | Voxtype confirmed on iGPU; DRI_PRIME drop-in added; live test on Quadro |
 | a53a63c | Voxtype eGPU drop-in baked into `workstation/omarchy-latest` |
 | 2026-10-09 | User replaced the broken limine drop-in by copying a prepared file |
+| 2026-10-14 20:27 | voxtype-vulkan SIGABRT twice (see Follow-up 2026-10-15) |
+| 2026-10-15 09:50 | voxtype-vulkan SIGABRT again; eGPU-busy fallback added (cfe315a) |
 
 ## Root Cause
 
@@ -54,9 +56,28 @@ The user asked whether Voxtype dictation could use the AKiTiO Node Titan eGPU (Q
 
 *— Captured 2026-10-09, source: conversation*
 
+> **"when the eGPU is busy, it should fall back on the local GPU"**
+
+*— User, 2026-10-15*
+
 ## Prevention
 
 - Hand the user a prepared file to `sudo cp` rather than a long one-liner to paste.
 - After changing kernel params, confirm with `grep -o 'pci=[^ ]*' /proc/cmdline`.
 - Confirm Voxtype's device with a non-isolated run: `voxtype -c <copy with gpu_isolation=false> transcribe x.wav 2>&1 | grep -E 'ggml_vulkan|using Vulkan'` (the isolated worker does not log ggml lines).
 - Close this record once a reboot with the Titan off, followed by power-on, shows the Quadro in `nvidia-smi`.
+
+## Follow-up 2026-10-15: eGPU out of VRAM
+
+**What happened:** voxtype-vulkan aborted (SIGABRT) at 09:50 on 2026-10-15 and twice at 20:27 on 2026-10-14. Core: `vk::Device::allocateMemory: ErrorOutOfDeviceMemory` → `alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1072015360` → `GGML_ASSERT(buffer)`. Each recording was lost.
+
+**Root cause:** a long-running `.venv/bin/python main.py` held 15.6/16 GB of the Quadro. `voxtype-ptt-start` only checked that the nvidia driver was bound, so it sent large-v3-turbo to a full card.
+
+**Resolution (cfe315a):** on each press `voxtype-ptt-start` reads `nvidia-smi --query-gpu=memory.free` (2 s timeout). With 2500 MiB or more free it uses the eGPU (`whisper.gpu_device = 0`, `--model large-v3-turbo`). Otherwise it uses the default small.en on the Intel iGPU (`gpu_device = 1` while the eGPU is bound), logging `eGPU busy (N MiB free), using iGPU` to `~/.cache/voxtype-ptt.log`. The device is written with `voxtype config set whisper.gpu_device N` only when it differs, and the isolated worker re-reads config.toml on each spawn, so no daemon restart is needed. The installer also now carries the Bluetooth headset pre-switch, `voxtype-bt-ready-tick` and `ready-tick.wav`.
+
+**Verified (by a separate Claude session):** a daemon recording via `voxtype record start --file=...` with 354 MiB free on the eGPU ran on the iGPU with small.en: worker ready in 0.73 s, ~7 s for 4 s of audio, no core dump. A real spoken dictation by the user has not been done yet.
+
+**Lessons:**
+- `VOXTYPE_VULKAN_DEVICE` in the environment does NOT steer the isolated worker; `whisper.gpu_device` in config.toml does.
+- `gpu_device = 1` is safe only while the eGPU is bound (Vulkan 0 = NVIDIA, 1 = Intel). With the eGPU absent Intel is 0, and an out-of-range index falls back to the CPU (see Lessons Learned above), so the script resets it to 0 on every press when the eGPU is gone.
+- `gpu_device` in `~/.config/voxtype/config.toml` changes at runtime. Do not track config.toml with a fixed value.
