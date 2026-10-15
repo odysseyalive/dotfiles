@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+"""Play a short tick once a Bluetooth headset mic is actually live.
+
+Switching AirPods from music to headset mode takes ~0.5 s before the mic sends
+audio; words spoken earlier are lost. This listens on the source ($1) and
+plays ~/.local/share/voxtype/ready-tick.wav on the first non-silent sample,
+so you know when to start talking. Gives up after 3 s.
+"""
+import os, subprocess, sys, time
+
+src = sys.argv[1]
+tick = os.path.expanduser('~/.local/share/voxtype/ready-tick.wav')
+
+rec = subprocess.Popen(
+    ['pw-record', '--target', src, '--rate', '16000', '--channels', '1',
+     '--format', 's16', '--raw', '-'],
+    stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+deadline = time.monotonic() + 3
+live = False
+try:
+    while time.monotonic() < deadline:
+        chunk = rec.stdout.read(320)
+        if not chunk:
+            break
+        if chunk.strip(b'\0'):
+            live = True
+            break
+finally:
+    rec.kill()
+    rec.wait()
+
+if live:
+    subprocess.run(['pw-play', '--volume', '0.35', tick],
+                   stderr=subprocess.DEVNULL)

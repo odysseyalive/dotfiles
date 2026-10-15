@@ -636,6 +636,21 @@ cat >~/.local/bin/voxtype-ptt-start <<'PTT'
 #!/bin/sh
 # Start voxtype push-to-talk dictation, logging the trigger.
 printf '%s  start on %-8s press\n' "$(date +%H:%M:%S.%3N)" "${1:-?}" >>"$HOME/.cache/voxtype-ptt.log"
+
+# If the mic is a Bluetooth headset, switch it to headset (mic) mode now
+# instead of waiting for WirePlumber's autoswitch, which only fires 500 ms
+# after capture starts and clips the first words. WirePlumber still restores
+# the music profile on its own once recording ends.
+src=$(pactl get-default-source 2>/dev/null)
+case "$src" in
+  bluez_input.*)
+    card="bluez_card.$(printf '%s' "${src#bluez_input.}" | tr ':' '_')"
+    pactl set-card-profile "$card" headset-head-unit 2>/dev/null &
+    # The mic still needs ~0.5 s to go live; tick in the ear when it does.
+    "$HOME/.local/bin/voxtype-bt-ready-tick" "$src" >/dev/null 2>&1 &
+    ;;
+esac
+
 # Pick the model by GPU: large-v3-turbo when the Thunderbolt eGPU's nvidia
 # driver is bound (the transcription worker runs there via DRI_PRIME=1), the
 # daemon's default (small.en) on the iGPU. Checked on every press, so powering
@@ -695,6 +710,19 @@ if [ "$(wc -l < "$log")" -gt 400 ]; then
 fi
 PTT
 chmod +x ~/.local/bin/voxtype-ptt-start ~/.local/bin/voxtype-ptt-stop
+# voxtype-bt-ready-tick plays ready-tick.wav once a Bluetooth headset mic is live.
+mkdir -p ~/.local/share/voxtype
+for _vtdir in "$SCRIPT_DIR" ~/.yadrlite; do
+  if [ -f "$_vtdir/workstation/scripts/voxtype-bt-ready-tick" ]; then
+    cp "$_vtdir/workstation/scripts/voxtype-bt-ready-tick" ~/.local/bin/voxtype-bt-ready-tick
+    chmod +x ~/.local/bin/voxtype-bt-ready-tick
+    cp "$_vtdir/workstation/voxtype/ready-tick.wav" ~/.local/share/voxtype/ready-tick.wav
+    log "installed voxtype-bt-ready-tick"
+    break
+  fi
+done
+[ -x ~/.local/bin/voxtype-bt-ready-tick ] ||
+  log "WARNING: voxtype-bt-ready-tick not found in the repo; skipped."
 mkdir -p ~/.cache
 
 # Transcribe on the Thunderbolt eGPU when it is on, the iGPU when it is off.
