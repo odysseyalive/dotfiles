@@ -1,0 +1,9 @@
+#!/bin/sh
+# Xvfb renders in software, so give its GLX only Mesa's EGL vendor. With the
+# NVIDIA vendor listed first, libglvnd hands Xvfb's default GBM display to
+# NVIDIA's egl-gbm, whose OpenDefaultDrmDevice() dereferences NULL when
+# drmGetDevices2() fails (no /dev/dri, e.g. in a sandbox) and Xvfb aborts.
+# A vendor list the caller set is left alone.
+: "${__EGL_VENDOR_LIBRARY_FILENAMES:=/usr/share/glvnd/egl_vendor.d/50_mesa.json}"
+export __EGL_VENDOR_LIBRARY_FILENAMES
+exec /usr/bin/Xvfb "$@"

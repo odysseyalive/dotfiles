@@ -878,6 +878,24 @@ ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10ec", ATTR{device}=="0x522a",
   log "realtek card reader udev rule installed"
 fi
 
+# Xvfb wrapper: Xvfb's GLX asks libglvnd for a default GBM EGL display, which
+# goes to NVIDIA's egl-gbm (10_nvidia.json sorts first). Its
+# OpenDefaultDrmDevice() dereferences NULL when drmGetDevices2() fails (no
+# /dev/dri, e.g. in a sandbox) and Xvfb aborts. The wrapper pins Mesa's EGL
+# vendor. /usr/local/bin, because ~/.local/bin comes after /usr/bin in PATH.
+log "installing Xvfb mesa-egl wrapper"
+for _xvdir in "$SCRIPT_DIR" ~/.yadrlite; do
+  if [ -f "$_xvdir/workstation/scripts/Xvfb" ]; then
+    if ! cmp -s "$_xvdir/workstation/scripts/Xvfb" /usr/local/bin/Xvfb; then
+      sudo install -Dm755 "$_xvdir/workstation/scripts/Xvfb" /usr/local/bin/Xvfb
+      log "installed /usr/local/bin/Xvfb"
+    fi
+    break
+  fi
+done
+[ -x /usr/local/bin/Xvfb ] ||
+  log "WARNING: Xvfb wrapper not found in the repo; skipped."
+
 # Hot-plug a Thunderbolt eGPU (AKiTiO Node Titan) without rebooting.
 # The firmware only reserves ~2M/4M of address space behind the Thunderbolt
 # root port, so a GPU powered on after boot enumerates but cannot map its BARs
