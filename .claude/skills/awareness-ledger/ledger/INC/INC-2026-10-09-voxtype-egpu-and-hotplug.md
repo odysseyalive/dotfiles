@@ -1,6 +1,6 @@
 # INC-2026-10-09-voxtype-egpu-and-hotplug
 
-**Status:** active (Voxtype on eGPU verified; hot-plug with `pci=nocrs` awaits its first reboot-then-power-on test)
+**Status:** active (Voxtype on eGPU verified; hot-plug abandoned 2026-10-19 after `pci=nocrs` stopped the Quadro initialising, see Follow-up 2026-10-19; the first boot without the drop-in has not happened yet)
 **Tags:** voxtype, whisper, vulkan, egpu, vram, oom, gpu_device, voxtype-ptt-start, node-titan, quadro-rtx-5000, thunderbolt, pci-bar, limine, kernel-cmdline, thinkpad-t490, workstation/omarchy-latest, voxtype.service.d/egpu.conf, /etc/limine-entry-tool.d/egpu-hotplug.conf
 **Related:** INC-2026-08-20-dock-audio-dac-wedge (same T490 Thunderbolt port)
 
@@ -81,3 +81,26 @@ The user asked whether Voxtype dictation could use the AKiTiO Node Titan eGPU (Q
 - `VOXTYPE_VULKAN_DEVICE` in the environment does NOT steer the isolated worker; `whisper.gpu_device` in config.toml does.
 - `gpu_device = 1` is safe only while the eGPU is bound (Vulkan 0 = NVIDIA, 1 = Intel). With the eGPU absent Intel is 0, and an out-of-range index falls back to the CPU (see Lessons Learned above), so the script resets it to 0 on every press when the eGPU is gone.
 - `gpu_device` in `~/.config/voxtype/config.toml` changes at runtime. Do not track config.toml with a fixed value.
+
+## Follow-up 2026-10-19: pci=nocrs stops the Quadro initialising
+
+**What happened:** ComfyUI failed to start on 2026-10-19 (`RuntimeError: CUDA unknown error`). `nvidia-smi` reported "No devices were found" with the Titan on at boot. The kernel log had `NVRM: GPU0 osIovaMap: osIovaMap: failed to map allocation (status = 0x59)`, `kmemsysInitFlushSysmemBuffer_GM107: Could not allocate sysmem flush buffer: 59`, then `GPU failed probe-time init, open returning -EIO`.
+
+**Timeline:**
+
+| Time | Event |
+|------|-------|
+| 2026-10-16 09:05 | Boot without `pci=` params; Quadro works (0 probe failures) |
+| 2026-10-18 12:18 | Upgrade: linux 7.2.3 → 7.2.11, nvidia-open 610.57.04 → 615.78.08. The rebuilt UKIs carry the drop-in's `pci=realloc,nocrs,hpmmiosize=32M,hpmmioprefsize=1G`, the first time it reaches a booted kernel |
+| 2026-10-18 14:02 | First boot with the drop-in; `osIovaMap` failures, 273 probe failures |
+| 2026-10-19 09:59 | linux and nvidia-open downgraded to 7.2.3 / 610.57.04; drop-in still active |
+| 2026-10-19 10:44 | Boot on the old pair with the drop-in: same `osIovaMap` failure. The versions are ruled out; the boot param is the only difference from 2026-10-16 |
+| 2026-10-19 10:59 | Drop-in removed; linux 7.2.11 / nvidia-open 615.78.08 reinstalled; rebuilt UKIs have no `pci=` params |
+
+**Root cause (supported, not yet confirmed by a boot without it):** with `pci=nocrs` the kernel ignores the host bridge `_CRS` windows. Without that information the kernel reserves IOVAs for the PCI windows (crosvm commit dbd2418 states this as the reason it removed `pci=nocrs`), and the driver's IOMMU mappings fail. The PCIe link (2.5 GT/s x4) was the same on 2026-10-16, so it is not a factor. No report of this error with 615.78.08 was found on NVIDIA/open-gpu-kernel-modules.
+
+**Resolution:** `workstation/omarchy-latest` no longer writes the hot-plug drop-in. It removes `/etc/limine-entry-tool.d/egpu-hotplug.conf` if present and runs `limine-update`. Before this, a rerun rewrote the drop-in whenever it was missing. Hot-plug is not supported; power the Titan on before booting.
+
+**Lessons:**
+- On Omarchy the kernel cmdline is baked into each UKI. A `limine-entry-tool.d` drop-in can sit unused until the next kernel install rebuilds the UKIs, so a boot param change can surface days later and look like a package regression. Read the live cmdline from the UKI: `objcopy -O binary --only-section=.cmdline /boot/EFI/Linux/omarchy_linux.efi /dev/stdout`.
+- Compare `/proc/cmdline` across boots (`journalctl -b <n> -k | grep 'Command line'`) before blaming an upgrade.
