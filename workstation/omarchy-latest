@@ -803,6 +803,16 @@ end
 LUA
     log "voxtype push-to-talk bindings added to bindings.lua"
   fi
+  if ! grep -qF "yadrlite: no Right Alt dictation" ~/.config/hypr/bindings.lua; then
+    cat >>~/.config/hypr/bindings.lua <<'LUA'
+
+-- yadrlite: no Right Alt dictation — Omarchy's default hold-Right-Alt
+-- push-to-talk ignores modifiers, so SUPER + Right Alt (window group
+-- selection) started dictation. SUPER+ALT+V above is the dictation key.
+hl.unbind("ALT + Alt_R")
+LUA
+    log "Omarchy Right Alt dictation key unbound in bindings.lua"
+  fi
 elif [ -f ~/.config/hypr/bindings.conf ]; then
   # Legacy pre-Omarchy-4 config. Same flags in legacy letter form: r=release,
   # n=non-consuming, i=ignore mods, t=transparent. Untested on this machine,
