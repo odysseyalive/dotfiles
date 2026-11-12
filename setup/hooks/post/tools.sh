@@ -304,6 +304,9 @@ if [ "$(uname)" = "Linux" ]; then
   fi
 fi
 
+# tmux-revive: session save/restore across reboots (see common.sh).
+install_tmux_revive
+
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 

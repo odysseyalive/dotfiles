@@ -126,6 +126,12 @@ if [[ "$UPGRADE" == "1" ]]; then
     (cd "$pdir" && git pull --rebase)
   done
 
+  # The refresh above drops the block tmux-revive's installer added to
+  # tmux.conf; rerunning the installer updates it and puts the block back.
+  if [ -d "$TMUX_REVIVE_APP" ]; then
+    install_tmux_revive
+  fi
+
   echo "==> Repository updated. Resuming setup..."
 fi
 

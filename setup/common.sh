@@ -51,3 +51,32 @@ get_shell_rc() {
 is_headless() {
   [ -f "${YADR_DIR:-$HOME/.yadrlite}/.headless" ]
 }
+
+# Installs or updates tmux-revive (https://github.com/odysseyalive/tmux-revive):
+# saves tmux sessions on detach, every minute and before shutdown, and restores
+# them (Claude Code conversations included) on the next start. Its installer is
+# root-free and idempotent: it unpacks into ~/.local/share/tmux-revive, links
+# ~/.local/bin/tmux-revive, and adds a marked block to the tmux.conf and shell
+# rc files in use. Rerunning it updates in place and re-adds the tmux.conf
+# block, which the update path needs after regenerating $YADR_DIR/tmux.conf.
+# Skipped without tmux so the installer never reaches for sudo to install it.
+TMUX_REVIVE_INSTALLER="https://raw.githubusercontent.com/odysseyalive/tmux-revive/main/install.sh"
+TMUX_REVIVE_APP="${XDG_DATA_HOME:-$HOME/.local/share}/tmux-revive/app"
+install_tmux_revive() {
+  if ! command -v tmux >/dev/null 2>&1; then
+    echo "  -> Skipping tmux-revive install (tmux not found)"
+    return 0
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "  -> Skipping tmux-revive install (curl not found)"
+    return 0
+  fi
+  echo "==> Installing tmux-revive"
+  _revive_sh="$(mktemp "${TMPDIR:-/tmp}/yadrlite-tmux-revive.XXXXXX")" || return 0
+  if curl -fsSL --max-time 120 "$TMUX_REVIVE_INSTALLER" -o "$_revive_sh" && sh "$_revive_sh"; then
+    echo "  -> tmux-revive installed"
+  else
+    echo "  !! tmux-revive install failed"
+  fi
+  rm -f "$_revive_sh"
+}
