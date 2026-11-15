@@ -1,13 +1,14 @@
 # Awareness Ledger Index
 
-*Auto-generated. Last updated: 2026-10-15*
+*Auto-generated. Last updated: 2026-11-14*
 
 ## By Tag
 
 - **workstation/nvim / lazyvim / codecompanion / openrouter / copilot / theme.lua** → [DEC-2026-09-01-nvim-openrouter-ai-and-theme-reconcile](DEC/DEC-2026-09-01-nvim-openrouter-ai-and-theme-reconcile.md)
 
-- **omarchy / omarchy4 / hyprland** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md)
-- **workstation/omarchy-latest / install-scripts** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md), [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
+- **omarchy / omarchy4 / hyprland** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md)
+- **kitty / focus_on_activate / xdg-activation / bell / window-rules** → [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md)
+- **workstation/omarchy-latest / install-scripts** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md), [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md)
 - **wireplumber / pipewire** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **thunderbolt-dock / usb-audio / dac-wedge / jack-detection** → [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **fidelity / bitrate / bit-depth (s32) / accurate-vs-coloration** → [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
@@ -31,6 +32,7 @@
 - [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md) — Omarchy 4 migrated Hyprland config `.conf`→Lua (and WirePlumber 0.5 dropped Lua config), silently breaking install-script-applied customizations.
 - [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md) — "Tiny/deadpan" audio on all outputs: AirPods stripped of AAC by an SBC-XQ pin, and T490 speakers played flat (no Dolby voicing). Fixed with native AAC@VBR-5 and a PipeWire builtin-convolver speaker tuning (T495 Dolby IRS).
 - [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md) — Thunderbolt 3 dock went silent with the whole software path green (unmuted, RUNNING, hw_ptr advancing): the USB-audio DAC wedged after a TB link renegotiation while the card stayed enumerated, and no jack detection + an explicit sink pin blocked recovery. Fixed by cycling the card profile (re-opens the ALSA device); packaged as the `dock-audio-reset` helper.
+- [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md) — A finished job in one kitty window took focus from the window being typed in: kitty's bell alert sends xdg-activation and Omarchy's `focus_on_activate = true` grants it. Fixed with a kitty-only `o.window("^kitty$", { focus_on_activate = false })` in `hyprland.lua`, installed by `workstation/omarchy-latest`.
 
 ### Under Review
 
