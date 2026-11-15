@@ -868,6 +868,28 @@ EOF
   fi
 fi
 
+# Stop kitty stealing focus when a job finishes in another window. kitty's
+# window_alert_on_bell sends an xdg-activation request on Wayland, and Omarchy
+# sets focus_on_activate = true, so Hyprland focused the bell window mid-typing.
+# Keep the bell alert; refuse the focus for kitty only, the way Omarchy's own
+# default/hypr/apps/telegram.lua does for Telegram. Lua (Omarchy 4) only.
+if [ -f ~/.config/hypr/hyprland.lua ]; then
+  if ! grep -qF "yadrlite: kitty no focus steal" ~/.config/hypr/hyprland.lua; then
+    cat >>~/.config/hypr/hyprland.lua <<'LUA'
+
+-- yadrlite: kitty no focus steal — kitty's bell alert (window_alert_on_bell)
+-- sends an xdg-activation request, and Omarchy's focus_on_activate = true
+-- then hands focus to the bell window. Keep the alert, refuse the focus,
+-- the same way Omarchy's apps/telegram.lua does for Telegram.
+o.window("^kitty$", { focus_on_activate = false })
+LUA
+    log "kitty focus_on_activate rule added to hyprland.lua"
+  fi
+  if pgrep -x "Hyprland" >/dev/null; then
+    hyprctl reload
+  fi
+fi
+
 # Fix Lenovo dock USB autosuspend loop (VIA Labs USB 3.1 hub)
 # Prevents kernel from repeatedly trying to enumerate/suspend dock ports
 log "configuring lenovo dock usb fix"
