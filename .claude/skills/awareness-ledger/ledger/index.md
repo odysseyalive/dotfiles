@@ -1,6 +1,6 @@
 # Awareness Ledger Index
 
-*Auto-generated. Last updated: 2026-11-14*
+*Auto-generated. Last updated: 2026-11-17*
 
 ## By Tag
 
@@ -8,20 +8,23 @@
 
 - **omarchy / omarchy4 / hyprland** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md)
 - **kitty / focus_on_activate / xdg-activation / bell / window-rules** → [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md)
-- **workstation/omarchy-latest / install-scripts** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md), [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md)
-- **wireplumber / pipewire** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
+- **workstation/omarchy-latest / install-scripts** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md), [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md)
+- **wireplumber / pipewire** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md)
 - **thunderbolt-dock / usb-audio / dac-wedge / jack-detection** → [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **fidelity / bitrate / bit-depth (s32) / accurate-vs-coloration** → [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **xkb / chinuk-wawa** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md)
-- **bluetooth / airpods / aac / codec** → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md)
-- **speaker-tuning / filter-chain / convolver / thinkpad-t490** → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
+- **bluetooth / airpods / aac / codec** → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md)
+- **speaker-tuning / filter-chain / convolver / thinkpad-t490** → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md)
 - **xvfb / egl / libglvnd / egl-gbm / nvidia / mesa / bwrap / sandbox** → [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md)
 - **voxtype / whisper / vulkan / egpu / vram / gpu_device / node-titan / pci-bar / limine / kernel-cmdline** → [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md)
 - **line-out / biquad-eq / channelmix-headroom / clipping-safe** → [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
+- **microphone / internal-mic / dmic / alc257 / hfp / msbc / sco / ax201 / echo-cancel / rnnoise / autoswitch** → [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md)
 
 ## By Status
 
 ### Active
+
+- [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md) — Built-in mic "dead": saved route muted (mic-mute LED dark) and volume 1.0 = +60 dB, so fan noise (3520 RPM, 58.7 Hz harmonics) clipped it; AirPods mic route saved at 0.02 and HFP not auto-connected. Fixed in ef22c8d (unmute + 35%, `hfp_hf`). WebRTC echo-cancel crash-looped PipeWire (-28 ENOSPC then SIGSEGV). Open: AirPods untested, AX201 `corrupted SCO packet`, RNNoise source pending package install.
 
 - [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md) — Voxtype transcribed on the Intel iGPU (ggml takes Vulkan device 0) and eGPU hot-plug failed (T490 `_CRS` has no window above 4G, so BAR1 mapped 0M). Fixed with a `DRI_PRIME=1` voxtype.service drop-in (OSD kept on software rendering), `gpu_isolation`, and `pci=nocrs`. 2026-10-15: eGPU out of VRAM aborted ggml; `voxtype-ptt-start` now falls back to small.en on the iGPU (`gpu_device = 1`) when under 2500 MiB is free. 2026-10-19: `pci=nocrs` stopped the Quadro initialising even when on at boot (`osIovaMap` status 0x59); the hot-plug drop-in is removed and hot-plug is not supported. Open until a boot without the drop-in shows the Quadro in `nvidia-smi`.
 
@@ -42,6 +45,7 @@
 
 ### Accepted
 
+- [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md) — Reverses the no-autoswitch part of INC-2026-08-18: allow HFP autoswitch, msbc/cvsd kept, `hfp_hf` auto-connect, so the AirPods mic works; playback goes mono while recording.
 - [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md) — The dock line-out never inherited the "sound enhancements" because they are device-scoped (A2DP codec knobs = Bluetooth only; the Dolby convolver targets the internal drivers only). Gave the dock its own PipeWire filter-chain sink: a gentle clipping-safe biquad EQ for voicing, plus the inherited `channelmix.max-volume = 2.0` headroom that the raw hardware sink lacked. Baked into `workstation/omarchy-latest`. **(Voicing since superseded by [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md); loudness-parity + wedge-recovery reasoning retained.)**
 - [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md) — Fidelity-first directive (native, accurate, high bitrate). Split audio processing into *corrections* (per-transducer, unshareable — e.g. the T490 convolver, kept) vs *preferences* (taste — removed under accuracy). Dock line-out changed from a "smiley" EQ to a bit-transparent `copy` passthrough (keeps `channelmix` loudness headroom + wedge-recovery re-link at zero tonal cost). Verified DAC at `S32_LE`/48 kHz and AirPods at AAC VBR-5. Added `speaker-ab` A/B helper. EasyEffects considered and declined.
 
@@ -53,12 +57,14 @@
 - [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md) → relates to → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md) (same T490 audio stack; the explicit dock sink pin and `50-disable-suspend.conf` from the 08-18 fix are the factors that block auto-recovery from the DAC wedge).
 - [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md) → resolves gap flagged by → [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md) (the dock had no per-device tuning); builds on the filter-chain pattern from [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md) (EQ instead of a speaker-cabinet convolver, since the dock is a line-out).
 - [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md) → amends → [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md) (reverses the dock *voicing* to a flat passthrough under a fidelity-first/accuracy directive; keeps its loudness-parity and DAC-wedge re-link reasoning). Preserves the convolver correction from [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md) as the accurate internal-speaker choice.
+- [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md) → amends → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md) (reverses its `50-no-autoswitch.conf` so the AirPods mic works; keeps AAC VBR-5).
+- [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md) → relates to → [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md) (the AirPods half of the mic incident).
 
 ## Statistics
 
 | Type | Total | Active | Resolved | Deprecated |
 |------|-------|--------|----------|------------|
-| Incidents | 5 | 2 | 3 | 0 |
-| Decisions | 3 | 3 | 0 | 0 |
+| Incidents | 7 | 3 | 4 | 0 |
+| Decisions | 4 | 4 | 0 | 0 |
 | Patterns | 0 | 0 | 0 | 0 |
 | Flows | 0 | 0 | 0 | 0 |
