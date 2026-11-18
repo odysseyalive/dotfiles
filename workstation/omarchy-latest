@@ -282,9 +282,16 @@ EOF
 # quality 5. PipeWire otherwise defaults AAC to CBR ~128kbit/s ("AAC-LQ"), which
 # sounds muffled/deadpan, and a bare SBC fallback is worse. Needs libfdk-aac
 # (present via pipewire's Bluetooth codec support on Arch).
-cat >~/.config/wireplumber/wireplumber.conf.d/51-bluetooth-aac.conf <<'EOF'
+#
+# msbc and cvsd stay in the list for the headset (HFP) mic. The docs call
+# bluez5.codecs an A2DP list, but PipeWire 1.6 ships the HFP codecs as codec
+# plugins too, and leaving them out risks having no mic codec at all. The file
+# was called 51-bluetooth-aac.conf; the old name is removed so two files never
+# set bluez5.codecs.
+rm -f ~/.config/wireplumber/wireplumber.conf.d/51-bluetooth-aac.conf
+cat >~/.config/wireplumber/wireplumber.conf.d/51-airpods-aac.conf <<'EOF'
 monitor.bluez.properties = {
-  bluez5.codecs = [ aac sbc_xq sbc ]
+  bluez5.codecs = [ aac sbc_xq sbc msbc cvsd ]
   bluez5.enable-sbc-xq = true
 }
 monitor.bluez.rules = [
@@ -300,14 +307,30 @@ monitor.bluez.rules = [
 ]
 EOF
 
-# Keep Bluetooth headphones on high-quality A2DP even when an app opens the mic,
-# instead of dropping to mono HFP/HSP "telephone" audio. Trade-off: the BT mic is
-# unavailable while set (calls use the laptop/webcam mic). Remove this file to
-# restore automatic headset switching.
-cat >~/.config/wireplumber/wireplumber.conf.d/50-no-autoswitch.conf <<'EOF'
-wireplumber.settings = {
-  bluetooth.autoswitch-to-headset-profile = false
-}
+# Headset mic (AirPods etc.). WirePlumber's default autoswitch moves the earbuds
+# to HFP while an app records, so the mic works; playback is mono "telephone"
+# audio for that time and returns to AAC when recording stops. An earlier
+# 50-no-autoswitch.conf kept A2DP but made the AirPods mic unreachable, so it is
+# parked as .disabled (rename it back to trade the mic for stereo during calls).
+# auto-connect lists hfp_hf so the headset profile is connected up front, not only
+# when the earbuds happen to open it.
+if [ -f ~/.config/wireplumber/wireplumber.conf.d/50-no-autoswitch.conf ]; then
+  mv -f ~/.config/wireplumber/wireplumber.conf.d/50-no-autoswitch.conf \
+    ~/.config/wireplumber/wireplumber.conf.d/50-no-autoswitch.conf.disabled
+fi
+cat >~/.config/wireplumber/wireplumber.conf.d/bluetooth-a2dp-autoconnect.conf <<'EOF'
+## Auto-connect Bluetooth audio profiles: A2DP for playback, plus HFP hands-free
+## so a headset's microphone (AirPods etc.) is reachable.
+monitor.bluez.rules = [
+  {
+    matches = [ { device.name = "~bluez_card.*" } ]
+    actions = {
+      update-props = {
+        bluez5.auto-connect = [ a2dp_sink a2dp_source hfp_hf ]
+      }
+    }
+  }
+]
 EOF
 systemctl --user restart wireplumber
 
@@ -484,6 +507,35 @@ monitor.alsa.rules = [
 ]
 EOF
   systemctl --user restart pipewire pipewire-pulse wireplumber
+fi
+
+# ThinkPad T490 internal mic (ALC257 codec DMIC at pin 0x12; works on the stock
+# snd_hda_intel driver, SOF is not needed). Two things made it look dead:
+# WirePlumber had saved its route as muted (the Omarchy mic-mute key toggles the
+# default source, and the state persists), and an unsaved route starts at 100%,
+# which is +60 dB (Capture +30 plus Internal Mic Boost +30). At that gain the
+# cooling fan (~3500 RPM under load, harmonics of ~59 Hz) clips the input. 35% is
+# about +33 dB with no boost; measured with the fan alone (2026-11-17), peaks sat
+# 10-12 dB under full scale, while 40-45% reached full scale in 3 of 4 takes.
+# Only a muted route or a level above 45% is changed, so a hand-tuned level is
+# kept.
+if grep -qi 'ThinkPad T490' /sys/class/dmi/id/product_version 2>/dev/null &&
+  command -v pactl >/dev/null 2>&1; then
+  _mic=alsa_input.pci-0000_00_1f.3.analog-stereo
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    pactl list short sources 2>/dev/null | grep -q "$_mic" && break
+    sleep 1
+  done
+  if pactl list short sources 2>/dev/null | grep -q "$_mic"; then
+    log "setting ThinkPad T490 internal mic to an unmuted, unclipped level"
+    pactl set-source-mute "$_mic" 0
+    _micvol=$(pactl get-source-volume "$_mic" | grep -o '[0-9]*%' | head -n1 | tr -d %)
+    if [ "${_micvol:-100}" -gt 45 ]; then
+      pactl set-source-volume "$_mic" 35%
+    fi
+  else
+    log "WARNING: T490 internal mic source not found; mic level left as is."
+  fi
 fi
 
 # Note: Omarchy 4 replaced swayosd with its own Quickshell OSD, so no swayosd
