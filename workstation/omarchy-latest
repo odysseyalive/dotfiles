@@ -413,9 +413,11 @@ check() {
       case "$profile" in
       headset-head-unit-cvsd)
         # CVSD corrupts the AX201's SCO link; mSBC does not.
-        [ "$msbc" = 1 ] && pactl set-card-profile "$card" headset-head-unit &&
+        if [ "$msbc" = 1 ] && pactl set-card-profile "$card" headset-head-unit; then
           echo "bt-a2dp-guard: $card cvsd -> headset-head-unit"
-        continue
+          continue
+        fi
+        [ "$running" = 1 ] && continue
         ;;
       off) [ "$running" = 1 ] && fall_back "$src" ;;
       headset-head-unit*) [ "$running" = 1 ] && continue ;;
@@ -455,6 +457,7 @@ WantedBy=default.target
 EOF
 systemctl --user daemon-reload
 systemctl --user enable --now bt-a2dp-guard.service
+systemctl --user restart bt-a2dp-guard.service
 
 # Stop WebRTC calls in Google Chrome from moving the system mic volume. Chrome's
 # input-volume adjustment changed the T490 internal mic from 35% to 29% within
