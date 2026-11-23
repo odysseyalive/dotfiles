@@ -1,6 +1,6 @@
 # Awareness Ledger Index
 
-*Auto-generated. Last updated: 2026-11-17*
+*Auto-generated. Last updated: 2026-11-22*
 
 ## By Tag
 
@@ -8,21 +8,24 @@
 
 - **omarchy / omarchy4 / hyprland** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md)
 - **kitty / focus_on_activate / xdg-activation / bell / window-rules** → [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md)
-- **workstation/omarchy-latest / install-scripts** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md), [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md)
-- **wireplumber / pipewire** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md)
+- **workstation/omarchy-latest / install-scripts** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md), [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-14-kitty-bell-focus-steal](INC/INC-2026-11-14-kitty-bell-focus-steal.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md), [INC-2026-11-22-airpods-connected-but-silent](INC/INC-2026-11-22-airpods-connected-but-silent.md)
+- **wireplumber / pipewire** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md), [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md), [INC-2026-11-22-airpods-connected-but-silent](INC/INC-2026-11-22-airpods-connected-but-silent.md)
 - **thunderbolt-dock / usb-audio / dac-wedge / jack-detection** → [INC-2026-08-20-dock-audio-dac-wedge](INC/INC-2026-08-20-dock-audio-dac-wedge.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **fidelity / bitrate / bit-depth (s32) / accurate-vs-coloration** → [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
 - **xkb / chinuk-wawa** → [INC-2026-08-17-omarchy4-conf-to-lua-migration](INC/INC-2026-08-17-omarchy4-conf-to-lua-migration.md)
-- **bluetooth / airpods / aac / codec** → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md)
+- **bluetooth / airpods / aac / codec** → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md), [INC-2026-11-22-airpods-connected-but-silent](INC/INC-2026-11-22-airpods-connected-but-silent.md)
 - **speaker-tuning / filter-chain / convolver / thinkpad-t490** → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md), [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md), [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md)
 - **xvfb / egl / libglvnd / egl-gbm / nvidia / mesa / bwrap / sandbox** → [INC-2026-10-15-xvfb-egl-gbm-null-deref](INC/INC-2026-10-15-xvfb-egl-gbm-null-deref.md)
 - **voxtype / whisper / vulkan / egpu / vram / gpu_device / node-titan / pci-bar / limine / kernel-cmdline** → [INC-2026-10-09-voxtype-egpu-and-hotplug](INC/INC-2026-10-09-voxtype-egpu-and-hotplug.md)
 - **line-out / biquad-eq / channelmix-headroom / clipping-safe** → [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md), [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md)
-- **microphone / internal-mic / dmic / alc257 / hfp / msbc / sco / ax201 / echo-cancel / rnnoise / autoswitch** → [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md)
+- **microphone / internal-mic / dmic / alc257 / hfp / msbc / sco / ax201 / echo-cancel / rnnoise / autoswitch** → [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md), [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md), [INC-2026-11-22-airpods-connected-but-silent](INC/INC-2026-11-22-airpods-connected-but-silent.md)
+- **bt-a2dp-guard / default-source / cvsd / chrome / webrtc / agc** → [INC-2026-11-22-airpods-connected-but-silent](INC/INC-2026-11-22-airpods-connected-but-silent.md)
 
 ## By Status
 
 ### Active
+
+- [INC-2026-11-22-airpods-connected-but-silent](INC/INC-2026-11-22-airpods-connected-but-silent.md) — AirPods connected but silent: WirePlumber restored a saved headset profile on reconnect (also after phone handoff), and a failed HFP link left the card on `off` while the loopback source recorded silence. CVSD logged 15–17 `corrupted SCO packet` per 25 s on the AX201, mSBC 1 in 5 takes. Fixed in 8df8411 with the `bt-a2dp-guard` user service (back to A2DP when idle, CVSD→mSBC, fallback of default and streams to the best ALSA mic when the link dies, AirPods mic default on connect) and a Chrome flag stopping WebRTC from moving the mic volume. Open: real phone handoff, speech level, USB autosuspend (needs root).
 
 - [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md) — Built-in mic "dead": saved route muted (mic-mute LED dark) and volume 1.0 = +60 dB, so fan noise (3520 RPM, 58.7 Hz harmonics) clipped it; AirPods mic route saved at 0.02 and HFP not auto-connected. Fixed in ef22c8d (unmute + 35%, `hfp_hf`). WebRTC echo-cancel crash-looped PipeWire (-28 ENOSPC then SIGSEGV). Open: AirPods untested, AX201 `corrupted SCO packet`, RNNoise source pending package install.
 
@@ -59,12 +62,13 @@
 - [DEC-2026-08-24-fidelity-first-flat-dock](DEC/DEC-2026-08-24-fidelity-first-flat-dock.md) → amends → [DEC-2026-08-20-dock-lineout-filter-chain-tuning](DEC/DEC-2026-08-20-dock-lineout-filter-chain-tuning.md) (reverses the dock *voicing* to a flat passthrough under a fidelity-first/accuracy directive; keeps its loudness-parity and DAC-wedge re-link reasoning). Preserves the convolver correction from [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md) as the accurate internal-speaker choice.
 - [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md) → amends → [INC-2026-08-18-audio-fidelity-regression](INC/INC-2026-08-18-audio-fidelity-regression.md) (reverses its `50-no-autoswitch.conf` so the AirPods mic works; keeps AAC VBR-5).
 - [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md) → relates to → [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md) (the AirPods half of the mic incident).
+- [INC-2026-11-22-airpods-connected-but-silent](INC/INC-2026-11-22-airpods-connected-but-silent.md) → amends → [DEC-2026-11-17-allow-headset-autoswitch](DEC/DEC-2026-11-17-allow-headset-autoswitch.md) (CVSD is the corrupting codec; the guard enforces mSBC and A2DP-when-idle) and follows → [INC-2026-11-17-mics-muted-overgained](INC/INC-2026-11-17-mics-muted-overgained.md) (Chrome WebRTC was moving the internal mic volume off its tested 35%).
 
 ## Statistics
 
 | Type | Total | Active | Resolved | Deprecated |
 |------|-------|--------|----------|------------|
-| Incidents | 7 | 3 | 4 | 0 |
+| Incidents | 8 | 4 | 4 | 0 |
 | Decisions | 4 | 4 | 0 | 0 |
 | Patterns | 0 | 0 | 0 | 0 |
 | Flows | 0 | 0 | 0 | 0 |

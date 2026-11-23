@@ -2,7 +2,7 @@
 
 **Status:** accepted
 **Tags:** [bluetooth, airpods, hfp, autoswitch, msbc, wireplumber, 50-no-autoswitch.conf, 51-airpods-aac.conf, bluetooth-a2dp-autoconnect.conf, workstation/omarchy-latest]
-**Related:** [INC-2026-11-17-mics-muted-overgained, INC-2026-08-18-audio-fidelity-regression]
+**Related:** [INC-2026-11-17-mics-muted-overgained, INC-2026-08-18-audio-fidelity-regression, INC-2026-11-22-airpods-connected-but-silent]
 
 ## Context
 
@@ -58,6 +58,21 @@ the list as the safe choice.
   `50-no-autoswitch.conf.disabled` back.
 - HFP quality on this machine is still exposed to the Intel AX201
   `corrupted SCO packet` issue (INC-2026-11-17-mics-muted-overgained).
+- **2026-11-22 correction (INC-2026-11-22-airpods-connected-but-silent).**
+  "msbc/cvsd kept" is only half safe. CVSD logged 15–17 `corrupted SCO packet`
+  per 25 s take, against 1 in 5 takes for mSBC. One manual CVSD pick is saved
+  and then reused by autoswitch.
+  - Removing `cvsd` from `bluez5.codecs` does not remove the CVSD profile (tested;
+    CVSD is mandatory in HFP), so the list stays as it is.
+  - The `bt-a2dp-guard` user service switches CVSD to mSBC.
+  - The guard also returns the card to `a2dp-sink` when the mic is idle or the
+    card is stuck on `off`. That covers the saved headset profile restored when
+    the AirPods come back from the phone.
+  - When the HFP link dies mid-recording, the guard moves the default source and
+    the streams to the best ALSA mic.
+  - On connect it makes the AirPods mic the default if the internal mic was.
+  - The user kept the AirPods mic with this guard rather than going back to
+    Option A.
 
 ## Confirmation Criteria
 
