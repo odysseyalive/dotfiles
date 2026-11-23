@@ -334,6 +334,141 @@ monitor.bluez.rules = [
 EOF
 systemctl --user restart wireplumber
 
+# Guard for Bluetooth headphones on the T490's Intel AX201 (INC-2026-11-22).
+# - Stereo when the mic is idle. WirePlumber saves a headset profile (voxtype's
+#   push-to-talk sets one) and restores it on every reconnect, including when the
+#   AirPods come back from the phone; a failed HFP link leaves the card on "off",
+#   connected but silent. Either way the guard returns the card to a2dp-sink.
+# - mSBC, never CVSD. CVSD logged 15-17 "corrupted SCO packet" per 25 s take
+#   (mSBC: 1 in 5 takes), and one manual pick is saved and reused by autoswitch.
+#   CVSD is mandatory in HFP, so dropping it from bluez5.codecs does not remove
+#   the profile (tested); the guard switches it to headset-head-unit instead.
+# - A mic for the meeting. If the HFP link dies while recording, the AirPods
+#   source stays and records silence; the guard moves the default source and the
+#   recording streams to the best ALSA mic (highest priority.session).
+# - The AirPods mic on connect, when the default source is the internal mic.
+# The 3 s wait lets a recording that just asked for the headset start first.
+mkdir -p ~/.local/bin ~/.config/systemd/user
+cat >~/.local/bin/bt-a2dp-guard <<'GUARD'
+#!/bin/sh
+# Keep Bluetooth headphones usable: stereo A2DP when their mic is idle, mSBC
+# rather than CVSD when it is in use, and another mic when their link fails.
+flag=${XDG_RUNTIME_DIR:-/tmp}/bt-a2dp-guard.connected
+
+# Name of the bluez_input source for a card's MAC (either spelling), or nothing.
+bt_source() {
+  pactl list sources short | awk -v a="bluez_input.$1" -v b="bluez_input.$2" \
+    'index($2, a) == 1 || index($2, b) == 1 { print $2; exit }'
+}
+
+# The highest priority.session ALSA input that is not Bluetooth or a monitor.
+best_other_source() {
+  pactl list sources 2>/dev/null | awk '
+    /^Source #/ { name = "" }
+    /^\tName: / { name = $2 }
+    /priority.session = / && name ~ /^alsa_input\./ {
+      p = $3; gsub(/"/, "", p)
+      if (p + 0 > best) { best = p + 0; pick = name }
+    }
+    END { if (pick) print pick }'
+}
+
+# Move the default and every stream recording from $1 to another mic.
+fall_back() {
+  other=$(best_other_source)
+  [ -n "$other" ] || return
+  pactl set-default-source "$other"
+  idx=$(pactl list sources short | awk -v s="$1" '$2 == s { print $1 }')
+  pactl list source-outputs short | awk -v i="$idx" '$2 == i { print $1 }' |
+    while read -r out; do pactl move-source-output "$out" "$other"; done
+  echo "bt-a2dp-guard: $1 failed while recording -> $other"
+}
+
+check() {
+  pactl list cards 2>/dev/null | awk '
+    /^Card #/ { card = ""; a2dp = 0; msbc = 0 }
+    /Name: bluez_card\./ { card = $2 }
+    card && /^\t\ta2dp-sink: / && /available: yes/ { a2dp = 1 }
+    card && /^\t\theadset-head-unit: / && /available: yes/ { msbc = 1 }
+    card && /Active Profile:/ { print card, $3, a2dp, msbc }' |
+    while read -r card profile a2dp msbc; do
+      mac=${card#bluez_card.}
+      src=$(bt_source "$mac" "$(printf '%s' "$mac" | tr _ :)")
+      running=0
+      [ -n "$src" ] && pactl list sources short |
+        awk -v s="$src" '$2 == s && $NF == "RUNNING" { f = 1 } END { exit !f }' &&
+        running=1
+
+      # Just connected: headphones should bring their mic with them.
+      if [ -e "$flag" ] && [ -n "$src" ]; then
+        rm -f "$flag"
+        case $(pactl get-default-source) in
+        alsa_input.pci-*)
+          pactl set-default-source "$src" &&
+            echo "bt-a2dp-guard: $card connected -> default source $src"
+          ;;
+        esac
+      fi
+
+      case "$profile" in
+      headset-head-unit-cvsd)
+        # CVSD corrupts the AX201's SCO link; mSBC does not.
+        [ "$msbc" = 1 ] && pactl set-card-profile "$card" headset-head-unit &&
+          echo "bt-a2dp-guard: $card cvsd -> headset-head-unit"
+        continue
+        ;;
+      off) [ "$running" = 1 ] && fall_back "$src" ;;
+      headset-head-unit*) [ "$running" = 1 ] && continue ;;
+      *) continue ;;
+      esac
+      [ "$a2dp" = 1 ] || continue
+      pactl set-card-profile "$card" a2dp-sink &&
+        echo "bt-a2dp-guard: $card $profile -> a2dp-sink"
+    done
+}
+
+check
+pactl subscribe | while read -r event; do
+  case "$event" in
+  *"'new' on card "*) : >"$flag" ;;
+  *" on card "* | *"'new' on source "*) ;;
+  *) continue ;;
+  esac
+  # Give a recording that just asked for the headset time to start.
+  sleep 3
+  check
+done
+GUARD
+chmod +x ~/.local/bin/bt-a2dp-guard
+cat >~/.config/systemd/user/bt-a2dp-guard.service <<'EOF'
+[Unit]
+Description=Return Bluetooth headphones to stereo A2DP when their mic is idle
+After=pipewire-pulse.service wireplumber.service
+
+[Service]
+ExecStart=%h/.local/bin/bt-a2dp-guard
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+systemctl --user daemon-reload
+systemctl --user enable --now bt-a2dp-guard.service
+
+# Stop WebRTC calls in Google Chrome from moving the system mic volume. Chrome's
+# input-volume adjustment changed the T490 internal mic from 35% to 29% within
+# 14 s in a test call, and the saved level had drifted to 77%, where fan noise
+# clips it (INC-2026-11-17). google-chrome-stable reads ~/.config/chrome-flags.conf;
+# the flag applies after Chrome restarts.
+if ! grep -qs 'WebRtcAllowInputVolumeAdjustment' ~/.config/chrome-flags.conf; then
+  cat >>~/.config/chrome-flags.conf <<'EOF'
+# Stop WebRTC calls (Meet, Zoom web, etc.) from changing the system mic volume.
+# 35% is the tested level for the T490 internal mic (INC-2026-11-17).
+--disable-features=WebRtcAllowInputVolumeAdjustment
+EOF
+fi
+
 # Speaker voicing for the ThinkPad T490 built-in speakers. Linux plays them flat
 # ("tiny and deadpan") because it lacks the Dolby convolution Windows applies. We
 # reproduce it natively with PipeWire's builtin convolver (no EasyEffects / third-
