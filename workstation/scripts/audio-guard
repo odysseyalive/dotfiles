@@ -1,0 +1,109 @@
+#!/bin/bash
+# Keep the audio setup intact across Omarchy and package updates.
+#
+# workstation/omarchy-latest saves a known-good copy of every audio file it writes
+# (PipeWire/WirePlumber drop-ins, the speaker IR, the volume scripts, the Bluetooth
+# guard) under ~/.local/share/yadrlite/audio-snapshot. This script runs from
+# Omarchy's post-update and post-boot hooks and:
+#   * restores any snapshot file that is missing or changed, then restarts audio;
+#   * holds every stage that is not the volume knob at 100% (omarchy-volume);
+#   * reports what it cannot fix itself (a missing package needs sudo, the volume
+#     keys live in a file you edit, a second speaker tuning would double-process)
+#     as a desktop notification.
+#
+# Usage: audio-guard            check and repair
+#        audio-guard --accept   take the current files as the new known-good copy
+#                               (after you change an audio file on purpose)
+
+SNAP="$HOME/.local/share/yadrlite/audio-snapshot"
+# The files and folders the snapshot covers, relative to $HOME.
+PATHS=(
+    .config/pipewire/pipewire.conf.d
+    .config/pipewire/irs
+    .config/wireplumber/wireplumber.conf.d
+    .local/bin/omarchy-volume
+    .local/bin/omarchy-volume-osd
+    .local/bin/bt-a2dp-guard
+    .config/systemd/user/bt-a2dp-guard.service
+)
+
+log() { echo "audio-guard: $*"; }
+
+notify() {
+    if command -v omarchy-notification-send >/dev/null 2>&1; then
+        omarchy-notification-send -u critical "Audio setup needs attention" "$1"
+    elif command -v notify-send >/dev/null 2>&1; then
+        notify-send -u critical "Audio setup needs attention" "$1"
+    fi
+    log "ATTENTION: $1"
+}
+
+if [ "$1" = "--accept" ]; then
+    rm -rf "$SNAP"
+    mkdir -p "$SNAP"
+    for p in "${PATHS[@]}"; do
+        [ -e "$HOME/$p" ] || continue
+        mkdir -p "$SNAP/$(dirname "$p")"
+        cp -a "$HOME/$p" "$SNAP/$p"
+    done
+    log "snapshot saved to $SNAP"
+    exit 0
+fi
+
+if [ ! -d "$SNAP" ]; then
+    notify "No audio snapshot found. Re-run workstation/omarchy-latest from the dotfiles repo."
+    exit 1
+fi
+
+# 1. Restore files an update removed or rewrote. Extra files are left alone, but
+#    an active .conf that the snapshot does not have is reported, since an update
+#    could add a drop-in that fights ours.
+restored=0
+while IFS= read -r -d '' f; do
+    rel="${f#"$SNAP"/}"
+    if ! cmp -s "$f" "$HOME/$rel"; then
+        mkdir -p "$HOME/$(dirname "$rel")"
+        cp -a "$f" "$HOME/$rel"
+        log "restored ~/$rel"
+        restored=1
+    fi
+done < <(find "$SNAP" -type f -print0)
+
+for d in .config/pipewire/pipewire.conf.d .config/wireplumber/wireplumber.conf.d; do
+    for f in "$HOME/$d"/*.conf; do
+        [ -e "$f" ] || continue
+        [ -e "$SNAP/$d/$(basename "$f")" ] ||
+            notify "New audio drop-in ~/$d/$(basename "$f") is not part of the saved setup. Check it, then run: audio-guard --accept"
+    done
+done
+
+if [ "$restored" -eq 1 ]; then
+    systemctl --user daemon-reload
+    systemctl --user restart pipewire pipewire-pulse wireplumber bt-a2dp-guard.service 2>/dev/null
+    sleep 3
+fi
+
+# 2. Things that cannot be restored by copying a file.
+if grep -qs 'lsp-plug.in' "$HOME/.config/pipewire/pipewire.conf.d/"*.conf &&
+    ! pacman -Q lsp-plugins-lv2 >/dev/null 2>&1; then
+    notify "lsp-plugins-lv2 is missing, so the speaker tuning cannot load. Run: sudo pacman -S lsp-plugins-lv2"
+fi
+
+if ! grep -qs 'omarchy-volume-osd' "$HOME/.config/hypr/bindings.lua"; then
+    notify "Volume keys no longer use the one-knob script. Re-run workstation/omarchy-latest."
+fi
+
+if systemctl --user is-enabled omarchy-speaker-tuning.service >/dev/null 2>&1; then
+    notify "Omarchy enabled its own speaker tuning, which stacks on ours. Run: systemctl --user disable --now omarchy-speaker-tuning.service"
+fi
+
+if grep -qs 'effect_input.t490-tuned-speakers' "$HOME/.config/pipewire/pipewire.conf.d/"*.conf &&
+    ! pactl list short sinks 2>/dev/null | grep -q 'effect_input.t490-tuned-speakers'; then
+    notify "The T490 speaker tuning did not load. Check: journalctl --user -u pipewire"
+fi
+
+# 3. Unity on every stage except the knob.
+if [ -x "$HOME/.local/bin/omarchy-volume" ]; then
+    "$HOME/.local/bin/omarchy-volume" set "$("$HOME/.local/bin/omarchy-volume" get)" >/dev/null 2>&1
+    "$HOME/.local/bin/omarchy-volume" check
+fi
