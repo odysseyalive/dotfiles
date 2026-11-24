@@ -425,7 +425,10 @@ check() {
         awk -v s="$src" '$2 == s && $NF == "RUNNING" { f = 1 } END { exit !f }' &&
         running=1
 
-      # Just connected: headphones should bring their mic with them.
+      # Just connected: headphones should bring their mic and their sound with
+      # them. WirePlumber otherwise keeps playing to the output last picked by
+      # hand (the dock, say), so the headphones connect and stay silent
+      # (2026-11-24). Only done at connect, so a later manual pick still sticks.
       if [ -e "$flag" ] && [ -n "$src" ]; then
         rm -f "$flag"
         case $(pactl get-default-source) in
@@ -434,6 +437,12 @@ check() {
             echo "bt-a2dp-guard: $card connected -> default source $src"
           ;;
         esac
+        sink=$(pactl list sinks short | awk -v a="bluez_output.$mac" \
+          'index($2, a) == 1 { print $2; exit }')
+        if [ -n "$sink" ] && [ "$(pactl get-default-sink)" != "$sink" ]; then
+          pactl set-default-sink "$sink" &&
+            echo "bt-a2dp-guard: $card connected -> default sink $sink"
+        fi
       fi
 
       case "$profile" in
