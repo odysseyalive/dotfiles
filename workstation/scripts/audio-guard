@@ -102,6 +102,10 @@ if grep -qs 'effect_input.t490-tuned-speakers' "$HOME/.config/pipewire/pipewire.
     notify "The T490 speaker tuning did not load. Check: journalctl --user -u pipewire"
 fi
 
+if [ "$(cat /sys/module/btusb/parameters/enable_autosuspend 2>/dev/null)" = "Y" ]; then
+    notify "Bluetooth USB autosuspend is on, so headset mics drop after a few seconds. Re-run workstation/omarchy-latest, or: echo 'options btusb enable_autosuspend=0' | sudo tee /etc/modprobe.d/btusb-no-autosuspend.conf"
+fi
+
 # 3. Unity on every stage except the knob.
 if [ -x "$HOME/.local/bin/omarchy-volume" ]; then
     "$HOME/.local/bin/omarchy-volume" set "$("$HOME/.local/bin/omarchy-volume" get)" >/dev/null 2>&1

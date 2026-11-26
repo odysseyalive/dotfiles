@@ -1111,6 +1111,18 @@ ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10ec", ATTR{device}=="0x522a",
   log "realtek card reader udev rule installed"
 fi
 
+# Fix Bluetooth headset mic dropping (AirPods HFP/SCO dies after ~3 s with
+# "SCO packet for unknown connection handle"). btusb turns on USB runtime
+# autosuspend for the Intel AX201 itself (enable_autosuspend=Y), which
+# usbcore autosuspend=-1 does not override, and the suspended adapter loses
+# the SCO link. Takes effect when btusb next loads (reboot).
+log "configuring bluetooth usb autosuspend fix"
+if ! [ -f /etc/modprobe.d/btusb-no-autosuspend.conf ]; then
+  echo '# Keep the Bluetooth adapter awake so headset (HFP/SCO) mics stay up
+options btusb enable_autosuspend=0' | sudo tee /etc/modprobe.d/btusb-no-autosuspend.conf >/dev/null
+  log "btusb autosuspend disabled (applies after reboot)"
+fi
+
 # Xvfb wrapper: Xvfb's GLX asks libglvnd for a default GBM EGL display, which
 # goes to NVIDIA's egl-gbm (10_nvidia.json sorts first). Its
 # OpenDefaultDrmDevice() dereferences NULL when drmGetDevices2() fails (no
